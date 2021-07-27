@@ -1,9 +1,10 @@
-; this bootloader code was graciously taken from:
-; http://3zanders.co.uk/2017/10/18/writing-a-bootloader3/
+; this bootloader was graciously taken from
+; http://3zanders.co.uk/2017/10/13/writing-a-bootloader/
 
 section .boot
 bits 16
 global boot
+extern kmain
 boot:
 	mov ax, 0x2401
 	int 0x15
@@ -13,13 +14,13 @@ boot:
 
 	mov [disk],dl
 
-	mov ah, 0x2    ;read sectors
-	mov al, 6      ;sectors to read
-	mov ch, 0      ;cylinder idx
-	mov dh, 0      ;head idx
-	mov cl, 2      ;sector idx
-	mov dl, [disk] ;disk idx
-	mov bx, copy_target;target pointer
+	mov ah, 0x2    ; read sectors
+	mov al, 6      ; sectors to read
+	mov ch, 0      ; cylinder idx
+	mov dh, 0      ; head idx
+	mov cl, 2      ; sector idx
+	mov dl, [disk] ; disk idx
+	mov bx, main   ; target pointer
 	int 0x13
 	cli
 	lgdt [gdt_pointer]
@@ -32,7 +33,8 @@ boot:
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-	jmp CODE_SEG:boot2
+	jmp CODE_SEG:main
+
 gdt_start:
 	dq 0x0
 gdt_code:
@@ -60,23 +62,10 @@ DATA_SEG equ gdt_data - gdt_start
 
 times 510 - ($-$$) db 0
 dw 0xaa55
-copy_target:
+
 bits 32
-	hello: db "Hello more than 512 bytes world!!",0
-boot2:
-	mov esi,hello
-	mov ebx,0xb8000
-.loop:
-	lodsb
-	or al,al
-	jz halt
-	or eax,0x0F00
-	mov word [ebx], ax
-	add ebx,2
-	jmp .loop
-halt:
+main:
 	mov esp,kernel_stack_top
-	extern kmain
 	call kmain
 	cli
 	hlt
