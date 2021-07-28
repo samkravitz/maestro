@@ -1,6 +1,7 @@
 AS = nasm
 CC = gcc
-CFLAGS = -std=c99 -march=i386 -m32 -fno-pie -ffreestanding -nostdlib -O2 -Wall -Wextra -I $(INCLUDE)
+CFLAGS = -std=c99 -march=i386 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -O2 -Wall -Wextra -I $(INCLUDE) -I lib/libc
+LDFLAGS = -L lib/libc -l:libc.a
 INCLUDE = include/
 VPATH = src/
 
@@ -12,16 +13,19 @@ ASM_SOURCES = boot.s
 
 OBJ = $(C_SOURCES:.c=.o) $(ASM_SOURCES:.s=.o)
 
-%.o: %.s
-	$(AS) -f elf32 $< -o $@
-
-all: kernel.bin
+all: libs kernel.bin
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-kernel.bin: $(OBJ)
-	$(CC) $(CFLAGS) -T linker.ld -o $@  $^ -lgcc
+%.o: %.s
+	$(AS) -f elf32 $< -o $@
+
+kernel.bin: $(OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -T linker.ld -o $@  $^ -lgcc $(LDFLAGS)
+
+libs:
+	$(MAKE) -C lib
 
 .PHONY: start
 start:
@@ -31,3 +35,4 @@ start:
 .PHONY: clean
 clean:
 	rm -rf *.o *.bin
+	$(MAKE) -C lib clean
