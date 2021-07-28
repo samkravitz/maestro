@@ -6,6 +6,7 @@ INCLUDE = include/
 VPATH = src/
 
 C_SOURCES = \
+	io.c \
 	kmain.c \
 	txtmode.c
 
