@@ -6,6 +6,7 @@ INCLUDE = include/
 VPATH = src/
 
 C_SOURCES = \
+	gdt.c \
 	idt.c \
 	io.c \
 	kmain.c \
