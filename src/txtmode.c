@@ -66,9 +66,8 @@ void txtmode_putc(char c)
 
 void txtmode_clear()
 {
-    for (int y = 0; y < TXTMODE_HEIGHT; ++y)
-        for (int x = 0; x < TXTMODE_WIDTH; ++x)
-            txtmode_putc(' ');
+    for (int i = 0; i < TXTMODE_WIDTH * TXTMODE_HEIGHT; ++i)
+        txtmode_putc(' ');
 }
 
 void txtmode_puts(const char *str)
