@@ -8,6 +8,7 @@ VPATH = src/
 C_SOURCES = \
 	gdt.c \
 	idt.c \
+	inittab.c \
 	io.c \
 	kmain.c \
 	txtmode.c
