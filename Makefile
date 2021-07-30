@@ -17,7 +17,7 @@ ASM_SOURCES = boot.s
 
 OBJ = $(C_SOURCES:.c=.o) $(ASM_SOURCES:.s=.o)
 
-all: libs kernel.bin
+all: libs maestro.bin
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -25,15 +25,15 @@ all: libs kernel.bin
 %.o: %.s
 	$(AS) -f elf32 $< -o $@
 
-kernel.bin: $(OBJ) $(LIBS)
-	$(CC) $(CFLAGS) -T linker.ld -o $@  $^ -lgcc $(LDFLAGS)
+maestro.bin: $(OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -T linker.ld -o $@ $^ $(LDFLAGS)
 
 libs:
 	$(MAKE) -C lib
 
 .PHONY: start
 start:
-	qemu-system-i386 -fda kernel.bin
+	qemu-system-i386 -fda maestro.bin
 
 
 .PHONY: clean

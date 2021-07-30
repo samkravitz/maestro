@@ -1,4 +1,4 @@
-/* kernel
+/* maestro
  * License: GPLv2
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
