@@ -10,6 +10,7 @@ C_SOURCES = \
 	idt.c \
 	inittab.c \
 	io.c \
+	klog.c \
 	kmain.c \
 	txtmode.c
 
