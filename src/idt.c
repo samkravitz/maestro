@@ -1,34 +1,32 @@
+/* maestro
+ * License: GPLv2
+ * See LICENSE.txt for full license text
+ * Author: Sam Kravitz
+ *
+ * FILE: idt.h
+ * DATE: August 1st, 2021
+ * DESCRIPTION: Initialize the IDT and store it in idtr
+ */
 #include "idt.h"
-#include "txtmode.h"
+#include "klog.h"
+#include "string.h"
 
 struct idt_entry idt[NUM_IDT_ENTRIES];
 
+static void set_idt(int, u32, u16, u8);
+static void lidt();
+
 void idt_init()
 {
-    memset(idt, 0, sizeof(idt));
-    u32 handler_ptr = (u32) handler;
-    u16 offlow  = (handler_ptr >> 0)  & 0xFFFF;
-    u16 offhigh = (handler_ptr >> 16) & 0xFFFF;
-
-    // for (int i = 0; i < NUM_IDT_ENTRIES; ++i)
-    // {
-    //     idt[i].offlow = offlow;
-    //     idt[i].selector = 0x8;
-    //     idt[i].zero = 0;
-    //     idt[i].flags =  0b10001110; //0b10101110;
-    //     idt[i].offhigh = offhigh;
-    // }
-
-    idt[33].offlow = offlow;
-    idt[33].selector = 0x8;
-    idt[33].zero = 0;
-    idt[33].flags =  0b10001110; //0b10101110;
-    idt[33].offhigh = offhigh;
+	memset(idt, 0, sizeof(idt));
+    for (int i = 0; i < 32; ++i)
+        set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
 
     lidt();
 }
 
-void lidt()
+// lidt - stores idt structure in idtr
+static void lidt()
 {
     struct idtr
     {
@@ -39,29 +37,23 @@ void lidt()
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (u32) &idt;
 
-    __asm("lidt (%0)" : : "r" (&idtr));
-
-    outb(0x20, 0x11);
-    outb(0xA0, 0x11);
-
-    /* Initialization of ICW2 */
-    outb(0x21, 0x20);    /* start vector = 32 */
-    outb(0xA1, 0x70);    /* start vector = 96 */
-
-    /* Initialization of ICW3 */
-    outb(0x21, 0x04);
-    outb(0xA1, 0x02);
-
-    /* Initialization of ICW4 */
-    outb(0x21, 0x01);
-    outb(0xA1, 0x01);
-
-    /* mask interrupts */
-    outb(0x21, 0x0);
-    outb(0xA1, 0x0);
+    __asm volatile ("lidt %0" : : "m" (idtr));
 }
+
+// set_idt - initializes a gate in the idt
+static void set_idt(int num, u32 base, u16 select, u8 flags)
+{
+	idt[num].offlow   = (base >> 0)  & 0xFFFF;
+    idt[num].offhigh  = (base >> 16) & 0xFFFF;
+	idt[num].selector = select;
+	idt[num].type     = (flags >> 0) & 0xF;
+	idt[num].sseg     = (flags >> 4) & 0x1;
+	idt[num].dpl      = (flags >> 5) & 0x3;
+	idt[num].present  = (flags >> 7) & 0x1;
+    idt[num].zero     = 0;
+} 
 
 void handler()
 {
-    txtmode_puts("Interrupt handled!\n");
+    klog("Interrupt handled!\n");
 }
