@@ -1,10 +1,11 @@
 CC = gcc
 AR = ar
-CFLAGS = -std=c99 -march=i386 -m32 -fno-pie -ffreestanding -nostdlib -O2 -Wall -Wextra
+CFLAGS = -std=c99 -march=i386 -m32 -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O2 -Wall -Wextra
 LIB = libc.a
 BUILDDIR = $(addprefix $(TOPDIR), $(LIB))
 
 SOURCES = \
+	stdlib.c \
 	string.c
 
 OBJ = $(SOURCES:.c=.o)
