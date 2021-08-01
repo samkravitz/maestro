@@ -1,11 +1,18 @@
+/* maestro
+ * License: GPLv2
+ * See LICENSE.txt for full license text
+ * Author: Sam Kravitz
+ *
+ * FILE: inittab.c
+ * DATE: August 1st, 2021
+ * DESCRIPTION: Initializes tables vital for kernel
+ */
 #include "inittab.h"
 
-#include "gdt.h"
 #include "idt.h"
 
-// inittab - initialize GDT and IDT tables
+// inittab - initializes IDT table
 void inittab()
 {
-    gdt_init();
-    //idt_init();
+    idt_init();
 }
