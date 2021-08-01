@@ -15,3 +15,23 @@ void klog(const char *msg)
 {
 	txtmode_puts(msg);
 }
+
+void klogh(u32 x)
+{
+	klog("0x");
+
+	char c, hex;
+	while (x)
+	{
+		c = x % 16;
+		
+		if (c < 10)
+			hex = c + '0';
+		
+		else
+			hex = (c - 10) + 'A';
+
+		txtmode_putc(hex);
+		x /= 16;
+	}
+}
