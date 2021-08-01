@@ -9,29 +9,32 @@
  */
 #include "klog.h"
 
+#include "stdlib.h"
+#include "string.h"
 #include "txtmode.h"
 
+// klog - general logging function
 void klog(const char *msg)
 {
 	txtmode_puts(msg);
 }
 
-void klogh(u32 x)
+// klogd - logs a base 10 integer
+void klogd(int x)
+{
+	char buff[32];
+	memset(buff, 0, sizeof(buff));
+	itoa(x, buff, 10);
+	klog(buff);
+}
+
+// klogh - logs a hexadecimal integer
+void klogh(int x)
 {
 	klog("0x");
 
-	char c, hex;
-	while (x)
-	{
-		c = x % 16;
-		
-		if (c < 10)
-			hex = c + '0';
-		
-		else
-			hex = (c - 10) + 'A';
-
-		txtmode_putc(hex);
-		x /= 16;
-	}
+	char buff[32];
+	memset(buff, 0, sizeof(buff));
+	itoa(x, buff, 16);
+	klog(buff);
 }

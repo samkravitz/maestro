@@ -10,6 +10,10 @@
 #ifndef KLOG_H
 #define KLOG_H
 
+#include "common.h"
+
 void klog(const char *);
+void klogd(int);
+void klogh(int);
 
 #endif // KLOG_H
