@@ -5,7 +5,8 @@ LDFLAGS = -L lib/libc -l:libc.a
 INCLUDE = include/
 VPATH = src/
 
-C_SOURCES = \
+# C sources
+C = \
 	gdt.c \
 	idt.c \
 	inittab.c \
@@ -14,9 +15,12 @@ C_SOURCES = \
 	kmain.c \
 	txtmode.c
 
-ASM_SOURCES = boot.s
+# asm sources
+ASM = \
+	boot.s \
+	isr.s \
 
-OBJ = $(C_SOURCES:.c=.o) $(ASM_SOURCES:.s=.o)
+OBJ = $(C:.c=.o) $(ASM:.s=.o)
 
 all: libs maestro.bin
 
@@ -34,7 +38,7 @@ libs:
 
 .PHONY: start
 start:
-	qemu-system-i386 -fda maestro.bin
+	qemu-system-i386 -drive file=maestro.bin,format=raw,index=0,media=disk
 
 
 .PHONY: clean
