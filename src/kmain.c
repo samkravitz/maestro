@@ -7,12 +7,11 @@
  * DATE: July 26, 2021
  * DESCRIPTION: Where it all begins
  */
-#include <stdint.h>
-
-#include "txtmode.h"
+#include "inittab.h"
+#include "klog.h"
 
 void kmain()
 {
-    const char *hello = "Hello\nWorld!\n";
-    txtmode_puts(hello);
+    klog("Welcome to maestro!\n");
+    inittab();
 }

@@ -11,12 +11,12 @@
 
 #include "stdlib.h"
 #include "string.h"
-#include "txtmode.h"
+#include "tty.h"
 
 // klog - general logging function
 void klog(const char *msg)
 {
-	txtmode_puts(msg);
+	puts(msg);
 }
 
 // klogd - logs a base 10 integer

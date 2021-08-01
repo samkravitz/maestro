@@ -12,7 +12,7 @@ C = \
 	io.c \
 	klog.c \
 	kmain.c \
-	txtmode.c
+	tty.c
 
 # asm sources
 ASM = \
