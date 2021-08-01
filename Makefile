@@ -7,7 +7,6 @@ VPATH = src/
 
 # C sources
 C = \
-	gdt.c \
 	idt.c \
 	inittab.c \
 	io.c \
