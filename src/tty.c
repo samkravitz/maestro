@@ -9,6 +9,8 @@
  */
 #include "tty.h"
 
+#include "io.h"
+
 #define TTY_WIDTH  80
 #define TTY_HEIGHT 25
 
@@ -18,14 +20,15 @@
 // get color
 #define GETCOL(c) (c | ATTRIBUTE)
 
-// static char framebuffer[TTY_HEIGHT][TTY_WIDTH] = {0};
-
 // coordinate of cursor
 static u8 x = 0;
 static u8 y = 0;
 
 // vga base address
 u16 *VGA_BASE = (u16 *) 0xB8000;
+
+static void scroll();
+static void setcur();
 
 void putc(char c)
 {
@@ -61,6 +64,15 @@ void putc(char c)
         y++;
         x = 0;
     }
+
+    scroll();
+    setcur();
+}
+
+void puts(const char *str)
+{
+    while (*str)
+        putc(*str++);
 }
 
 // clear - clears the terminal
@@ -70,8 +82,34 @@ void clear()
         putc(' ');
 }
 
-void puts(const char *str)
+// scroll screen, if necessary
+static void scroll()
 {
-    while (*str)
-        putc(*str++);
+    if (y < 25)
+        return;
+    
+    // shift all rows up one
+    int idx = 0;
+    int max = TTY_WIDTH * TTY_HEIGHT - TTY_WIDTH;
+    while (idx < max)
+    {
+        VGA_BASE[idx] = VGA_BASE[idx + TTY_WIDTH];
+        idx++;
+    }
+
+    // fill bottom row with spaces
+    for (int i = 0; i < TTY_WIDTH; ++i)
+        VGA_BASE[i + max] = GETCOL(' ');
+    
+    y = 24;
+}
+
+// set cursor
+static void setcur()
+{
+    u16 pos = y * TTY_WIDTH + x;
+    outb(0x3D4, 0xE);
+    outb(0x3D5, pos >> 8);
+    outb(0x3D4, 0xF);
+    outb(0x3D5, pos);
 }
