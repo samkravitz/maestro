@@ -17,7 +17,7 @@ u8 inb(u16 port)
 // reads 2 bytes from a specified port
 u16 inw(u16 port)
 {
-	u16 val;
+   	u16 val;
 	asm("inw %1, %0" : "=a" (val) : "dN" (port));
-	return val;
+   	return val;
 }

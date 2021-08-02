@@ -37,7 +37,7 @@ static void lidt()
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (u32) &idt;
 
-    __asm volatile ("lidt %0" : : "m" (idtr));
+    asm("lidt %0" : : "m" (idtr));
 }
 
 // set_idt - initializes a gate in the idt
