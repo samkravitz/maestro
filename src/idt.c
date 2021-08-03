@@ -43,7 +43,7 @@ void idt_init()
 	lidt();
 }
 
-// lidt - stores idt structure in idtr
+// stores idt structure in idtr
 static void lidt()
 {
     struct idtr
@@ -58,7 +58,7 @@ static void lidt()
     asm("lidt %0" : : "m" (idtr));
 }
 
-// set_idt - initializes a gate in the idt
+// sets a gate in the idt
 static void set_idt(int num, u32 base, u16 select, u8 flags)
 {
 	idt[num].offlow   = (base >> 0)  & 0xFFFF;

@@ -2,7 +2,7 @@
 
 static void rev(char *, int);
 
-// itoa - converts a number into a string
+// converts a number into a string
 char *itoa(int n, char *buff, int base)
 {
 	char c;
@@ -36,7 +36,7 @@ char *itoa(int n, char *buff, int base)
 	return buff;
 }
 
-// rev - reverses a string of a given length
+// reverses a string of a given length
 static void rev(char *str, int len)
 {
 	if (len <= 0)

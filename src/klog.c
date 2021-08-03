@@ -13,13 +13,13 @@
 #include "string.h"
 #include "tty.h"
 
-// klog - general logging function
+// general logging function
 void klog(const char *msg)
 {
 	puts(msg);
 }
 
-// klogd - logs a base 10 integer
+// logs a base 10 integer
 void klogd(int x)
 {
 	char buff[32];
@@ -28,7 +28,7 @@ void klogd(int x)
 	klog(buff);
 }
 
-// klogh - logs a hexadecimal integer
+// logs a hexadecimal integer
 void klogh(int x)
 {
 	klog("0x");
