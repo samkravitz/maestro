@@ -39,7 +39,7 @@ void intr_init()
 
 // dispatches the registered irq
 // @param x - index of registered interrupt (0-255)
-void _irq(int x)
+void irq(int x)
 {
     if (x < 0 || x >= 255)
         return;
@@ -50,7 +50,7 @@ void _irq(int x)
     handler();
 }
 
-void _isr()
+void isr()
 {
 	klog("isr handler!\n");
 }

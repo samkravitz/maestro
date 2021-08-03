@@ -34,8 +34,8 @@ extern void (*intr_handlers[NUM_INTERRUPTS]) (void);
 
 void eoi(int);
 void intr_init();
-void _irq(int);
-void _isr();
+void irq(int);
+void isr();
 void register_interrupt_handler(int, void (*)(void));
 
 #endif // INTR_H

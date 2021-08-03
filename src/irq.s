@@ -8,7 +8,7 @@
 ; DESCRIPTION: Dispatchers for hardware interrupts
 [bits 32]
 
-extern _irq
+extern irq
 
 global irq0
 irq0:
@@ -110,7 +110,7 @@ irq15:
 irq_disp:
 	pusha       ; save state pre-interrupt
 	push eax	; pass irq number as parameter that was saved earlier 
-   	call _irq   ; call the registered irq handler
+   	call irq   ; call the registered irq handler
    	pop eax		; clean up stack
    	popa        ; restore state
    	sti			; restore interrupts

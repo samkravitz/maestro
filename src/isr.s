@@ -9,7 +9,7 @@
 [bits 32]
 
 ; isr handler
-extern _isr
+extern isr
 
 global isr0
 isr0:
@@ -270,7 +270,7 @@ isr31:
 ; isr dispatcher
 isr_disp:
 	pusha          ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
-   	call _isr
+   	call isr
    	popa           ; Pops edi,esi,ebp...
    	add esp, 8     ; Cleans up the pushed error code and pushed ISR number
    	sti
