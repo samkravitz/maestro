@@ -5,7 +5,7 @@
  *
  * FILE: init.c
  * DATE: August 1st, 2021
- * DESCRIPTION: Initializes tables vital for kernel
+ * DESCRIPTION: Initializes structures and systems vital for kernel
  */
 #include "init.h"
 
@@ -13,11 +13,11 @@
 #include "intr.h"
 #include "pit.h"
 
-// inittab - initializes IDT table
-void inittab()
+// initializes IDT, interrupts, and the PIT
+void init()
 {
     intr_init();
     idt_init();
-    timer_init();
+    timer_init(100);
     asm("sti"); // enable interrupts
 }

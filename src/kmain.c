@@ -7,12 +7,11 @@
  * DATE: July 26, 2021
  * DESCRIPTION: Where it all begins
  */
-#include "inittab.h"
+#include "init.h"
 #include "klog.h"
 
 void kmain()
 {
     klog("Welcome to maestro!\n");
-    inittab();
-    asm("sti"); // enable interrupts
+    init();
 }

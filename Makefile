@@ -8,7 +8,7 @@ VPATH = src/
 # C sources
 C = \
 	idt.c \
-	inittab.c \
+	init.c \
 	intr.c \
 	io.c \
 	klog.c \
