@@ -10,9 +10,11 @@
 #include "inittab.h"
 
 #include "idt.h"
+#include "intr.h"
 
 // inittab - initializes IDT table
 void inittab()
 {
+    intr_init();
     idt_init();
 }

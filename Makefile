@@ -9,14 +9,17 @@ VPATH = src/
 C = \
 	idt.c \
 	inittab.c \
+	intr.c \
 	io.c \
 	klog.c \
 	kmain.c \
+	pit.c \
 	tty.c
 
 # asm sources
 ASM = \
 	boot.s \
+	irq.s \
 	isr.s \
 
 OBJ = $(C:.c=.o) $(ASM:.s=.o)
