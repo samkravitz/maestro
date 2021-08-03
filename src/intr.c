@@ -55,7 +55,10 @@ void isr()
 	klog("isr handler!\n");
 }
 
-void register_interrupt_handler(int x, void (*handler)(void))
+// register interrupt handler
+// @param x - index of interrupt to register (0-255)
+// @param handler - the handler function
+void regint(int x, void (*handler)(void))
 {
 	if (x < 0 || x >= 255)
         return;

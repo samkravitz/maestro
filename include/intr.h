@@ -36,6 +36,6 @@ void eoi(int);
 void intr_init();
 void irq(int);
 void isr();
-void register_interrupt_handler(int, void (*)(void));
+void regint(int, void (*)(void));
 
 #endif // INTR_H
