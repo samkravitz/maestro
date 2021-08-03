@@ -18,94 +18,95 @@ irq0:
 
 global irq1
 irq1:
-    cli				; disable interrupts
-	mov eax, 33		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+	mov eax, 33
+    jmp irq_disp
 
 global irq2
 irq2:
-    cli				; disable interrupts
-    mov eax, 34		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 34
+    jmp irq_disp
 
 global irq3
 irq3:
-    cli				; disable interrupts
-    mov eax, 35		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 35
+    jmp irq_disp
 
 global irq4
 irq4:
-    cli				; disable interrupts
-    mov eax, 36		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 36
+    jmp irq_disp
 
 global irq5
 irq5:
-    cli				; disable interrupts
-    mov eax, 37		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 37
+    jmp irq_disp
 
 global irq6
 irq6:
-    cli				; disable interrupts
-    mov eax, 38		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 38
+    jmp irq_disp
 
 global irq7
 irq7:
-    cli				; disable interrupts
-    mov eax, 39		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 39
+    jmp irq_disp
 
 global irq8
 irq8:
-    cli				; disable interrupts
-    mov eax, 40		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 40
+    jmp irq_disp
 
 global irq9
 irq9:
-    cli				; disable interrupts
-    mov eax, 41		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 41
+    jmp irq_disp
 
 global irq10
 irq10:
-    cli				; disable interrupts
-    mov eax, 42		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 42
+    jmp irq_disp
 
 global irq11
 irq11:
-    cli				; disable interrupts
-    mov eax, 43		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 43
+    jmp irq_disp
 
 global irq12
 irq12:
-    cli				; disable interrupts
-    mov eax, 44		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 44
+    jmp irq_disp
 
 global irq13
 irq13:
-    cli				; disable interrupts
-    mov eax, 45		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 45
+    jmp irq_disp
 
 global irq14
 irq14:
-    cli				; disable interrupts
-    mov eax, 46		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 46
+    jmp irq_disp
 
 global irq15
 irq15:
-    cli				; disable interrupts
-    mov eax, 47		; hold irq number so dispatcher can identify it
-    jmp irq_disp	; jump to common irq dispatcher
+    cli
+    mov eax, 47
+    jmp irq_disp
 
+; irq dispatcher
 irq_disp:
 	pusha       ; save state pre-interrupt
 	push eax	; pass irq number as parameter that was saved earlier 

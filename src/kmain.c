@@ -14,4 +14,7 @@ void kmain()
 {
     klog("Welcome to maestro!\n");
     init();
+
+    // hang so interrupts remain enabled
+    while (1);
 }
