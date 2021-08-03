@@ -29,6 +29,10 @@
 #define IRQ14	 46 // Primary ATA Hard Disk
 #define IRQ15	 47 // Secondary ATA Hard Disk
 
+// holds registered interrupt handlers
+extern void (*intr_handlers[NUM_INTERRUPTS]) (void);
+
+void eoi(int);
 void intr_init();
 void _irq(int);
 void _isr();

@@ -12,11 +12,23 @@
 #include "io.h"
 #include "klog.h"
 
+// holds registered interrupt handlers
+void (*intr_handlers[NUM_INTERRUPTS]) (void) = {0};
+
 // dummy nop function
 static void nop() { asm("nop"); }
 
-// holds registered interrupt handlers
-void (*intr_handlers[NUM_INTERRUPTS]) (void);
+// end of interrupt - acknowledges interrupt to PIC
+// @param x - index of acknowledged interrupt
+void eoi(int x)
+{
+    // clear PIC2
+    if (x >= 40)
+        outb(0xA1, 0x20);
+    
+    // clear PIC1
+	outb(0x20, 0x20);
+}
 
 void intr_init()
 {
@@ -31,8 +43,8 @@ void _irq(int x)
 {
     if (x < 0 || x >= 255)
         return;
-
-    outb(0x20, 0x20);
+    
+    eoi(x);
 
     void (*handler)(void) = intr_handlers[x];
     handler();
