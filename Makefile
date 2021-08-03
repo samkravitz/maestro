@@ -11,6 +11,7 @@ C = \
 	init.c \
 	intr.c \
 	io.c \
+	kbd.c \
 	klog.c \
 	kmain.c \
 	pit.c \
