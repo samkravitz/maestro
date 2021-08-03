@@ -14,4 +14,5 @@ void kmain()
 {
     klog("Welcome to maestro!\n");
     inittab();
+    asm("sti"); // enable interrupts
 }
