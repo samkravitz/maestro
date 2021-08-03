@@ -5,11 +5,11 @@
 ;
 ; FILE: isr.s
 ; DATE: August 1st, 2021
-; DESCRIPTION: Interrupt service routines
+; DESCRIPTION: Dispatchers for interrupt service routines
 [bits 32]
 
-; interrupt handler
-extern handler
+; isr handler
+extern _isr
 
 global isr0
 isr0:
@@ -270,7 +270,7 @@ isr31:
 ; isr dispatcher
 isr_disp:
 	pusha          ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
-   	call handler
+   	call _isr
    	popa           ; Pops edi,esi,ebp...
    	add esp, 8     ; Cleans up the pushed error code and pushed ISR number
    	sti
