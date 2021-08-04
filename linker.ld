@@ -4,22 +4,24 @@ SECTIONS {
 	. = 0x7c00;
 	.text :
 	{
-        *(.boot)
+		*(.boot)
+		stext = .;
 		*(.text)
+		etext = .;
 	}
-    
-    .rodata :
-    {
-    	*(.rodata)
-    }
 
-    .data :
-    {
-    	*(.data)
-    }
+	.rodata :
+	{
+		*(.rodata)
+	}
 
-    .bss :
-    {
-    	*(.bss)
-    }
+	.data :
+	{
+		*(.data)
+	}
+
+	.bss :
+	{
+		*(.bss)
+	}
 }
