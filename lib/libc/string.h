@@ -5,7 +5,7 @@
  *
  * FILE: libc/string.h
  * DATE: July 27, 2021
- * DESCRIPTION: memcmp, memcpy, memset, strlen 
+ * DESCRIPTION: memcmp, memcpy, memset, strcat, strncat, strlen 
  */
 
 #ifndef STRING_H
@@ -16,6 +16,8 @@
 int memcmp(const void *, const void *, size_t);
 void *memcpy(void *, const void *, size_t);
 void *memset(void *, int, size_t);
+char *strcat(char *, const char *);
+char *strncat(char *, const char *, size_t);
 size_t strlen(const char *);
 
 #endif // STRING_H

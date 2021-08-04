@@ -5,7 +5,7 @@
  *
  * FILE: libc/string.c
  * DATE: July 27, 2021
- * DESCRIPTION: memcmp, memcpy, memset, strlen
+ * DESCRIPTION: memcmp, memcpy, memset, strcat, strncat, strlen
  */
 
 #include "string.h"
@@ -55,6 +55,36 @@ void *memset(void *ptr, int c, size_t n)
 		*p++ = c;
 
 	return ptr;
+}
+
+char *strcat(char *dest, const char *src)
+{
+	size_t i = 0, len = strlen(dest);
+	
+	while (src[i])
+	{
+		dest[i + len] = src[i];
+		i++;
+	}
+
+	dest[i + len] = '\0';
+
+	return dest;
+}
+
+char *strncat(char *dest, const char *src, size_t n)
+{
+	size_t i = 0, len = strlen(dest);
+	
+	while (src[i] && n--)
+	{
+		dest[i + len] = src[i];
+		i++;
+	}
+
+	dest[i + len] = '\0';
+
+	return dest;
 }
 
 // compute the length of a null-terminated string
