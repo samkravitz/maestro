@@ -20,7 +20,8 @@ static void handler()
 		kprintf("%c", keylut[key]);
 }
 
-void kbd_init()
+// init keyboard
+void ikbd()
 {
 	// register keyboard interrupt handler
 	regint(IRQ1, handler);

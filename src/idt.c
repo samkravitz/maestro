@@ -19,7 +19,8 @@ struct idt_entry idt[NUM_INTERRUPTS];
 static void set_idt(int, u32, u16, u8);
 static void lidt();
 
-void idt_init()
+// init idt
+void iidt()
 {
 	memset(idt, 0, sizeof(idt));
 

@@ -12,7 +12,7 @@
 
 #include "common.h"
 
-void idt_init();
+void iidt();
 
 struct idt_entry
 {

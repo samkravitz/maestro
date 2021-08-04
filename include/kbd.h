@@ -10,7 +10,7 @@
 #ifndef KBD_H
 #define KBD_H
 
-void kbd_init();
+void ikbd();
 
 // scancode -> key look up table
 // scan code set 1

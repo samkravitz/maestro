@@ -26,7 +26,8 @@ static void handler()
 	// klog("\n");
 }
 
-void timer_init()
+// init timer
+void itimer()
 {
    // Firstly, register our timer callback.
    regint(IRQ0, handler);

@@ -33,7 +33,7 @@
 extern void (*intr_handlers[NUM_INTERRUPTS]) (void);
 
 void eoi(int);
-void intr_init();
+void iintr();
 void irq(int);
 void isr();
 void regint(int, void (*)(void));

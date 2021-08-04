@@ -17,9 +17,9 @@
 // initializes IDT, interrupts, and the PIT
 void init()
 {
-    intr_init();
-    idt_init();
-    timer_init(100);
-    kbd_init();
+    iintr();
+    iidt();
+    itimer();
+    ikbd();
     asm("sti"); // enable interrupts
 }
