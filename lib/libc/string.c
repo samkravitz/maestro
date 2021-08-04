@@ -17,52 +17,52 @@
 //   =0 if s1 = s2
 int memcmp(const void *s1, const void *s2, size_t n)
 {
-    const char *a = (const char *) s1;
-    const char *b = (const char *) s2;
+	const char *a = (const char *) s1;
+	const char *b = (const char *) s2;
 
-    while (n--)
-    {
-        if (*a < *b)
-            return -1;
-        else if (*a > *b)
-            return 1;
-        
-        a++;
-        b++;
-    }
+	while (n--)
+	{
+		if (*a < *b)
+			return -1;
+		else if (*a > *b)
+			return 1;
 
-    return 0;
+		a++;
+		b++;
+	}
+
+	return 0;
 }
 
 // copies n bytes of memory from src to dest
 void *memcpy(void *dest, const void *src, size_t n)
 {
-    char *dp = (char *) dest;
-    const char *sp = (const char *) src;
+	char *dp = (char *) dest;
+	const char *sp = (const char *) src;
 
-    while (n--)
-        *dp++ = *sp++;
-    
-    return dest;
+	while (n--)
+		*dp++ = *sp++;
+
+	return dest;
 }
 
 // sets n bytes of ptr to c
 void *memset(void *ptr, int c, size_t n)
 {
-    char *p = (char *) ptr;
+	char *p = (char *) ptr;
 
-    while (n--)
-        *p++ = c;
-    
-    return ptr;
+	while (n--)
+		*p++ = c;
+
+	return ptr;
 }
 
 // compute the length of a null-terminated string
 size_t strlen(const char *str)
 {
-    size_t len = 0;
-    while (*str++)
-        len++;
-    
-    return len;
+	size_t len = 0;
+	while (*str++)
+		len++;
+
+	return len;
 }

@@ -22,11 +22,11 @@ static void nop() { asm("nop"); }
 // @param x - index of acknowledged interrupt
 void eoi(int x)
 {
-    // clear PIC2
-    if (x >= 40)
-        outb(0xA1, 0x20);
+	// clear PIC2
+	if (x >= 40)
+		outb(0xA1, 0x20);
     
-    // clear PIC1
+	// clear PIC1
 	outb(0x20, 0x20);
 }
 
@@ -35,20 +35,20 @@ void iintr()
 {
 	// fill with dummy nop function so unregistered handlers are safe
 	for (int i = 0; i < NUM_INTERRUPTS; i++)
-        intr_handlers[i] = nop;
+		intr_handlers[i] = nop;
 }
 
 // dispatches the registered irq
 // @param x - index of registered interrupt (0-255)
 void irq(int x)
 {
-    if (x < 0 || x >= 255)
-        return;
-    
-    eoi(x);
+	if (x < 0 || x >= 255)
+		return;
 
-    void (*handler)(void) = intr_handlers[x];
-    handler();
+	eoi(x);
+
+	void (*handler)(void) = intr_handlers[x];
+	handler();
 }
 
 void isr()
@@ -62,7 +62,7 @@ void isr()
 void regint(int x, void (*handler)(void))
 {
 	if (x < 0 || x >= 255)
-        return;
+		return;
 
-    intr_handlers[x] = handler;
+	intr_handlers[x] = handler;
 }

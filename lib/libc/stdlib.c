@@ -21,10 +21,10 @@ char *itoa(int n, char *buff, int base)
 
 		if (mod >= 10)
 			c = 'a' + (mod - 10);
-		
+
 		else
 			c = '0' + mod;
-		
+
 		buff[i++] = c;
 		n /= base;
 	}

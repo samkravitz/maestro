@@ -12,9 +12,9 @@
 
 void kmain()
 {
-    klog("Welcome to maestro!\n");
-    init();
+	klog("Welcome to maestro!\n");
+	init();
 
-    // hang so interrupts remain enabled
-    while (1);
+	// hang so interrupts remain enabled
+	while (1);
 }
