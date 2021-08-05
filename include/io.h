@@ -10,7 +10,7 @@
 #ifndef IO_H
 #define IO_H
 
-#include "common.h"
+#include <common.h>
 
 void outb(u16, u8);
 u8 inb(u16);

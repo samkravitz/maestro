@@ -10,7 +10,7 @@
 #ifndef IDT_H
 #define IDT_H
 
-#include "common.h"
+#include <common.h>
 
 void iidt();
 

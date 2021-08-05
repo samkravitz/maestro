@@ -7,11 +7,11 @@
  * DATE: August 2nd, 2021
  * DESCRIPTION: Controllers for the PIT
  */
-#include "pit.h"
+#include <pit.h>
 
-#include "intr.h"
-#include "io.h"
-#include "klog.h"
+#include <intr.h>
+#include <io.h>
+#include <klog.h>
 
 // base frequency of the PIT, in Hz
 #define PIT_BASE_RATE 1193180

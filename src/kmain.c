@@ -7,8 +7,8 @@
  * DATE: July 26, 2021
  * DESCRIPTION: Where it all begins
  */
-#include "init.h"
-#include "klog.h"
+#include <init.h>
+#include <klog.h>
 
 void kmain()
 {

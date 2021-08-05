@@ -7,11 +7,11 @@
  * DATE: July 30, 2021
  * DESCRIPTION: kernel logging utilies
  */
-#include "klog.h"
+#include <klog.h>
 
-#include "stdlib.h"
-#include "string.h"
-#include "tty.h"
+#include <maestro/stdlib.h>
+#include <maestro/string.h>
+#include <tty.h>
 
 // general logging function
 void klog(const char *msg)

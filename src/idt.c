@@ -7,12 +7,12 @@
  * DATE: August 1st, 2021
  * DESCRIPTION: Initialize the IDT and store it in idtr
  */
-#include "idt.h"
+#include <idt.h>
 
-#include "intr.h"
-#include "io.h"
-#include "klog.h"
-#include "string.h"
+#include <intr.h>
+#include <io.h>
+#include <klog.h>
+#include <maestro/string.h>
 
 struct idt_entry idt[NUM_INTERRUPTS];
 

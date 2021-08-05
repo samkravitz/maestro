@@ -10,7 +10,7 @@
 #ifndef TTY_H
 #define TTY_H
 
-#include "common.h"
+#include <common.h>
 
 void putc(char);
 void puts(const char *);

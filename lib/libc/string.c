@@ -8,7 +8,7 @@
  * DESCRIPTION: memcmp, memcpy, memset, strcat, strncat, strlen
  */
 
-#include "string.h"
+#include <maestro/string.h>
 
 // compares n bytes of s1 with s2
 // returns:

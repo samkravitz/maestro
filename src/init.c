@@ -7,12 +7,12 @@
  * DATE: August 1st, 2021
  * DESCRIPTION: Initializes structures and systems vital for kernel
  */
-#include "init.h"
+#include <init.h>
 
-#include "idt.h"
-#include "intr.h"
-#include "kbd.h"
-#include "pit.h"
+#include <idt.h>
+#include <intr.h>
+#include <kbd.h>
+#include <pit.h>
 
 // initializes IDT, interrupts, and the PIT
 void init()

@@ -7,10 +7,10 @@
  * DATE: August 2nd, 2021
  * DESCRIPTION: Combined dispatchers for isr and irq
  */
-#include "intr.h"
+#include <intr.h>
 
-#include "io.h"
-#include "klog.h"
+#include <io.h>
+#include <klog.h>
 
 // holds registered interrupt handlers
 void (*intr_handlers[NUM_INTERRUPTS]) (void) = {0};

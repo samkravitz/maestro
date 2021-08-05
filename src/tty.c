@@ -7,9 +7,9 @@
  * DATE: July 26, 2021
  * DESCRIPTION: Functions for writing to the VGA text mode terminalS
  */
-#include "tty.h"
+#include <tty.h>
 
-#include "io.h"
+#include <io.h>
 
 #define TTY_WIDTH 80
 #define TTY_HEIGHT 25

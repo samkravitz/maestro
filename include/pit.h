@@ -10,7 +10,7 @@
 #ifndef PIT_H
 #define PIT_H
 
-#include "common.h"
+#include <common.h>
 
 void itimer();
 

@@ -1,8 +1,8 @@
 AS = nasm
 CC = gcc
-CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -O2 -Wall -Wextra -I $(INCLUDE) -I lib/libc
+CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -O2 -Wall -Wextra $(INCLUDE) -I lib/libc
 LDFLAGS = -L lib/libc -l:libc.a
-INCLUDE = include/
+INCLUDE = -I include -I include/maestro
 VPATH = src/
 
 # C sources
