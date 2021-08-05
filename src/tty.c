@@ -25,7 +25,7 @@ static u8 x = 0;
 static u8 y = 0;
 
 // vga base address
-u16 *VGA_BASE = (u16 *)0xB8000;
+u16 *VGA_BASE = (u16 *) 0xB8000;
 
 static void scroll();
 static void setcur();
@@ -43,6 +43,9 @@ void putc(char c)
 		case '\b':
 			if (x > 0)
 				x--;
+
+			u16 index = y * TTY_WIDTH + x;
+			VGA_BASE[index] = GETCOL(' ');
 			break;
 
 		case '\r':

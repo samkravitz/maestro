@@ -13,11 +13,46 @@
 #include <io.h>
 #include <klog.h>
 
+u32 state = 0;
+
+#define isalpha(c) ((c >= 'a') && (c <= 'z'))
+#define toupper(c) ('A' + c - 'a')
+
 static void handler()
 {
-	u8 key = inb(0x60);
-	if (key < 0x58 && keylut[key])
-		kprintf("%c", keylut[key]);
+	u8 scancode = inb(KBD_IN);
+
+	char c = '\0';
+	if (scancode < NUM_KEYS)
+		c = kbdus[scancode];
+
+	switch (scancode)
+	{
+		// left shift pressed
+		case LSHIFT_IDX:
+			state |= LSHIFT;
+			break;
+		
+		// left shift released
+		case LSHIFT_IDX + 0x80:
+			state &= ~LSHIFT;
+			break;
+		
+		// right shift pressed
+		case RSHIFT_IDX:
+			state |= RSHIFT;
+			break;
+		
+		// right shift released
+		case RSHIFT_IDX + 0x80:
+			state &= ~RSHIFT;
+			break;
+	}
+
+	if (isalpha(c) && PRESSED(LSHIFT | RSHIFT))
+		c = toupper(c);
+
+	kprintf("%c", c);
 }
 
 // init keyboard
