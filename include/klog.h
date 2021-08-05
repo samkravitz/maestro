@@ -11,9 +11,11 @@
 #define KLOG_H
 
 #include "common.h"
+#include <stdarg.h>
 
 void klog(const char *);
 void klogd(int);
 void klogh(int);
+int kprintf(const char *, ...);
 
 #endif // KLOG_H
