@@ -11,7 +11,7 @@
 #ifndef STRING_H
 #define STRING_H
 
-#include <common.h>
+#include <maestro.h>
 
 int memcmp(const void *, const void *, size_t);
 void *memcpy(void *, const void *, size_t);

@@ -10,7 +10,7 @@
 #ifndef KLOG_H
 #define KLOG_H
 
-#include <common.h>
+#include <maestro.h>
 #include <stdarg.h>
 
 void klog(const char *);

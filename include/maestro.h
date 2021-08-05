@@ -3,12 +3,12 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: common.h
+ * FILE: maestro.h
  * DATE: July 26, 2021
  * DESCRIPTION: Common use typedefs
  */
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef MAESTRO_H
+#define MAESTRO_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -23,4 +23,4 @@ typedef int16_t s16;
 typedef int32_t s32;
 typedef int64_t s64;
 
-#endif // COMMON_H
+#endif // MAESTRO_H
