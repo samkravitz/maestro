@@ -3,7 +3,13 @@
 
 #include <maestro.h>
 
-void *kmalloc(size_t);
+// page size
+#define PGSZ    4096
+
 void  kfree(void *);
+void *kmalloc(size_t);
+void *kmalloca(size_t);
+void *kmallocp(size_t, u32 *);
+void *kmallocap(size_t, int, u32 *);
 
 #endif // KMALLOC
