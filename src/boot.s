@@ -23,14 +23,14 @@ boot:
 	int 0x10
 
 	; load kernel from disk to run code beyond bootlaoder
-	mov [disk], dl ; store disk sector into reserved memory
-	mov ah, 0x2    ; read sectors
-	mov al, 16     ; sectors to read
-	mov ch, 0      ; cylinder idx
-	mov dh, 0      ; head idx
-	mov cl, 2      ; sector idx
-	mov dl, [disk] ; disk idx
-	mov bx, main   ; target pointer
+	mov [disk], dl	; store disk sector into reserved memory
+	mov ah, 0x2		; read sectors
+	mov al, 32		; sectors to read
+	mov ch, 0		; cylinder idx
+	mov dh, 0		; head idx
+	mov cl, 2		; sector idx
+	mov dl, [disk]	; disk idx
+	mov bx, main	; target pointer
 	int 0x13
 	cli
 	lgdt [gdt_descriptor]

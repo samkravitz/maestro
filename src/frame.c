@@ -1,6 +1,7 @@
 #include <frame.h>
 
 #include <kmalloc.h>
+#include <klog.h>
 #include <maestro/string.h>
 
 static u8 frames[NFRAMES] = {0};
@@ -14,7 +15,7 @@ int fff()
 {
     for (int i = 0; i < NFRAMES; ++i)
     {
-        if (frames[i] != 0)
+        if (frames[i] == 0)
             return i;
     }
 
@@ -34,4 +35,5 @@ int test_frame(int idx)
 void frame_init()
 {
     memset(frames, 0, sizeof(frames));
+    kprintf("There are %d frames\n", NFRAMES);
 }

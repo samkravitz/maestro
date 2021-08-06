@@ -32,9 +32,10 @@ void *kmallocap(size_t nbytes, int align, u32 *phys)
 {
     u32 ptr = (u32) heap;
 
-    if (align)
+    if (align && (heap & 0xFFFFF000))
     {
-        ptr &= ~PGSZ;
+        //ptr &= ~PGSZ;
+        ptr &= 0xFFFFF000;
 
         // if the previous operation rounds down, we don't want to return any memory
         // that may have already been kmalloc'd. so, we'll add a page size to ensure

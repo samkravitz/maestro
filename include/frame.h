@@ -3,8 +3,8 @@
 
 #include <maestro.h>
 
-// maximum address on x86
-#define MAX_ADDR    0xffffffff
+// 16M (for now)
+#define MAX_ADDR    0x1000000
 
 #define NFRAMES     (MAX_ADDR / 4096)
 
