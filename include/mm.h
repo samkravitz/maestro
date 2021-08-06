@@ -25,7 +25,7 @@ struct pagetab
 // page directory
 struct pagedir
 {
-	struct pagetab *pages[1024];
+	struct pagetab *tables[1024];
 	u32 phystab[1024];
 	u32 physaddr;
 };
@@ -34,5 +34,6 @@ struct pagedir
 extern void pdsw(struct pagedir *pd, u32 phys);
 
 void mminit();
+void pfault();
 
 #endif // MM_H

@@ -45,7 +45,7 @@ libs:
 
 .PHONY: start
 start:
-	qemu-system-i386 -drive file=maestro.bin,format=raw,index=0,media=disk
+	qemu-system-i386 -m 512M -drive file=maestro.bin,format=raw,index=0,media=disk
 
 
 .PHONY: clean

@@ -12,6 +12,7 @@
 #include <idt.h>
 #include <intr.h>
 #include <kbd.h>
+#include <mm.h>
 #include <pit.h>
 
 // initializes IDT, interrupts, and the PIT
@@ -21,5 +22,6 @@ void init()
 	iidt();
 	itimer();
 	ikbd();
+	mminit();
 	asm("sti"); // enable interrupts
 }

@@ -32,7 +32,7 @@ void *kmallocap(size_t nbytes, int align, u32 *phys)
 {
     u32 ptr = (u32) heap;
 
-    if (align)
+    if (align && (heap & 0xFFFFF000))
     {
         ptr &= ~PGSZ;
 
