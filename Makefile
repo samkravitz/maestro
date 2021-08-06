@@ -14,6 +14,7 @@ C = \
 	kbd.c \
 	klog.c \
 	kmain.c \
+	kmalloc.c \
 	pit.c \
 	tty.c
 
