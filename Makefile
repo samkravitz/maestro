@@ -25,6 +25,7 @@ ASM = \
 	boot.s \
 	irq.s \
 	isr.s \
+	pdsw.s \
 
 OBJ = $(C:.c=.o) $(ASM:.s=.o)
 
