@@ -46,6 +46,15 @@ void *memcpy(void *dest, const void *src, size_t n)
 	return dest;
 }
 
+// copy memory area
+void *memmove(void *dest, const void *src, size_t n)
+{
+	char temp[n];
+	memcpy(temp, src, n);
+	memcpy(dest, temp, n);
+	return dest;
+}
+
 // sets n bytes of ptr to c
 void *memset(void *ptr, int c, size_t n)
 {

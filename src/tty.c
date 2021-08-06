@@ -10,15 +10,16 @@
 #include <tty.h>
 
 #include <io.h>
+#include <maestro/string.h>
 
-#define TTY_WIDTH 80
-#define TTY_HEIGHT 25
+#define TTY_WIDTH 		80
+#define TTY_HEIGHT		25
 
 // attribute byte for white text on black background
-#define ATTRIBUTE (0xF << 8)
+#define ATTRIBUTE		(0xF << 8)
 
 // get color
-#define GETCOL(c) (c | ATTRIBUTE)
+#define GETCOL(c)		(c | ATTRIBUTE)
 
 // coordinate of cursor
 static u8 x = 0;
@@ -91,18 +92,15 @@ static void scroll()
 	if (y < 25)
 		return;
 
+	// index of last row in vga memory
+	const int lrow = TTY_WIDTH * TTY_HEIGHT - TTY_WIDTH;
+
 	// shift all rows up one
-	int idx = 0;
-	int max = TTY_WIDTH * TTY_HEIGHT - TTY_WIDTH;
-	while (idx < max)
-	{
-		VGA_BASE[idx] = VGA_BASE[idx + TTY_WIDTH];
-		idx++;
-	}
+	memmove(VGA_BASE, &VGA_BASE[TTY_WIDTH], lrow * 2);
 
 	// fill bottom row with spaces
 	for (int i = 0; i < TTY_WIDTH; ++i)
-		VGA_BASE[i + max] = GETCOL(' ');
+		VGA_BASE[i + lrow] = GETCOL(' ');
 
 	y = 24;
 }
