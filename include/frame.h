@@ -10,6 +10,7 @@
 
 void frame_init();
 void clear_frame(int);
+int fff();  // first free frame
 void set_frame(int);
 int test_frame(int);
 

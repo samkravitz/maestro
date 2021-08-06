@@ -10,6 +10,17 @@ void clear_frame(int idx)
     frames[idx] = 0;
 }
 
+int fff()
+{
+    for (int i = 0; i < NFRAMES; ++i)
+    {
+        if (frames[i] != 0)
+            return i;
+    }
+
+    return -1;
+}
+
 void set_frame(int idx)
 {
     frames[idx] = 1;
