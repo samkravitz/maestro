@@ -3,8 +3,8 @@
 
 #include <maestro.h>
 
-// 256 M (for now)
-#define MAX_ADDR    0x10000000
+// 16M (for now)
+#define MAX_ADDR    0x1000000
 
 #define NFRAMES     (MAX_ADDR / 4096)
 

@@ -20,7 +20,7 @@ void init()
 {
 	iintr();
 	iidt();
-	itimer();
+	//itimer();
 	ikbd();
 	mminit();
 	asm("sti"); // enable interrupts
