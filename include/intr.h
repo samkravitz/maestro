@@ -10,6 +10,8 @@
 #ifndef INTR_H
 #define INTR_H
 
+#include <state.h>
+
 #define NUM_INTERRUPTS 256
 
 #define IRQ0	 32 // Programmable Interrupt Timer Interrupt
@@ -35,7 +37,35 @@ extern void (*intr_handlers[NUM_INTERRUPTS]) (void);
 void eoi(int);
 void iintr();
 void irq(int);
-void isr();
+void isr(struct state);
+void panic(struct state);
 void regint(int, void (*)(void));
+
+// exception messages
+static const char *excmsg[] = {
+    "divide error",
+    "debug exception",
+    "nmi interrupt",
+    "breakpoint",
+    "overflow",
+    "bound range exceeded",
+    "invalid opcode",
+    "device not available",
+    "double fault",
+    "coprocessor segment overrun",
+    "invalid tss",
+    "segment not present",
+    "stack segment fault",
+    "general protection",
+    "page fault",
+    "floating point error",
+    "alignment check",
+    "machine check",
+    "floating point exception",
+    "virtualization exception",
+};
+
+// num exception messages
+static const u32 NMSG = sizeof(excmsg) / sizeof(char *);
 
 #endif // INTR_H
