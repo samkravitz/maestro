@@ -1,7 +1,7 @@
 #include <frame.h>
 
 #include <kmalloc.h>
-#include <klog.h>
+#include <kout.h>
 #include "string.h"
 
 static u8 frames[NFRAMES] = {0};
@@ -35,5 +35,5 @@ int test_frame(int idx)
 void frame_init()
 {
     memset(frames, 0, sizeof(frames));
-    kprintf("There are %d frames\n", NFRAMES);
+    koutf("There are %d frames\n", NFRAMES);
 }

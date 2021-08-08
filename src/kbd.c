@@ -11,7 +11,7 @@
 
 #include <intr.h>
 #include <io.h>
-#include <klog.h>
+#include <kout.h>
 
 u32 state = 0;
 
@@ -52,7 +52,7 @@ static void handler()
 	if (isalpha(c) && PRESSED(LSHIFT | RSHIFT))
 		c = toupper(c);
 
-	kprintf("%c", c);
+	koutf("%c", c);
 }
 
 // init keyboard

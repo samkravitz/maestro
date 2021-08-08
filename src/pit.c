@@ -11,7 +11,7 @@
 
 #include <intr.h>
 #include <io.h>
-#include <klog.h>
+#include <kout.h>
 
 // base frequency of the PIT, in Hz
 #define PIT_BASE_RATE 1193180

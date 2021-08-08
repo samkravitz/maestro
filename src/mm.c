@@ -9,7 +9,7 @@
  */
 #include <mm.h>
 
-#include <klog.h>
+#include <kout.h>
 #include <kmalloc.h>
 #include "string.h"
 

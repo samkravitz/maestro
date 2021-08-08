@@ -3,48 +3,48 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: klog.c
+ * FILE: kout.c
  * DATE: July 30, 2021
  * DESCRIPTION: kernel logging utilies
  */
-#include <klog.h>
+#include <kout.h>
 
 #include "stdlib.h"
 #include "string.h"
 #include <tty.h>
 
 // general logging function
-void klog(const char *msg)
+void kout(const char *msg)
 {
 	puts(msg);
 }
 
 // logs a base 10 integer
-void klogd(int x)
+void koutd(int x)
 {
 	char buff[32];
 	memset(buff, 0, sizeof(buff));
 	itoa(x, buff, 10);
-	klog(buff);
+	kout(buff);
 }
 
 // logs a hexadecimal integer
-void klogh(int x)
+void kouth(int x)
 {
 	char buff[32];
 	memset(buff, 0, sizeof(buff));
 	itoa(x, buff, 16);
-	klog(buff);
+	kout(buff);
 }
 
 // like printf, but better...
-int kprintf(const char *fmt, ...)
+int koutf(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 
 	int x, i = 0;
-	char buff[256] = {0}; // note - kprintf can print a max length of 256
+	char buff[256] = {0}; // note - koutf can print a max length of 256
 	char c;
 
 	char fmtbuf[32];
@@ -112,6 +112,6 @@ int kprintf(const char *fmt, ...)
 	}
 
 	va_end(args);
-	klog(buff);
+	kout(buff);
 	return i;
 }

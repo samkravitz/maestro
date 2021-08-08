@@ -3,19 +3,19 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: klog.h
+ * FILE: kout.h
  * DATE: July 30, 2021
  * DESCRIPTION: kernel logging utilies
  */
-#ifndef KLOG_H
-#define KLOG_H
+#ifndef kout_H
+#define kout_H
 
 #include <maestro.h>
 #include <stdarg.h>
 
-void klog(const char *);
-void klogd(int);
-void klogh(int);
-int kprintf(const char *, ...);
+void kout(const char *);
+void koutd(int);
+void kouth(int);
+int koutf(const char *, ...);
 
-#endif // KLOG_H
+#endif // kout_H

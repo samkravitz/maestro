@@ -13,9 +13,9 @@ C = \
 	intr.c \
 	io.c \
 	kbd.c \
-	klog.c \
 	kmain.c \
 	kmalloc.c \
+	kout.c \
 	mm.c \
 	pit.c \
 	tty.c

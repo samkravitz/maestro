@@ -8,11 +8,11 @@
  * DESCRIPTION: Where it all begins
  */
 #include <init.h>
-#include <klog.h>
+#include <kout.h>
 
 void kmain()
 {
-	klog("Welcome to maestro!\n");
+	kout("Welcome to maestro!\n");
 	init();
 
 	// hang so interrupts remain enabled

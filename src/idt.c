@@ -11,7 +11,7 @@
 
 #include <intr.h>
 #include <io.h>
-#include <klog.h>
+#include <kout.h>
 #include "string.h"
 
 struct idt_entry idt[NUM_INTERRUPTS];
