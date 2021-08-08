@@ -12,41 +12,55 @@ void kfree(void *ptr)
 // general kmalloc
 void *kmalloc(size_t nbytes)
 {
-    return kmallocap(nbytes, 0, NULL);
+    u32 ptr = (u32) heap;
+    heap += nbytes;
+    return (void *) ptr;
 }
 
 // kmalloc align - makes sure address returned is aligned on a page boundary
 void *kmalloca(size_t nbytes)
 {
-    return kmallocap(nbytes, 1, NULL);
+    if (heap & 0xFFFFF000)
+    {
+        //ptr &= ~PGSZ;
+        heap &= 0xFFFFF000;
+
+        // if the previous operation rounds down, we don't want to return any memory
+        // that may have already been kmalloc'd. so, we'll add a page size to ensure
+        // this memory is new.
+        heap += PGSZ;
+    }
+
+    return kmalloc(nbytes);
 }
 
 // kmalloc phys - fills the phys pointer with the physical address of the returned memory
 void *kmallocp(size_t nbytes, u32 *phys)
 {
-    return kmallocap(nbytes, 0, phys);
+    u32 ptr = kmalloc(nbytes);
+    if (phys)
+        *phys = ptr;
+
+    return (void *) ptr;
 }
 
 // kmalloc align + kmalloc phys
 void *kmallocap(size_t nbytes, int align, u32 *phys)
 {
-    u32 ptr = (u32) heap;
-
-    if (align && (heap & 0xFFFFF000))
+    if (heap & 0xFFFFF000)
     {
         //ptr &= ~PGSZ;
-        ptr &= 0xFFFFF000;
+        heap &= 0xFFFFF000;
 
         // if the previous operation rounds down, we don't want to return any memory
         // that may have already been kmalloc'd. so, we'll add a page size to ensure
         // this memory is new.
-        ptr += PGSZ;
+        heap += PGSZ;
     }
 
-    // store physical address of memory in pointer if requested
+    u32 ptr = kmalloc(nbytes);
     if (phys)
         *phys = ptr;
 
-    heap += nbytes;
     return (void *) ptr;
 }
