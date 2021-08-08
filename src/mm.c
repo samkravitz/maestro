@@ -11,7 +11,7 @@
 
 #include <klog.h>
 #include <kmalloc.h>
-#include <maestro/string.h>
+#include "string.h"
 
 u32 *kpd; // kernel page directory
 u32 *cpd; // current page directory

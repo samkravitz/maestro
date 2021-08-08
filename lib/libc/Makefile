@@ -1,7 +1,7 @@
 CC = gcc
 AR = ar
-CFLAGS = -std=c99 -march=i686 -m32 -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O2 -Wall -Wextra $(INCLUDE)
-INCLUDE = -I ../../include -I ../../include/maestro
+CFLAGS = -std=c99 -march=i686 -m32 -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O2 -Wall -Wextra -I $(INCLUDE)
+INCLUDE = ../../include
 LIB = libc.a
 BUILDDIR = $(addprefix $(TOPDIR), $(LIB))
 

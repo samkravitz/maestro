@@ -10,7 +10,7 @@
 #include <tty.h>
 
 #include <io.h>
-#include <maestro/string.h>
+#include "string.h"
 
 #define TTY_WIDTH 		80
 #define TTY_HEIGHT		25

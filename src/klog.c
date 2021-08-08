@@ -9,8 +9,8 @@
  */
 #include <klog.h>
 
-#include <maestro/stdlib.h>
-#include <maestro/string.h>
+#include "stdlib.h"
+#include "string.h"
 #include <tty.h>
 
 // general logging function

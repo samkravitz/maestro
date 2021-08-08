@@ -2,7 +2,7 @@
 
 #include <kmalloc.h>
 #include <klog.h>
-#include <maestro/string.h>
+#include "string.h"
 
 static u8 frames[NFRAMES] = {0};
 
