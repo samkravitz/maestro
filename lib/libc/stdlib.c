@@ -15,7 +15,7 @@ char *itoa(int n, char *buff, int base)
 		n *= -1;
 	}
 
-	while (n)
+	do
 	{
 		mod = n % base;
 
@@ -27,7 +27,7 @@ char *itoa(int n, char *buff, int base)
 
 		buff[i++] = c;
 		n /= base;
-	}
+	} while (n);
 
 	if (neg)
 		buff[i++] = '-';

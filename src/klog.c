@@ -70,7 +70,7 @@ int kprintf(const char *fmt, ...)
 				
 				// base 10 integer
 				case 'd':
-					x = va_arg(args, u32);
+					x = va_arg(args, int);
 					itoa(x, fmtbuf, 10);
 					strcat(buff, fmtbuf);
 					i += strlen(fmtbuf);
