@@ -4,6 +4,12 @@
 extern u32 end;
 u32 heap = (u32) &end;
 
+void *brk(int amt)
+{
+    heap += amt;
+    return heap;
+}
+
 void kfree(void *ptr)
 {
 
