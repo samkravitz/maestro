@@ -19,6 +19,7 @@ C = \
 	kout.c \
 	mm.c \
 	pq.c \
+	proc.c \
 	tty.c
 
 # asm sources
