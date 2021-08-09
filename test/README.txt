@@ -1,0 +1,1 @@
+Note - tests are to be run in an environment with a standard lib - like Linux
