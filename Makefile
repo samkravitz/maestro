@@ -18,6 +18,7 @@ C = \
 	kmalloc.c \
 	kout.c \
 	mm.c \
+	pq.c \
 	tty.c
 
 # asm sources
