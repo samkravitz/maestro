@@ -9,18 +9,18 @@
  */
 #include <init.h>
 
+#include <clk.h>
 #include <idt.h>
 #include <intr.h>
 #include <kbd.h>
 #include <mm.h>
-#include <pit.h>
 
 // initializes IDT, interrupts, and the PIT
 void init()
 {
 	iintr();
 	iidt();
-	//itimer();
+	clkinit();
 	ikbd();
 	mminit();
 	asm("sti"); // enable interrupts

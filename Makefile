@@ -7,6 +7,7 @@ VPATH = src/
 
 # C sources
 C = \
+	clk.c \
 	frame.c \
 	idt.c \
 	init.c \
@@ -17,7 +18,6 @@ C = \
 	kmalloc.c \
 	kout.c \
 	mm.c \
-	pit.c \
 	tty.c
 
 # asm sources
@@ -43,6 +43,10 @@ maestro.bin: $(OBJ) $(LIBS)
 libs:
 	$(MAKE) -C lib
 
+.PHONY: test
+test:
+	$(MAKE) -C test
+
 .PHONY: start
 start:
 	qemu-system-i386 -m 512M -drive file=maestro.bin,format=raw,index=0,media=disk
@@ -51,3 +55,4 @@ start:
 clean:
 	rm -rf *.o *.bin
 	$(MAKE) -C lib clean
+	$(MAKE) -C test clean
