@@ -25,7 +25,7 @@ boot:
 	; load kernel from disk to run code beyond bootlaoder
 	mov [disk], dl	; store disk sector into reserved memory
 	mov ah, 0x2		; read sectors
-	mov al, 32		; sectors to read
+	mov al, 128		; sectors to read
 	mov ch, 0		; cylinder idx
 	mov dh, 0		; head idx
 	mov cl, 2		; sector idx

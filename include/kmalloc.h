@@ -6,6 +6,7 @@
 // page size
 #define PGSZ    4096
 
+void *brk(int);
 void  kfree(void *);
 void *kmalloc(size_t);
 void *kmalloca(size_t);

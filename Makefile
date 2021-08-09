@@ -1,8 +1,8 @@
 AS = nasm
 CC = gcc
-CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE) -I lib/libc
-LDFLAGS = -L lib/libc -l:libc.a
-INCLUDE = -I include -I lib/libc
+CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE)
+LDFLAGS = -L lib/libc -l:libc.a -L lib/libdlmalloc -l:libdlmalloc.a
+INCLUDE = -I include -I lib/libc -I lib/libdlmalloc
 VPATH = src/
 
 # C sources
