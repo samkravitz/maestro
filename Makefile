@@ -20,6 +20,7 @@ C = \
 	mm.c \
 	pq.c \
 	proc.c \
+	sched.c \
 	tty.c
 
 # asm sources

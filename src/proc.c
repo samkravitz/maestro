@@ -4,13 +4,7 @@
 
 int currpid;
 struct proc proctab[NPROC];
-struct pq *rdylist = NULL;
-
-int proccmp(void *a, void *b)
-{
-	struct proc *proc1 = (struct proc *) a;	
-	struct proc *proc2 = (struct proc *) b;
-}
+struct pq *readylist = NULL;
 
 int curr()
 {
