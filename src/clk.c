@@ -12,6 +12,7 @@
 #include <intr.h>
 #include <io.h>
 #include <kout.h>
+#include <proc.h>
 
 // base frequency of the PIT, in Hz
 #define PIT_BASE_RATE 	1193180
@@ -25,6 +26,7 @@ static void clkhandler()
 	{
 		++sec;
 		ms = 0;
+		sched();
 	}
 }
 

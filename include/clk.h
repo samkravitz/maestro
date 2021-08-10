@@ -12,6 +12,6 @@
 
 #include <maestro.h>
 
-void itimer();
+void clkinit();
 
 #endif
