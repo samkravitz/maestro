@@ -3,14 +3,8 @@
 #include <pq.h>
 
 int currpid;
-struct proc proctab[NPROC];
-struct pq *rdylist = NULL;
-
-int proccmp(void *a, void *b)
-{
-	struct proc *proc1 = (struct proc *) a;	
-	struct proc *proc2 = (struct proc *) b;
-}
+struct proc *proctab[NPROC];
+struct pq *readylist = NULL;
 
 int curr()
 {
@@ -19,7 +13,7 @@ int curr()
 
 struct proc *currproc()
 {
-	return &proctab[curr()];
+	return proctab[curr()];
 }
 
 int spawn(int (*func)(void), char *name, int prio)
