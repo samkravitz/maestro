@@ -13,12 +13,12 @@
 #include <io.h>
 #include <kout.h>
 
-u32 state = 0;
+static u32 state = 0;
 
 #define isalpha(c) ((c >= 'a') && (c <= 'z'))
 #define toupper(c) ('A' + c - 'a')
 
-static void handler()
+void kbdhandler()
 {
 	u8 scancode = inb(KBD_IN);
 
@@ -53,11 +53,4 @@ static void handler()
 		c = toupper(c);
 
 	koutf("%c", c);
-}
-
-// init keyboard
-void ikbd()
-{
-	// register keyboard interrupt handler
-	regint(IRQ1, handler);
 }

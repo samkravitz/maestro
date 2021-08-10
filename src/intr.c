@@ -31,7 +31,7 @@ void eoi(int x)
 }
 
 // init interrupts
-void iintr()
+void intrinit()
 {
 	// fill with dummy nop function so unregistered handlers are safe
 	for (int i = 0; i < NUM_INTERRUPTS; i++)

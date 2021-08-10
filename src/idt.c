@@ -20,7 +20,7 @@ static void set_idt(int, u32, u16, u8);
 static void lidt();
 
 // init idt
-void iidt()
+void idtinit()
 {
 	memset(idt, 0, sizeof(idt));
 

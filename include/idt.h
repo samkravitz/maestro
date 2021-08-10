@@ -12,7 +12,7 @@
 
 #include <maestro.h>
 
-void iidt();
+void idtinit();
 
 struct idt_entry
 {

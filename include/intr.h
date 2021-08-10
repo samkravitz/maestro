@@ -35,15 +35,15 @@
 extern void (*intr_handlers[NUM_INTERRUPTS]) (void);
 
 void eoi(int);
-void iintr();
+void intrinit();
 void irq(int);
 void isr(struct state);
 void panic(struct state);
 void regint(int, void (*)(void));
 
 // disable / enable interrupts
-static void cli() { asm("cli"); }
-static void sti() { asm("sti"); }
+static void disable() { asm("cli"); }
+static void enable() { asm("sti"); }
 
 // exception messages
 static const char *excmsg[] = {

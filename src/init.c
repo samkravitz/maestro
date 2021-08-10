@@ -18,10 +18,14 @@
 // initializes IDT, interrupts, and the PIT
 void init()
 {
-	iintr();
-	iidt();
+	idtinit();
+	intrinit();
 	clkinit();
-	ikbd();
 	mminit();
-	asm("sti"); // enable interrupts
+
+	// set keyboard interrupt handler
+	regint(IRQ1, kbdhandler);
+
+	// enable interrupts
+	enable();
 }

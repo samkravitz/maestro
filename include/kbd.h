@@ -13,7 +13,7 @@
 #include <maestro.h>
 
 // state of special characters
-extern u32 state;
+static u32 state;
 
 #define NUM_KEYS        128
 #define KBD_IN			0x60
@@ -36,8 +36,6 @@ extern u32 state;
 
 #define PRESSED(k) (state & (k))
 
-void ikbd();
-
 // scancode -> key look up table
 // scan code set 1 - US QWERTY
 static const char kbdus[NUM_KEYS] = {
@@ -59,5 +57,6 @@ static const char kbdus[NUM_KEYS] = {
     '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
 };
 
+void kbdhandler();
 
 #endif // KBD_H
