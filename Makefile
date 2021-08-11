@@ -26,6 +26,7 @@ C = \
 # asm sources
 ASM = \
 	boot.s \
+	ctxsw.s \
 	irq.s \
 	isr.s \
 	pdsw.s \

@@ -23,12 +23,13 @@ struct proc
 	u32 			stkptr;
 	struct state 	state;
 	enum prstate 	prstate;
+	u32				pc;
 };
 
 // process ready list
 extern struct pq *readylist;
 
-static int proccmp(void *a, void *b) { return 1; }
+static int proccmp(void *a, void *b) { return -1; }
 
 int curr();
 struct proc *currproc();
