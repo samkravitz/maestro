@@ -15,7 +15,7 @@
 #include <kbd.h>
 #include <mm.h>
 
-// initializes IDT, interrupts, and the PIT
+// initializes IDT, interrupts, and the clock
 void init()
 {
 	idtinit();

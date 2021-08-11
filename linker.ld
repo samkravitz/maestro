@@ -1,25 +1,25 @@
 ENTRY(boot)
-OUTPUT_FORMAT("binary")
-SECTIONS {
-	. = 0x7c00;
+SECTIONS
+{
+	. = 1M;
+ 
 	.text :
 	{
-		*(.boot)
-		stext = .;
+		*(.multiboot)
 		*(.text)
 		etext = .;
 	}
-
+ 
 	.rodata :
 	{
 		*(.rodata)
 	}
-
+ 
 	.data :
 	{
 		*(.data)
 	}
-
+ 
 	.bss :
 	{
 		*(.bss)

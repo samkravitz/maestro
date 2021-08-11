@@ -18,7 +18,6 @@
 extern struct pq *readylist;
 extern struct proc *proctab[];
 
-
 struct proc *prntA;
 
 extern void hijack();
@@ -46,12 +45,8 @@ void kmain()
 	kout("Welcome to maestro!\n");
 	init();
 
-	malloc(128);
-
 	struct proc *prA = prspawn(printA, "print A");
 	struct proc *prB = prspawn(printB, "print B");
-
-	koutf("Addr of printB is %x\n", prA);
 
 	// create ready list
 	//readylist = newpq(null);
@@ -61,7 +56,7 @@ void kmain()
 
 	proctab[0] = prA;
 	proctab[1] = prB;
-	// //insert(&readylist, printB, proccmp);
+	//insert(&readylist, printB, proccmp);
 	//printA();
 
 	while (1)

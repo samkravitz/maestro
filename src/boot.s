@@ -6,48 +6,49 @@
 ; FILE: boot.s
 ; DATE: July 26, 2021
 ; DESCRIPTION: The first code executed when the computer turns on -
-; 	switches to protected mode, initializes the GDT, and calls kmain()
+; 	sets up multiboot data, initializes the GDT, and calls kmain()
 ;
 ; this bootloader was graciously adapted from
 ; http://3zanders.co.uk/2017/10/13/writing-a-bootloader/
 ; and
 ; https://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf
+[bits 32]
 
-section .boot
-[bits 16]
-global boot
+; constants required for multiboot header
+MBALIGN  equ  1 << 0            ; align loaded modules on page boundaries
+MEMINFO  equ  1 << 1            ; provide memory map
+FLAGS    equ  MBALIGN | MEMINFO ; this is the Multiboot 'flag' field
+MAGIC    equ  0x1BADB002        ; 'magic number' lets bootloader find the header
+CHECKSUM equ -(MAGIC + FLAGS)   ; checksum of above, to prove we are multiboot
+ 
+; set up multiboot header
+section .multiboot
+align 4
+	dd MAGIC
+	dd FLAGS
+	dd CHECKSUM
+
 extern kmain
+section .text
+global boot:
 boot:
-	; enable VGA text mode
-	mov ax, 0x3
-	int 0x10
-
-	; load kernel from disk to run code beyond bootlaoder
-	mov [disk], dl	; store disk sector into reserved memory
-	mov ah, 0x2		; read sectors
-	mov al, 128		; sectors to read
-	mov ch, 0		; cylinder idx
-	mov dh, 0		; head idx
-	mov cl, 2		; sector idx
-	mov dl, [disk]	; disk idx
-	mov bx, main	; target pointer
-	int 0x13
-	cli
-	lgdt [gdt_descriptor]
-
-	; switch to 32 bit protected mode
-	mov eax, cr0
-	or eax, 0x1
-	mov cr0, eax
-	mov ax, DATA_SEG
-	mov ds, ax
+	lgdt [gdt_descriptor]	; load gdt into gdtr
+	mov ax, 0x10      		; 0x10 is the offset in the gdt to data segment
+	mov ds, ax        		; reload remainder of data segment registers
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-	jmp CODE_SEG:main
+	jmp 0x8:ljmp			; perform long jump to activate new segment registers
 
-; initialize GDT
+	ljmp:					; dummy label to act as landing point for long jump
+	mov esp, kstack_top		; load esp with kernel stack
+	call kmain 
+	cli
+	jmp $
+
+; initialize gdt
+section .data
 gdt:
 gdt_null:      ; null descriptor
 	dd 0x0       ; 4 bytes of 0
@@ -73,28 +74,9 @@ gdt_descriptor:
 dw gdt_end - gdt - 1 ; size of gdt minus 1
 dd gdt               ; starting address of GDT
 
-CODE_SEG equ gdt_code - gdt
-DATA_SEG equ gdt_data - gdt
-
-; reserve a byte to store boot drive number to use later later
-disk:
-	db 0
-
-; pad the remainder of the 512 byte bootsector with 0
-; and remember to end with 0x55aa (little endian)
-times 510 - ($-$$) db 0
-dw 0xaa55
-
-[bits 32]
-main:
-	mov esp, kstack_top
-	call kmain
-	cli
-	hlt
-
 ; initialize kernel stack
 section .bss
-align 4
-kstack_bottom: equ $
-	resb 16384 ; 16 KB
+align 16
+kstack_bottom:
+resb 16384 ; 16 KiB
 kstack_top:

@@ -33,7 +33,10 @@ ASM = \
 
 OBJ = $(C:.c=.o) $(ASM:.s=.o)
 
-all: libs maestro.bin
+all: libs maestro.bin iso
+
+maestro.bin: $(OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -T linker.ld -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -41,22 +44,28 @@ all: libs maestro.bin
 %.o: %.s
 	$(AS) -f elf32 $< -o $@
 
-maestro.bin: $(OBJ) $(LIBS)
-	$(CC) $(CFLAGS) -T linker.ld -o $@ $^ $(LDFLAGS)
-
 libs:
 	$(MAKE) -C lib
+
+iso: maestro.bin
+	mkdir -p iso/boot/grub
+	cp maestro.bin iso/boot/maestro.bin
+	cp grub.cfg iso/boot/grub/grub.cfg
+	grub-mkrescue -o maestro.iso iso
 
 .PHONY: test
 test:
 	$(MAKE) -C test
 
+# # qemu-system-i386 -m 512M -drive file=maestro.bin,format=raw,index=0,media=disk
 .PHONY: start
 start:
-	qemu-system-i386 -m 512M -drive file=maestro.bin,format=raw,index=0,media=disk
+	qemu-system-i386 -cdrom maestro.iso
+	
 
 .PHONY: clean
 clean:
-	rm -rf *.o *.bin
+	rm -rf *.o *.bin *.iso
+	rm -rf iso
 	$(MAKE) -C lib clean
 	$(MAKE) -C test clean
