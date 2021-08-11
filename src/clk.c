@@ -26,8 +26,12 @@ static void clkhandler()
 	{
 		++sec;
 		ms = 0;
+		disable();
 		sched();
+		enable();
+		koutf("after sched\n");
 	}
+	//koutf("clkhandler\n");
 }
 
 // init clk

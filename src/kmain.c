@@ -18,22 +18,27 @@
 extern struct pq *readylist;
 extern struct proc *proctab[];
 
+
 struct proc *prntA;
 
-int printA()
+extern void hijack();
+
+void printA()
 {
 	while (1)
+	{
 		koutf("%c", 'A');
-	
-	return 0;
+		asm("hlt");
+	}
 }
 
-int printB()
+void printB()
 {
 	while (1)
-		koutf("%c", 'B');
-	
-	return 0;
+	{
+		koutf("%c", 'B');	
+		asm("hlt");
+	}
 }
 
 void kmain()
@@ -41,49 +46,23 @@ void kmain()
 	kout("Welcome to maestro!\n");
 	init();
 
-	// set up null process
-	struct proc *null = (struct proc *) malloc(sizeof(struct proc));
-	u32 stkptr = (u32) malloc(1024);
-	null->pid = 0;
-	null->prio = -20;
-	null->stkbase = stkptr;
-	null->stkptr = stkptr;
-	null->prstate = PR_READY;
-	null->pc = printB;
-	memcpy(null->name, "null process\0", strlen("null process") + 1);
+	malloc(128);
 
-	// set up print A process
-	prntA = (struct proc *) malloc(sizeof(struct proc));
-	stkptr = (u32) malloc(1024);
-	prntA->pid = 1;
-	prntA->prio = 0;
-	prntA->stkbase = stkptr;
-	prntA->stkptr = stkptr;
-	prntA->prstate = PR_READY;
-	prntA->pc = printA;
-	memcpy(prntA->name, "print A\0", strlen("print A") + 1);
+	struct proc *prA = prspawn(printA, "print A");
+	struct proc *prB = prspawn(printB, "print B");
 
-	// set up print B process
-	// struct proc *prntB = (struct proc *) malloc(sizeof(struct proc));
-	// stkptr = (u32) malloc(1024);
-	// prntB->pid = 1;
-	// prntB->prio = 0;
-	// prntB->stkbase = stkptr;
-	// prntB->stkptr = stkptr;
-	// prntB->prstate = PR_READY;
-	// memcpy(prntB->name, "print B\0", strlen("print B") + 1);
-
+	koutf("Addr of printB is %x\n", prA);
 
 	// create ready list
-	readylist = newpq(null);
+	//readylist = newpq(null);
 
-	insert(&readylist, null, proccmp);
-	insert(&readylist, printA, proccmp);
+	//insert(&readylist, prntA, proccmp);
+	//insert(&readylist, prntB, proccmp);
 
-	proctab[0] = null;
-	proctab[1] = prntA;
-	//insert(&readylist, printB, proccmp);
-	
+	proctab[0] = prA;
+	proctab[1] = prB;
+	// //insert(&readylist, printB, proccmp);
+	//printA();
 
 	while (1)
 		asm("hlt");

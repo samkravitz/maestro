@@ -9,9 +9,11 @@
  */
 #include <kout.h>
 
+#include <intr.h>
+#include <tty.h>
+
 #include "stdlib.h"
 #include "string.h"
-#include <tty.h>
 
 // general logging function
 void kout(const char *msg)
@@ -40,6 +42,7 @@ void kouth(int x)
 // like printf, but better...
 int koutf(const char *fmt, ...)
 {
+	disable();
 	va_list args;
 	va_start(args, fmt);
 
@@ -69,7 +72,7 @@ int koutf(const char *fmt, ...)
 					break;
 				
 				// base 10 integer
-				case 'd':
+				case 'd': ;
 					x = va_arg(args, int);
 					itoa(x, fmtbuf, 10);
 					strcat(buff, fmtbuf);
@@ -78,7 +81,7 @@ int koutf(const char *fmt, ...)
 					break;
 
 				// base 16 integer
-				case 'x':
+				case 'x': ;
 					u32 px = va_arg(args, u32);
 					itoa(px, fmtbuf, 16);
 					strcat(buff, fmtbuf);
@@ -87,7 +90,7 @@ int koutf(const char *fmt, ...)
 					break;
 				
 				// string
-				case 's':
+				case 's': ;
 					char *str = va_arg(args, char *);
 					strcat(buff, str);
 					i += strlen(str);
@@ -113,5 +116,6 @@ int koutf(const char *fmt, ...)
 
 	va_end(args);
 	kout(buff);
+	enable();
 	return i;
 }

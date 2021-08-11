@@ -19,10 +19,9 @@ struct proc
 	char			name[32];
 	int				pid;
 	int 			prio;
-	u32 			stkbase;
-	u32 			stkptr;
-	struct state 	state;
-	enum prstate 	prstate;
+	void		   *stkbase;
+	void		   *stkptr;
+	enum prstate 	state;
 	u32				pc;
 };
 
@@ -34,6 +33,7 @@ static int proccmp(void *a, void *b) { return -1; }
 int curr();
 struct proc *currproc();
 void sched();
-int spawn(int (*)(void), char *, int);
+struct proc *prspawn(void (*)(void), char *);
+void prret();
 
 #endif // PROC_H

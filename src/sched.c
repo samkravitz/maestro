@@ -9,17 +9,18 @@ extern struct proc *proctab[];
 extern struct proc *prntA;
 extern int currpid;
 
-extern void ctxsw(u32 *stkptrold, u32 *stkptrnew);
+extern void ctxsw(void *, void *);
 
 void sched()
 {
-	static int count = 0;
+	disable();
+	static u64 count = 0;
 	currpid = count & 1;
 	count++;
 	struct proc *prptr = currproc();
 	//struct proc *newproc = (struct proc *) readylist->data;
 
-	disable();
+	//disable();
 
 	//struct proc *p;
 	// if (count & 1)
@@ -34,11 +35,9 @@ void sched()
 	else
 		prnew = proctab[0];
 
-	ctxsw(prptr->stkptr, prnew->stkptr);
-
-	
-
-	//koutf("%s\n", prptr->name);
+	koutf("currpid: %d\n", currpid);
+	koutf("prcur: %s, prnew: %s\n", prptr->name, prnew->name);
+	ctxsw(&prptr->stkptr, &prnew->stkptr);
 
 
 	// if (newproc)
@@ -50,5 +49,7 @@ void sched()
 	// 	insert(&readylist, newproc, proccmp);
 	// 	//ctxsw();
 	// }
+
+	enable();
 
 }
