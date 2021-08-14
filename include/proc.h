@@ -33,7 +33,7 @@ static int proccmp(void *a, void *b) { return -1; }
 int curr();
 struct proc *currproc();
 void sched();
-struct proc *prspawn(void (*)(void), char *);
+struct proc *prspawn(void (*)(void), char *,int);
 void prret();
 
 #endif // PROC_H
