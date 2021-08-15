@@ -44,8 +44,10 @@ boot:
 	ljmp:					; dummy label to act as landing point for long jump
 	mov esp, kstack_top		; load esp with kernel stack
 	call kmain 
-	cli
-	jmp $
+	
+	loop:
+	hlt
+	jmp loop
 
 ; initialize gdt
 section .data
