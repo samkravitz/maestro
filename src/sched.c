@@ -14,9 +14,14 @@ extern void ctxsw(void *, void *);
 void sched()
 {
 	disable();
-	static u64 count = 0;
-	currpid = count & 1;
-	count++;
+	static int nn = 0;
+	koutf("nn=%d, currpid=%d\n", nn, nn % 2);
+	currpid = nn % 2;
+	nn += 1;
+
+	//nn++;
+	//nn = nn + 1;
+	//koutf ("%d\n", currpid);
 	struct proc *prptr = currproc();
 	//struct proc *newproc = (struct proc *) readylist->data;
 
@@ -28,16 +33,26 @@ void sched()
 	// else
 	// 	p = proctab[0];
 
-	struct proc *prnew;
+	struct proc *prnew = (struct proc *) readylist->data;
+	rm(&readylist);
+	
 
-	if (currpid == 0)
-		prnew = proctab[1];
-	else
-		prnew = proctab[0];
+
+	// if (currpid == 0)
+	// 	prnew = proctab[1];
+	// else if (currpid == 1) {
+	// 	prnew = proctab[0];
+	// } else {
+	// 	prnew = proctab[2];
+	// }
+
+
 
 	koutf("currpid: %d\n", currpid);
 	koutf("prcur: %s, prnew: %s\n", prptr->name, prnew->name);
+	//while (1);
 	ctxsw(&prptr->stkptr, &prnew->stkptr);
+	//ctxsw(&prnew->stkptr, &prptr->stkptr);
 
 
 	// if (newproc)

@@ -5,6 +5,7 @@ extern koutf
 
 global ctxsw:
 ctxsw:
+    cli
 	push ebp
     mov ebp, esp
     pushf

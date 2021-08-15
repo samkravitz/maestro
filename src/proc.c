@@ -10,6 +10,10 @@ int currpid;
 struct proc *proctab[NPROC];
 struct pq *readylist = NULL;
 
+extern u32 *prAstkptr;
+extern u32 *prBstkptr;
+extern u32 *nullstkptr;
+
 int curr()
 {
 	return currpid;
@@ -20,19 +24,31 @@ struct proc *currproc()
 	return proctab[curr()];
 }
 
-struct proc *prspawn(void (*func)(void), char *name)
+struct proc *prspawn(void (*func)(void), char *name, int a)
 {
 	disable();
 	static int pid = 0;
 
 	struct proc *prptr = (struct proc *) malloc(sizeof(struct proc));
-	void *stkptr = malloc(1024);
-	stkptr = (void *) ((char *) stkptr + 512);
+	//void *stkptr = malloc(1024);
+	//stkptr = (void *) ((char *) stkptr + 512);
+	u32 *stkptr;
+	if (a == 1) {
+		stkptr = prAstkptr;
+		kout ("malloc");
+	}
+	else if (a == 0) {
+		stkptr = prBstkptr;
+		kout ("free");
+	}
+	else {
+		stkptr = nullstkptr;
+	}
 	prptr->pid = pid++;
 	prptr->stkbase = stkptr;
-	//prptr->stkptr = stkptr;
+	prptr->stkptr = stkptr;
 	memcpy(prptr->name, name, strlen(name) + 1);
-	prptr->name[strlen(name) + 1] = '\0';
+	prptr->name[strlen(name)] = '\0';
 
 	#define	STACKMAGIC	0x0A0AAAA9
 
@@ -40,8 +56,9 @@ struct proc *prspawn(void (*func)(void), char *name)
 
 	u32 savsp, *pushsp;
 	u32 *saddr = (u32) stkptr;
+//	*--saddr = func;
 
-	//*saddr = STACKMAGIC;
+	*saddr = STACKMAGIC;
 	savsp = (u32)saddr;
 
 	/* Push arguments */
@@ -50,7 +67,9 @@ struct proc *prspawn(void (*func)(void), char *name)
 	/* The following entries on the stack must match what ctxsw	*/
 	/*   expects a saved process state to contain: ret address,	*/
 	/*   ebp, interrupt mask, flags, registers, and an old SP	*/
+	//*--saddr = (long)func;
 
+	//*--saddr = (long)func;
 	*--saddr = (long)func;	/* Make the stack look like it's*/
 					/*   half-way through a call to	*/
 					/*   ctxsw that "returns" to the*/

@@ -18,19 +18,22 @@
 #define PIT_BASE_RATE 	1193180
 
 static u64 sec = 0; 	// seconds since maestro was bootstrapped
-static int ms  = 0; 	// ms since sec was last updated 
-
+static int ms  = 0; 	// ms since sec was last updated
+extern int nn;
 static void clkhandler()
 {
+		disable();
+
 	if (++ms == 1000)
 	{
 		++sec;
 		ms = 0;
-		disable();
 		sched();
-		enable();
 		koutf("after sched\n");
+
 	}
+		enable();
+
 	//koutf("clkhandler\n");
 }
 

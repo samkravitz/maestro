@@ -25,7 +25,4 @@ void init()
 
 	// set keyboard interrupt handler
 	regint(IRQ1, kbdhandler);
-
-	// enable interrupts
-	enable();
 }
