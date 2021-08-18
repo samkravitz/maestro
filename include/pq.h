@@ -17,7 +17,7 @@ struct pq
 };
 
 void insert(struct pq **, void *, int (*)(void *, void*));
-void rm(struct pq **);
+struct pq *dequeue(struct pq **);
 struct pq *newpq(void *);
 
 #endif // PQ_H

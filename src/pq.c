@@ -32,11 +32,11 @@ void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 	tmp->next = ins;
 }
 
-void rm(struct pq **head)
+struct pq *dequeue(struct pq **head)
 {
 	struct pq *tmp = *head;
 	*head = tmp->next;
-	free(tmp);
+	return tmp;
 }
 
 struct pq *newpq(void *data)
