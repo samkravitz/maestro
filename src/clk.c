@@ -22,17 +22,21 @@ static int ms  = 0; 	// ms since sec was last updated
 extern int nn;
 static void clkhandler()
 {
-		disable();
+	disable();
+	//kout("boutta sched\n");
+	//sched();
+	//kout("after sched\n");
+	kout("clk!");
 
 	if (++ms == 1000)
 	{
 		++sec;
 		ms = 0;
 		sched();
-		koutf("after sched\n");
+		//koutf("after sched\n");
 
 	}
-		enable();
+	enable();
 
 	//koutf("clkhandler\n");
 }

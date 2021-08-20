@@ -11,6 +11,7 @@
 #define INTR_H
 
 #include <state.h>
+#include <kout.h>
 
 #define NUM_INTERRUPTS 		256
 
@@ -41,9 +42,24 @@ void isr(struct state);
 void panic(struct state);
 void regint(int, void (*)(void));
 
+static int intr_lock = 0;
 // disable / enable interrupts
-static void disable() { asm("cli"); }
-static void enable() { asm("sti"); }
+static void disable()
+{
+	//koutf("disable: intr_lock is :%d\n", intr_lock);
+	///if (intr_lock == 0)
+		asm("cli");
+	
+	//intr_lock++;
+}
+static void enable()
+{
+	//koutf("enable: intr_lock is :%d\n", intr_lock);
+	//intr_lock--;
+
+	//if (intr_lock == 0)
+		asm("sti");
+}
 
 // exception messages
 static const char *excmsg[] = {

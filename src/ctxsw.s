@@ -1,11 +1,9 @@
 [bits 32]
 
-extern printB
-extern koutf
+extern currframe
 
 global ctxsw:
 ctxsw:
-    cli
 	push ebp
     mov ebp, esp
     pushf
@@ -18,13 +16,43 @@ ctxsw:
     mov ebp, [esp + 4]
     popf
     add esp, 4
-    sti
     ret
-    ;add esp, 12
-    ;push printB
-    ;ret
 
-    ; push ebp
+
+
+
+
+
+
+
+
+	; push ebp
+    ; push edi
+    ; push esi
+    ; push edx
+    ; push ecx
+    ; push ebx
+    ; push eax
+	; ; mov eax, 32
+	; ; push eax	; pass irq number as parameter that was saved earlier 
+	; ; call irq	; call the registered irq handler
+	; ; pop eax		; clean up stack
+	
+	; mov eax, currframe
+	; mov eax, [eax]
+	; mov esp, eax
+	; pop eax
+    ; pop ebx
+    ; pop ecx
+    ; pop edx
+    ; pop esi
+    ; pop edi
+    ; pop ebp
+
+	; ret
+
+
+	; push ebp
     ; mov ebp, esp
     ; pushf
     ; pusha
@@ -37,6 +65,7 @@ ctxsw:
     ; popf
     ; add esp, 4
     ; ret
+
 
 ; pushl	%ebp		/* Push ebp onto stack		*/
 ; 		movl	%esp,%ebp	/* Record current SP in ebp	*/

@@ -12,6 +12,7 @@
 #include <kout.h>
 #include <proc.h>
 #include <pq.h>
+#include <dump.h>
 
 #include <stdint.h>
 
@@ -21,11 +22,14 @@
 extern struct pq *readylist;
 extern struct proc *proctab[];
 
-struct proc *prntA;
+extern struct proc *curr;
+extern struct stackframe *currframe;
+extern struct stackframe **currframeptr;
 
-u32 *prAstkptr = (u32*) 0xA000;
-u32 *prBstkptr = (u32 *) (0xA000 - 0x400);
-u32 *nullstkptr = (u32 *) (0xA000 - 0x400 - 0x400);
+
+// u32 *prAstkptr = (u32*) 0xA000;
+// u32 *prBstkptr = (u32 *) (0xA000 - 0x400);
+// u32 *nullstkptr = (u32 *) (0xA000 - 0x400 - 0x400);
 
 void printA()
 {
@@ -49,42 +53,37 @@ void null();
 void kmain()
 {
 	kout("Welcome to maestro!\n");
-	// *a= 32;
-	// uintptr_t ptr = (uintptr_t) a;
-	// koutf("%x\n", (u32) ptr);
-	//int c = 45;
-	//uintptr_t pc = (uintptr_t) &c;
-	//koutf("%x\n", (u32 *) pc);
-	//kout ("initialized\n");
-	//while (1);
-	//*prBstkptr = 4500;
+	//koutf("printA: %x\n", printA);
 	init();
 
-	struct proc *prA = prspawn(printA, "print A", 1);
-	struct proc *prB = prspawn(printB, "print B", 0);
-	//struct proc *nullproc = prspawn(null, "null process", 2);
-
-	// create ready list
-	//readylist = newpq(null);
-
-	//insert(&readylist, prntA, proccmp);
-	//insert(&readylist, prntB, proccmp);
+	struct proc *prA = create(printA);
+	struct proc *prB = create(printB);
 
 	proctab[0] = prA;
 	proctab[1] = prB;
+
+	u32 arr[] = {1, 2, 3, 4, 5};
+
+	curr = prA;
+	currframe = prA->frame;
+	currframeptr = &prA->frame;
+	// disable();
+	// stackdump((u32 *) currframe, 12);
+	// while (1);
 	//proctab[2] = nullproc;
 		// enable interrupts
-	enable();
-	null();
+	asm("sti");
+	//sched();
+	//null();
 
 	//insert(&readylist, printB, proccmp);
 	//printA();
 	//null();
 
-	// while (1) {
-	// 	koutf("null proc\n");
-	// 	asm("hlt");
-	// }
+	while (1) {
+		koutf("null proc\n");
+		asm("hlt");
+	}
 }
 
 void null(){
