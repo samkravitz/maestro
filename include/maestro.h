@@ -23,4 +23,6 @@ typedef int16_t s16;
 typedef int32_t s32;
 typedef int64_t s64;
 
+typedef uintptr_t uptr;
+
 #endif // MAESTRO_H
