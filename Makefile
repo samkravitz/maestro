@@ -8,6 +8,7 @@ VPATH = src/
 # C sources
 C = \
 	clk.c \
+	dump.c \
 	idt.c \
 	init.c \
 	intr.c \
