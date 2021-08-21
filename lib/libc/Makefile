@@ -1,9 +1,6 @@
 CC = gcc
-AR = ar
 CFLAGS = -std=c99 -march=i686 -m32 -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O2 -Wall -Wextra -I $(INCLUDE)
 INCLUDE = ../../include
-LIB = libc.a
-BUILDDIR = $(addprefix $(TOPDIR), $(LIB))
 
 SOURCES = \
 	stdlib.c \
@@ -11,14 +8,11 @@ SOURCES = \
 
 OBJ = $(SOURCES:.c=.o)
 
-all: $(LIB)
-
-libc.a: $(OBJ)
-	$(AR) rcs $(LIB) $(OBJ)
+all: $(OBJ)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:
-	rm *.o $(BUILDDIR)
+	rm *.o
