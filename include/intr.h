@@ -42,24 +42,9 @@ void isr(struct state);
 void panic(struct state);
 void regint(int, void (*)(void));
 
-static int intr_lock = 0;
 // disable / enable interrupts
-static void disable()
-{
-	//koutf("disable: intr_lock is :%d\n", intr_lock);
-	///if (intr_lock == 0)
-		asm("cli");
-	
-	//intr_lock++;
-}
-static void enable()
-{
-	//koutf("enable: intr_lock is :%d\n", intr_lock);
-	//intr_lock--;
-
-	//if (intr_lock == 0)
-		asm("sti");
-}
+extern int disable();
+extern void restore(int);
 
 // exception messages
 static const char *excmsg[] = {

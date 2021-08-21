@@ -42,7 +42,6 @@ void kouth(int x)
 // like printf, but better...
 int koutf(const char *fmt, ...)
 {
-	disable();
 	va_list args;
 	va_start(args, fmt);
 
@@ -116,6 +115,5 @@ int koutf(const char *fmt, ...)
 
 	va_end(args);
 	kout(buff);
-	enable();
 	return i;
 }

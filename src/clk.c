@@ -19,26 +19,15 @@
 
 static u64 sec = 0; 	// seconds since maestro was bootstrapped
 static int ms  = 0; 	// ms since sec was last updated
-extern int nn;
+
 static void clkhandler()
 {
-	disable();
-	//kout("boutta sched\n");
-	//sched();
-	//kout("after sched\n");
-	kout("clk!");
-
 	if (++ms == 1000)
 	{
 		++sec;
 		ms = 0;
 		sched();
-		//koutf("after sched\n");
-
 	}
-	enable();
-
-	//koutf("clkhandler\n");
 }
 
 // init clk

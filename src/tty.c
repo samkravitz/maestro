@@ -93,7 +93,6 @@ static void scroll()
 	if (y < 25)
 		return;
 
-	disable();
 	// index of last row in vga memory
 	const int lrow = TTY_WIDTH * TTY_HEIGHT - TTY_WIDTH;
 
@@ -105,7 +104,6 @@ static void scroll()
 		VGA_BASE[i + lrow] = GETCOL(' ');
 
 	y = 24;
-	enable();
 }
 
 // set cursor
