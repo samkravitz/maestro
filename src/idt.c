@@ -31,7 +31,7 @@ void idtinit()
 	for (int i = 32; i < 48; ++i)
         set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
     
-    // remap the PIC
+	// remap the PIC
 	outb(0x20, 0x11);
 	outb(0xA0, 0x11);
 	outb(0x21, 0x20);
@@ -63,11 +63,11 @@ static void lidt()
 static void set_idt(int num, u32 base, u16 select, u8 flags)
 {
 	idt[num].offlow   = (base >> 0)  & 0xFFFF;
-    idt[num].offhigh  = (base >> 16) & 0xFFFF;
+	idt[num].offhigh  = (base >> 16) & 0xFFFF;
 	idt[num].selector = select;
 	idt[num].type     = (flags >> 0) & 0xF;
 	idt[num].sseg     = (flags >> 4) & 0x1;
 	idt[num].dpl      = (flags >> 5) & 0x3;
 	idt[num].present  = (flags >> 7) & 0x1;
-    idt[num].zero     = 0;
+	idt[num].zero     = 0;
 }
