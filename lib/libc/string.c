@@ -49,9 +49,26 @@ void *memcpy(void *dest, const void *src, size_t n)
 // copy memory area
 void *memmove(void *dest, const void *src, size_t n)
 {
-	char temp[n];
-	memcpy(temp, src, n);
-	memcpy(dest, temp, n);
+	char *dp = (char *) dest;
+	const char *sp = (const char *) src;
+
+	if (dest == src)
+		return dest;
+	
+	// copy from end
+	if (src < dest)
+	{
+		while (n--)
+			dp[n - 1] = sp[n - 1];
+	}
+
+	// copy from beginning (basically just memcpy)
+	else
+	{
+		while (n--)
+			*dp++ = *sp++;
+	}
+
 	return dest;
 }
 
