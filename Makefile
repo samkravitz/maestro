@@ -27,6 +27,7 @@ C = \
 ASM = \
 	boot.s \
 	ctxsw.s \
+	disable.s \
 	irq.s \
 	isr.s \
 	pdsw.s \
