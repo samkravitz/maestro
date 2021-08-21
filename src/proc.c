@@ -15,10 +15,14 @@
 struct proc *curr;
 struct proc *proctab[NPROC];
 
+// number of active processes
+int nproc = 0;
+
 // where processes return when they terminate
 static void pterm()
 {
 	koutf("%s returned!\n", curr->name);
+	nproc--;
 }
 
 struct proc *create(void (*func)(void), const char *name)
@@ -38,7 +42,8 @@ struct proc *create(void (*func)(void), const char *name)
 	stkptr--; *stkptr = 0;			// ebx
 	stkptr--; *stkptr = 0;			// esi
 	stkptr--; *stkptr = 0;			// edi
-
 	pptr->stkptr = stkptr;
+
+	nproc++;
 	return pptr;
 }

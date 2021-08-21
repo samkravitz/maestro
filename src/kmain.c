@@ -18,34 +18,10 @@
 extern struct proc *proctab[];
 extern struct proc *curr;
 
-void printA()
-{
-	for (int i = 0; i <2000; i++)
-	{
-		koutf("%c", 'a');
-		asm("hlt");
-	}
-}
-
-void printB()
-{
-	while (1)
-	{
-		koutf("%c", 'b');	
-		asm("hlt");
-	}
-}
-
 void kmain()
 {
 	kout("Welcome to maestro!\n");
 	init();
-
-	struct proc *prA = create(printA, "print A");
-	struct proc *prB = create(printB, "print B");
-
-	proctab[0] = prA;
-	proctab[1] = prB;
 
 	// initialize null process entry
 	struct proc *nullproc = (struct proc *) malloc(sizeof(struct proc));
@@ -53,6 +29,7 @@ void kmain()
 	memcpy(nullproc->name, "null process", strlen("null process") + 1);
 	nullproc->name[strlen("null process")] = '\0'; 
 	curr = nullproc;
+	proctab[99] = nullproc;
 
 	asm("sti");
 
