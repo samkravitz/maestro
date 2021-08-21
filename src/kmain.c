@@ -20,7 +20,7 @@ extern struct proc *curr;
 
 void printA()
 {
-	while (1)
+	for (int i = 0; i <2000; i++)
 	{
 		koutf("%c", 'a');
 		asm("hlt");
@@ -52,8 +52,8 @@ void kmain()
 	nullproc->stkptr = 0;
 	memcpy(nullproc->name, "null process", strlen("null process") + 1);
 	nullproc->name[strlen("null process")] = '\0'; 
-
 	curr = nullproc;
+
 	asm("sti");
 
 	while (1)

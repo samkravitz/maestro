@@ -1,3 +1,12 @@
+/* maestro
+ * License: GPLv2
+ * See LICENSE.txt for full license text
+ * Author: Sam Kravitz
+ *
+ * FILE: proc.h
+ * DATE: August 9, 2021
+ * DESCRIPTION: process management
+ */
 #ifndef PROC_H
 #define PROC_H
 
@@ -14,29 +23,17 @@ enum prstate
 	PR_WAITING,
 };
 
-struct stackframe
-{
-	u32 edi;
-	u32 esi;
-	u32 ebp;
-	u32 esp;
-	u32 ebx;
-	u32 edx;
-	u32 ecx;
-	u32 eax;
-	u32 eflags;
-	u32 eip;
-} __attribute__((packed));
-
 struct proc
 {
-	struct stackframe *frame;
-	char name[32];
-	u32	stack[1024];
 	uptr stkptr;
-} __attribute__((packed));
+	u32	 stack[1024];
+	char name[32];
+};
 
 struct proc *create(void (*func)(void), const char *);
+
+// defined in ctxsw.s
+extern void ctxsw(void *, void *);
 
 // process ready list
 extern struct pq *readylist;
