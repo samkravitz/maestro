@@ -32,6 +32,7 @@ extern kmain
 section .text
 global boot:
 boot:
+	mov [mboot_info], ebx	; store multiboot info for later
 	lgdt [gdt_descriptor]	; load gdt into gdtr
 	mov ax, 0x10      		; 0x10 is the offset in the gdt to data segment
 	mov ds, ax        		; reload remainder of data segment registers
@@ -75,6 +76,10 @@ gdt_end:
 gdt_descriptor:
 dw gdt_end - gdt - 1	; size of gdt minus 1
 dd gdt					; starting address of GDT
+
+global mboot_info:
+mboot_info:
+	dd 0
 
 ; initialize kernel stack
 section .bss

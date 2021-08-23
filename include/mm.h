@@ -12,6 +12,36 @@
 
 #include <maestro.h>
 
+struct mboot_info
+{
+	u32 flags;					// required
+	u32 mem_lower;				// present if flags[0] is set
+	u32 mem_upper;				// present if flags[0] is set
+	u32 boot_device;			// present if flags[1] is set
+	u32 cmdline;				// present if flags[2] is set
+	u32 mods_count;				// present if flags[3] is set
+	u32 mods_addr;				// present if flags[3] is set
+	u32 syms[3];				// present if flags[4] or flags[5] is set
+	u32 mmap_length;			// present if flags[6] is set
+	u32 mmap_addr;				// present if flags[7] is set
+	u32 config_table;			// present if flags[8] is set
+	u32 boot_loader_name;		// present if flags[9] is set
+	u32 apm_table;				// present if flags[10] is set
+	u32 vbe_control_info;		// present if flags[11] is set
+	u32 vbe_mode_info;
+	u32 vbe_mode;
+	u32 vbe_interface_seg;
+	u32 vbe_interface_off;
+	u32 vbe_interface_len;
+	u32 framebuffer_addr;		// present if flags[12] is set
+	u32 framebuffer_pitch;
+	u32 framebuffer_width;
+	u32 framebuffer_height;
+	u32 framebuffer_bpp;
+	u8 framebuffer_type;
+	u8 color_info[5];
+};
+
 struct page
 {
 	u8 present 	:	1;	// set if page is present in memory

@@ -9,9 +9,13 @@
  */
 #include <mm.h>
 
+#include <intr.h>
 #include <kout.h>
 #include <kmalloc.h>
 #include "string.h"
+
+// address of multiboot information struct 
+extern uptr mboot_info;
 
 u32 *kpd; // kernel page directory
 u32 *cpd; // current page directory
@@ -23,6 +27,8 @@ void pfault() { }
 void mminit()
 {
 	regint(14, pfault);
+
+	struct mboot_info *info = (struct mboot_info *) mboot_info;
 
 	kpd = (u32 *) kmalloca(sizeof(struct pagedir));
 	memset(kpd, 0, sizeof(kpd));
