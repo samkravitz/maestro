@@ -42,6 +42,14 @@ struct mboot_info
 	u8 color_info[5];
 };
 
+struct meminfo
+{
+	uint size;			// size of physical memory in KB
+	uint used_blocks;	// number of blocks in use
+	uint max_blocks;	// maximum number of allocable blocks
+	u8 *mmap;			// bitmap of block status
+};
+
 struct page
 {
 	u8 present 	:	1;	// set if page is present in memory
