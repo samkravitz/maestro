@@ -24,5 +24,5 @@ void init()
 	mminit();
 
 	// set keyboard interrupt handler
-	regint(IRQ1, kbdhandler);
+	svect(IRQ1, kbdhandler);
 }

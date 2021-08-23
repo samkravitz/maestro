@@ -26,7 +26,7 @@ void pfault() { }
 
 void mminit()
 {
-	regint(14, pfault);
+	svect(14, pfault);
 
 	struct mboot_info *info = (struct mboot_info *) mboot_info;
 

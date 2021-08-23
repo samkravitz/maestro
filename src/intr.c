@@ -19,7 +19,7 @@ void (*intr_handlers[NUM_INTERRUPTS]) (void) = {0};
 static void nop() { asm("nop"); }
 
 // end of interrupt - acknowledges interrupt to PIC
-// @param x - index of acknowledged interrupt
+// @param x index of acknowledged interrupt
 void eoi(int x)
 {
 	// clear PIC2
@@ -81,10 +81,11 @@ void panic(struct state s)
 	while (1) ;
 }
 
-// register interrupt handler
-// @param x - index of interrupt to register (0-255)
-// @param handler - the handler function
-void regint(int x, void (*handler)(void))
+/* set exception vector handler
+ * @param x index of interrupt to register (0-255)
+ * @param handler the handler function
+ */
+void svect(int x, void (*handler)(void))
 {
 	if (x < 0 || x >= 255)
 		return;

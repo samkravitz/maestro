@@ -40,7 +40,8 @@ void intrinit();
 void irq(int);
 void isr(struct state);
 void panic(struct state);
-void regint(int, void (*)(void));
+
+void svect(int, void (*)(void));
 
 // disable / enable interrupts
 extern int disable();
