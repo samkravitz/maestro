@@ -24,5 +24,6 @@ typedef int32_t s32;
 typedef int64_t s64;
 
 typedef uintptr_t uptr;
+typedef unsigned int uint;
 
 #endif // MAESTRO_H
