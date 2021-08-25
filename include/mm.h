@@ -23,9 +23,11 @@ struct mboot_info
 	u32 cmdline;				// present if flags[2] is set
 	u32 mods_count;				// present if flags[3] is set
 	u32 mods_addr;				// present if flags[3] is set
-	u32 syms[3];				// present if flags[4] or flags[5] is set
+	u32 syms[4];				// present if flags[4] or flags[5] is set
 	u32 mmap_length;			// present if flags[6] is set
-	u32 mmap_addr;				// present if flags[7] is set
+	u32 mmap_addr;				// present if flags[6] is set
+	u32 drives_length;			// present if flags[7] is set
+	u32 drives_addr;			// present if flags[7] is set
 	u32 config_table;			// present if flags[8] is set
 	u32 boot_loader_name;		// present if flags[9] is set
 	u32 apm_table;				// present if flags[10] is set
