@@ -113,6 +113,14 @@ char *strncat(char *dest, const char *src, size_t n)
 	return dest;
 }
 
+char *strcpy(char *dest, const char *src)
+{
+	size_t len = strlen(src);
+	memcpy(dest, src, len);
+	dest[len] = '\0';
+	return dest;
+}
+
 // compute the length of a null-terminated string
 size_t strlen(const char *str)
 {
