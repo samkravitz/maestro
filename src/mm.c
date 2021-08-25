@@ -31,16 +31,61 @@ struct pagetab *pagetable;
 // page fault handler
 void pfault() { }
 
+// gets index of first available frame
+int first_free_frame()
+{
+	for (int i = 0; i < meminfo.max_blocks / 8; ++i)
+	{
+		// all 8 bits are set
+		if (meminfo.mmap[i] == 0xff)
+			continue;
+		
+		for (int j = 0; j < 8; j++)
+		{
+			uint bit = i * 8 + j;
+			if (MMAP_TEST(bit) == 0)
+				return bit;
+		}
+	}
+
+	return -1;
+}
+
+// allocate a free block
+void *balloc()
+{
+	if (meminfo.used_blocks == meminfo.max_blocks)
+		return 0;
+
+	int frame;
+	if ((frame = first_free_frame()) == -1)
+		return 0;
+	
+	MMAP_SET(frame);
+
+	uptr addr = frame * PAGE_SIZE;
+	meminfo.used_blocks++;
+	return (void *) addr;
+}
+
+// deallocate a block
+void bfree(void *block)
+{
+	uptr addr = (uptr) block;
+	int frame = addr / PAGE_SIZE;
+	MMAP_CLEAR(frame);
+	meminfo.used_blocks--;
+}
+
 void mminit()
 {
 	// register page fault exception handler
 	svect(14, pfault);
 
 	struct mboot_info *info = (struct mboot_info *) mboot_info;
-
 	meminfo.size = info->mem_upper;
-	meminfo.max_blocks = meminfo.size * 1024 / 4096;
-	meminfo.used_blocks = 0;
+	meminfo.max_blocks = meminfo.size * 1024 / PAGE_SIZE;
+	meminfo.used_blocks = meminfo.max_blocks; // by default all blocks are used
 	meminfo.mmap = (u8 *) malloc(meminfo.max_blocks / 8);
 	memset(meminfo.mmap, 0, meminfo.max_blocks / 8);
 

@@ -12,6 +12,8 @@
 
 #include <maestro.h>
 
+#define PAGE_SIZE				4096
+
 struct mboot_info
 {
 	u32 flags;					// required
@@ -74,6 +76,15 @@ struct pagedir
 	//u32 phystab[1024];
 	//u32 physaddr;
 };
+
+// gets index of first available frame
+int first_free_frame();
+
+// allocate a free block
+void *balloc();
+
+// deallocate a block
+void bfree(void *);
 
 void mminit();
 void pfault();
