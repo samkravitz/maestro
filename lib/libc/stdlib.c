@@ -1,4 +1,5 @@
 #include "stdlib.h"
+#include "string.h"
 
 static void rev(char *, int);
 
@@ -31,7 +32,7 @@ int atoi(const char *str)
 }
 
 // converts a number into a string
-char *itoa(u32 n, char *buff, int base)
+char *itoa(u32 n, char *buff, int base, int width)
 {
 	char c;
 	int mod, i = 0;
@@ -61,6 +62,20 @@ char *itoa(u32 n, char *buff, int base)
 		buff[i++] = '-';
 
 	rev(buff, i);
+
+	size_t len = strlen(buff);
+	
+	// get number of zeros we need to pad
+	int pad = width - len;
+	if (pad <= 0)
+		return buff;
+	
+	// move what we have to the far right of the buffer
+	memmove(buff + pad, buff, len);
+
+	// pad beginning with 0
+	memset(buff, '0', pad);
+
 	return buff;
 }
 

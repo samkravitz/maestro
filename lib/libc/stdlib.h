@@ -8,6 +8,6 @@
 #define to_upper(c)     ('A' + c - 'a')
 
 int atoi(const char *);
-char *itoa(u32, char *, int);
+char *itoa(u32, char *, int, int);
 
 #endif // STDLIB_H
