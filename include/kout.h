@@ -14,8 +14,6 @@
 #include <stdarg.h>
 
 void kout(const char *);
-void koutd(int);
-void kouth(int);
 int koutf(const char *, ...);
 
 #endif // kout_H

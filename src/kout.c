@@ -21,24 +21,6 @@ void kout(const char *msg)
 	puts(msg);
 }
 
-// logs a base 10 integer
-void koutd(int x)
-{
-	char buff[32];
-	memset(buff, 0, sizeof(buff));
-	itoa(x, buff, 10);
-	kout(buff);
-}
-
-// logs a hexadecimal integer
-void kouth(int x)
-{
-	char buff[32];
-	memset(buff, 0, sizeof(buff));
-	itoa(x, buff, 16);
-	kout(buff);
-}
-
 // like printf, but better...
 int koutf(const char *fmt, ...)
 {
