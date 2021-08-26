@@ -41,6 +41,15 @@ int koutf(const char *fmt, ...)
 			// clear format buffer 
 			memset(fmtbuf, 0, sizeof(fmtbuf));
 
+			// min width of format
+			int width = 0;
+
+			if (is_numeric(*(fmt + 1)))
+			{
+				width = atoi(fmt + 1);
+				fmt++;
+			}
+
 			// check next character
 			switch (*(fmt + 1))
 			{
@@ -55,7 +64,7 @@ int koutf(const char *fmt, ...)
 				// base 10 integer
 				case 'd': ;
 					x = va_arg(args, int);
-					itoa(x, fmtbuf, 10);
+					itoa(x, fmtbuf, 10, width);
 					strcat(buff, fmtbuf);
 					i += strlen(fmtbuf);
 					fmt += 2;
@@ -64,7 +73,7 @@ int koutf(const char *fmt, ...)
 				// base 16 integer
 				case 'x': ;
 					u32 px = va_arg(args, u32);
-					itoa(px, fmtbuf, 16);
+					itoa(px, fmtbuf, 16, width);
 					strcat(buff, fmtbuf);
 					i += strlen(fmtbuf);
 					fmt += 2;

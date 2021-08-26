@@ -130,7 +130,7 @@ void mminit()
 				case MULTIBOOT_MEMORY_BADRAM:           strcpy(typestr, "Defective RAM");    break;
 				default:                                strcpy(typestr, "Reserved");
 			}
-			koutf("0x%x-0x%x:	%s\n", entry->addr_low, entry->addr_low + entry->len_low - 1, typestr);
+			koutf("0x%8x-0x%8x:	%s\n", entry->addr_low, entry->addr_low + entry->len_low - 1, typestr);
 			entry++;
 			len += sizeof(struct multiboot_mmap_entry);
 		}
