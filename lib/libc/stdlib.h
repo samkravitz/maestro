@@ -1,6 +1,8 @@
 #ifndef STDLIB_H
 #define STDLIB_H
 
-char *itoa(int, char *, int);
+#include <maestro.h>
+
+char *itoa(u32, char *, int);
 
 #endif // STDLIB_H

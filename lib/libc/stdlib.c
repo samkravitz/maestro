@@ -3,13 +3,13 @@
 static void rev(char *, int);
 
 // converts a number into a string
-char *itoa(int n, char *buff, int base)
+char *itoa(u32 n, char *buff, int base)
 {
 	char c;
 	int mod, i = 0;
 
 	int neg = 0;
-	if ((base == 10) && (n < 0))
+	if ((base == 10) && ((int) n < 0))
 	{
 		neg = 1;
 		n *= -1;
