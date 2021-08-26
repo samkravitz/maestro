@@ -13,10 +13,9 @@
 #include <io.h>
 #include <kout.h>
 
-static u32 state = 0;
+#include "stdlib.h"
 
-#define isalpha(c) ((c >= 'a') && (c <= 'z'))
-#define toupper(c) ('A' + c - 'a')
+static u32 state = 0;
 
 void kbdhandler()
 {
@@ -49,8 +48,8 @@ void kbdhandler()
 			break;
 	}
 
-	if (isalpha(c) && PRESSED(LSHIFT | RSHIFT))
-		c = toupper(c);
+	if (is_alpha(c) && PRESSED(LSHIFT | RSHIFT))
+		c = to_upper(c);
 
 	koutf("%c", c);
 }
