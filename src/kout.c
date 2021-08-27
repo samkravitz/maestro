@@ -64,7 +64,8 @@ int koutf(const char *fmt, ...)
 				// base 10 integer
 				case 'd': ;
 					x = va_arg(args, int);
-					itoa(x, fmtbuf, 10, width);
+					itoa(x, fmtbuf, 10);
+					pad(fmtbuf, width, '0');
 					strcat(buff, fmtbuf);
 					i += strlen(fmtbuf);
 					fmt += 2;
@@ -73,7 +74,8 @@ int koutf(const char *fmt, ...)
 				// base 16 integer
 				case 'x': ;
 					u32 px = va_arg(args, u32);
-					itoa(px, fmtbuf, 16, width);
+					itoa(px, fmtbuf, 16);
+					pad(fmtbuf, width, '0');
 					strcat(buff, fmtbuf);
 					i += strlen(fmtbuf);
 					fmt += 2;

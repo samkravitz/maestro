@@ -32,7 +32,7 @@ int atoi(const char *str)
 }
 
 // converts a number into a string
-char *itoa(u32 n, char *buff, int base, int width)
+char *itoa(u32 n, char *buff, int base)
 {
 	char c;
 	int mod, i = 0;
@@ -63,20 +63,24 @@ char *itoa(u32 n, char *buff, int base, int width)
 
 	rev(buff, i);
 
-	size_t len = strlen(buff);
+	return buff;
+}
+
+// pads str with c to be a minimum of width bytes
+void pad(char *str, int width, char c)
+{
+	size_t len = strlen(str);
 	
 	// get number of zeros we need to pad
 	int pad = width - len;
 	if (pad <= 0)
-		return buff;
+		return;
 	
 	// move what we have to the far right of the buffer
-	memmove(buff + pad, buff, len);
+	memmove(str + pad, str, len);
 
 	// pad beginning with 0
-	memset(buff, '0', pad);
-
-	return buff;
+	memset(str, c, pad);
 }
 
 // reverses a string of a given length
