@@ -19,7 +19,7 @@ ctxsw:
 	push esi
 	push edi
 	mov [eax], esp      		; save old stack
-	mov esp, ecx
+	mov esp, ecx			; move new stack into esp
 	pop edi				; restore callee-saved registers of new process
 	pop esi
 	pop ebx
