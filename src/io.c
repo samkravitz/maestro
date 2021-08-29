@@ -1,9 +1,24 @@
+/* maestro
+ * License: GPLv2
+ * See LICENSE.txt for full license text
+ * Author: Sam Kravitz
+ *
+ * FILE: io.c
+ * DATE: July 28, 2021
+ * DESCRIPTION: read/write to IO ports
+ */
 #include <io.h>
 
 // write a byte to aspecified port
 void outb(u16 port, u8 value)
 {
 	asm("outb %1, %0" : : "dN" (port), "a" (value));
+}
+
+// write 2 bytes to a specified port
+void outw(u16 port, u16 value)
+{
+	asm("out %1, %0" : : "dN" (port), "a" (value));
 }
 
 // reads a byte from a specified port

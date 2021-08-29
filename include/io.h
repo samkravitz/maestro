@@ -5,7 +5,7 @@
  *
  * FILE: io.h
  * DATE: July 28, 2021
- * DESCRIPTION: outb, inb, inw
+ * DESCRIPTION: read/write to IO ports
  */
 #ifndef IO_H
 #define IO_H
@@ -13,6 +13,7 @@
 #include <maestro.h>
 
 void outb(u16, u8);
+void outw(u16, u16);
 u8 inb(u16);
 u16 inw(u16);
 
