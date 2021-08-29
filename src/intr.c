@@ -58,25 +58,25 @@ void isr(struct state s)
 
 void panic(struct state s)
 {
-	koutf("\nMAESTRO PANIC!!!\n");
+	kprintf("\nMAESTRO PANIC!!!\n");
 
 	if (s.inum < NMSG)
-		koutf("Exception %d: %s\n", s.inum, excmsg[s.inum]);
+		kprintf("Exception %d: %s\n", s.inum, excmsg[s.inum]);
 	
-	koutf("registers: \n");
-	koutf("eax: %x\n", s.eax);
-	koutf("ebx: %x\n", s.ebx);
-	koutf("ecx: %x\n", s.ecx);
-	koutf("edx: %x\n", s.edx);
-	koutf("esi: %x\n", s.esi);
-	koutf("edi: %x\n", s.edi);
-	koutf("ebp: %x\n", s.ebp);
-	koutf("esp: %x\n", s.esp);
+	kprintf("registers: \n");
+	kprintf("eax: %x\n", s.eax);
+	kprintf("ebx: %x\n", s.ebx);
+	kprintf("ecx: %x\n", s.ecx);
+	kprintf("edx: %x\n", s.edx);
+	kprintf("esi: %x\n", s.esi);
+	kprintf("edi: %x\n", s.edi);
+	kprintf("ebp: %x\n", s.ebp);
+	kprintf("esp: %x\n", s.esp);
 
 	if (s.errcode)
-		koutf("Error code: %d\n", s.errcode);
+		kprintf("Error code: %d\n", s.errcode);
 	
-	koutf("Panic complete...\n");
+	kprintf("Panic complete...\n");
 
 	while (1) ;
 }

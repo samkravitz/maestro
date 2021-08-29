@@ -92,7 +92,7 @@ void mminit()
 	// get memory map if valid
 	if (info->flags >> 6 & 1)
 	{
-		koutf("maestro physical memory map:\n");
+		kprintf("maestro physical memory map:\n");
 		/*
 		 *	Each multiboot mmap entry is stored as the following:
 		 *	0 - size
@@ -130,7 +130,7 @@ void mminit()
 				case MULTIBOOT_MEMORY_BADRAM:           strcpy(typestr, "Defective RAM");    break;
 				default:                                strcpy(typestr, "Reserved");
 			}
-			koutf("0x%8x-0x%8x:	%s\n", entry->addr_low, entry->addr_low + entry->len_low - 1, typestr);
+			kprintf("0x%8x-0x%8x:	%s\n", entry->addr_low, entry->addr_low + entry->len_low - 1, typestr);
 			entry++;
 			len += sizeof(struct multiboot_mmap_entry);
 		}

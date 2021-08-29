@@ -51,5 +51,5 @@ void kbdhandler()
 	if (is_alpha(c) && PRESSED(LSHIFT | RSHIFT))
 		c = to_upper(c);
 
-	koutf("%c", c);
+	kprintf("%c", c);
 }

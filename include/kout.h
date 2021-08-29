@@ -7,13 +7,13 @@
  * DATE: July 30, 2021
  * DESCRIPTION: kernel logging utilies
  */
-#ifndef kout_H
-#define kout_H
+#ifndef KOUT_H
+#define KOUT_H
 
 #include <maestro.h>
 #include <stdarg.h>
 
 void kout(const char *);
-int koutf(const char *, ...);
+int kprintf(const char *, ...);
 
-#endif // kout_H
+#endif // KOUT_H

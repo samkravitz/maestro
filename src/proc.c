@@ -21,7 +21,7 @@ int nproc = 0;
 // where processes return when they terminate
 static void pterm()
 {
-	koutf("%s returned!\n", curr->name);
+	kprintf("%s returned!\n", curr->name);
 	nproc--;
 }
 

@@ -21,14 +21,13 @@ void kout(const char *msg)
 	puts(msg);
 }
 
-// like printf, but better...
-int koutf(const char *fmt, ...)
+int kprintf(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 
 	int x, i = 0;
-	char buff[256] = {0}; // note - koutf can print a max length of 256
+	char buff[256] = {0}; // note - kprintf can print a max length of 256
 	char c;
 
 	char fmtbuf[32];
