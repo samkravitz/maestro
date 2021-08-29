@@ -28,6 +28,7 @@ struct proc
 	uptr stkptr;
 	u32	 stack[1024];
 	char name[32];
+	int pid;
 };
 
 struct proc *create(void (*func)(void), const char *);

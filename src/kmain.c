@@ -15,24 +15,20 @@
 #include "malloc.h"
 #include "string.h"
 
-extern struct proc *proctab[];
 extern struct proc *curr;
+extern struct proc nullproc;
 
 void kmain()
 {
 	kout("Welcome to maestro!\n");
 	init();
 
-	// initialize null process entry
-	struct proc *nullproc = (struct proc *) malloc(sizeof(struct proc));
-	nullproc->stkptr = 0;
-	memcpy(nullproc->name, "null process", strlen("null process") + 1);
-	nullproc->name[strlen("null process")] = '\0'; 
-	curr = nullproc;
-	proctab[99] = nullproc;
+	curr = &nullproc;
 
+	// enable interrupts
 	asm("sti");
 
+	// become the null process
 	while (1)
 		asm("hlt");
 }
