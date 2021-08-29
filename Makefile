@@ -7,6 +7,7 @@ VPATH = src/ lib/libc lib/libdlmalloc
 
 # C sources
 C = \
+	ata.c \
 	clk.c \
 	dump.c \
 	idt.c \
