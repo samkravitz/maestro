@@ -55,3 +55,6 @@ dkms.conf
 
 # ISO build directory
 iso/
+
+# hard disk image
+disk.img

@@ -67,7 +67,7 @@ test:
 
 .PHONY: start
 start:
-	qemu-system-i386 -cdrom maestro.iso
+	qemu-system-i386 -hda disk.img -cdrom maestro.iso
 	
 
 .PHONY: clean
@@ -76,3 +76,8 @@ clean:
 	rm -rf iso
 	$(MAKE) -C lib clean
 	$(MAKE) -C test clean
+
+# creates a 1M raw disk image for maestro
+.PHONY: disk
+disk:
+	qemu-img create -f raw disk.img 1M
