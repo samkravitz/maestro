@@ -1,6 +1,6 @@
 CC = gcc
 AS = nasm
-CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE)
+CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -no-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE)
 LDFLAGS =
 INCLUDE = -I include -I lib/libc -I lib/libdlmalloc
 VPATH = src/ lib/libc lib/libdlmalloc
