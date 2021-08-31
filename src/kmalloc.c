@@ -18,17 +18,18 @@ void *brk(int amt)
  */
 void kfree(void *ptr)
 {
-  if(!ptr) {
+  if(!ptr) 
+  {
     // ignore null pointers :o
     return;
-  } else {
-    struct mem_block *block_ptr = get_block_ptr(ptr);
-    
-    // assign block as free
-    // debug will be 0xBAADF00D if successfully freed
-    block_ptr->free = 1;
-    block_ptr->debug = 0xBAADF00D;
   }
+
+  struct mem_block *block_ptr = get_block_ptr(ptr);
+  
+  // assign block as free
+  // debug will be 0xBAADF00D if successfully freed
+  block_ptr->free = 1;
+  block_ptr->debug = 0xBAADF00D;
 }
 
 /**
@@ -42,18 +43,23 @@ void *kmalloc(size_t size)
   // actually i thhink it works with kmalloca
 
   // if someone is playing games... return null
-  if(size <= 0) {
+  if(size <= 0) 
+  {
     return NULL;
   }
 
 
-  if(!block_head) {
+  if(!block_head) 
+  {
     // make request, if denied return null
     i_am = request_memory(NULL, size);
-    if(!i_am) {
+    if(!i_am) 
+    {
       return NULL;
     }
-  } else {
+  } 
+  else 
+  {
     struct mem_block *was = block_head;
     i_am = find_next_free(&was, size);
 
@@ -108,36 +114,22 @@ void *kmallocp(size_t nbytes, u32 *phys)
   return (void *) ptr;
 }
 
-// kmalloc align + kmalloc phys
-void *kmallocap(size_t nbytes, int align, u32 *phys)
+/**
+ * resize a block of memory
+ * @param ptr pointer to the block of memory
+ * @param size new size to allocate to
+ */
+void *krealloc(void *ptr, size_t size) 
 {
-  if (heap & 0xFFFFF000)
+  if(!ptr) 
   {
-    //ptr &= ~PGSZ;
-    heap &= 0xFFFFF000;
-
-    // if the previous operation rounds down, we don't want to return any memory
-    // that may have already been kmalloc'd. so, we'll add a page size to ensure
-    // this memory is new.
-    heap += _PAGE_SIZE;
-  }
-
-  u32 ptr = kmalloc(nbytes);
-  if (phys)
-    *phys = ptr;
-
-  return (void *) ptr;
-}
-
-// realloc
-void *krealloc(void *ptr, size_t size) {
-  if(!ptr) {
     // if null pointer is passed, realloc functions as malloc
     return kmalloc(size);
   }
 
   struct mem_block *current = get_block_ptr(ptr);
-  if(current->size > size) {
+  if(current->size > size) 
+  {
     // decide for caller that there's already enough memory...
     // blocks could split here in the future, thus freeing some
     // of the memory that is unused in this block, but for now
@@ -145,8 +137,10 @@ void *krealloc(void *ptr, size_t size) {
     return ptr;
   }
 
+  // initialize new block
   void *new_block_ptr = kmalloc(size);
-  if(!new_block_ptr) {
+  if(!new_block_ptr) 
+  {
     // failled to malloc
     return NULL;
   }
@@ -159,19 +153,42 @@ void *krealloc(void *ptr, size_t size) {
 }
 
 /**
+ * clear an allocation n elements
+ * @param n number of elements
+ * @param size_el size of each element
+ */
+void *kcalloc(size_t len, size_t size_el) 
+{
+  size_t size = len * size_el;
+  void *ptr;
+  if(size > heap) 
+  {
+    // check for overflow
+    return NULL;
+  }
+
+  // initialize allocation to zero
+  ptr = kmalloc(size);
+  memset(ptr, 0, size);
+  return ptr;
+}
+
+/**
  * find the next available memory block, if one exists
  * @param was double pointer to previous memory block
  * @param size size that is currently trying to be malloc'd 
  */ 
-struct mem_block *find_next_free(struct mem_block **was, size_t size) {
+struct mem_block *find_next_free(struct mem_block **was, size_t size) 
+{
   struct mem_block *i_am = block_head;
   for(;;) {
-    if(i_am && i_am->free && i_am->size >= size) {
+    if(i_am && i_am->free && i_am->size >= size) 
+    {
       break;
-    } else {
-      *was = i_am;
-      i_am = i_am->next;
-    }
+    } 
+
+    *was = i_am;
+    i_am = i_am->next;
   }
   return i_am;
 }
@@ -181,16 +198,19 @@ struct mem_block *find_next_free(struct mem_block **was, size_t size) {
  * @param was pointer to the previous memory block
  * @param size n bytes to request
  */
-struct mem_block *request_memory(struct mem_block *was, size_t size) {
+struct mem_block *request_memory(struct mem_block *was, size_t size) 
+{
   struct mem_block *block;
   block = brk(0);
-  void *requested_mem = brk(size + _PAGE_SIZE);
-  if(requested_mem == (void *) - 1) {
+  void *requested_mem = brk(sizeof(block) + size);
+  if(requested_mem == (void *) - 1) 
+  {
     // failed to fetch more memory
     return NULL;
   }
 
-  if(was) {
+  if(was) 
+  {
     // was will always be null on the first request
     // because we're starting with the head of the list
     was->next = block;
@@ -204,7 +224,6 @@ struct mem_block *request_memory(struct mem_block *was, size_t size) {
   return block;
 }
 
-
 /**
  * get pointer to the block of memory
  * just does pointer - 1 but is more semantic / easier
@@ -212,6 +231,7 @@ struct mem_block *request_memory(struct mem_block *was, size_t size) {
  * each time
  * @param ptr pointer to get block of memory for
  */
-struct mem_block *get_block_ptr(void *ptr) {
-  return (struct mem_block*) --ptr;
+struct mem_block *get_block_ptr(void *ptr) 
+{
+  return ((struct mem_block*) ptr) - 1;
 }
