@@ -19,6 +19,7 @@ void *kmalloc(size_t);
 void *kmalloca(size_t);
 void *kmallocp(size_t, u32 *);
 void *kmallocap(size_t, int, u32 *);
+void *krealloc(void *, size_t);
 
 struct mem_block *find_next_free(struct mem_block **, size_t);
 struct mem_block *request_memory(struct mem_block *, size_t);

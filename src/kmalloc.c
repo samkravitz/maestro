@@ -12,6 +12,10 @@ void *brk(int amt)
   return (void *) ptr;
 }
 
+/**
+ * set a block of memory as free as in libre
+ * @param ptr pointer to the memory block to mark as free
+ */
 void kfree(void *ptr)
 {
   if(!ptr) {
@@ -28,6 +32,7 @@ void kfree(void *ptr)
 }
 
 /**
+ * kernel malloc
  * @param size malloc size in n bytes
  */ 
 void *kmalloc(size_t size)
@@ -124,6 +129,40 @@ void *kmallocap(size_t nbytes, int align, u32 *phys)
   return (void *) ptr;
 }
 
+// realloc
+void *krealloc(void *ptr, size_t size) {
+  if(!ptr) {
+    // if null pointer is passed, realloc functions as malloc
+    return kmalloc(size);
+  }
+
+  struct mem_block *current = get_block_ptr(ptr);
+  if(current->size > size) {
+    // decide for caller that there's already enough memory...
+    // blocks could split here in the future, thus freeing some
+    // of the memory that is unused in this block, but for now
+    // that isn't necessary
+    return ptr;
+  }
+
+  void *new_block_ptr = kmalloc(size);
+  if(!new_block_ptr) {
+    // failled to malloc
+    return NULL;
+  }
+
+  // copy memory from old block to new block, then 
+  // free the old block
+  memcpy(new_block_ptr, ptr, current->size);
+  free(ptr);
+  return new_block_ptr;
+}
+
+/**
+ * find the next available memory block, if one exists
+ * @param was double pointer to previous memory block
+ * @param size size that is currently trying to be malloc'd 
+ */ 
 struct mem_block *find_next_free(struct mem_block **was, size_t size) {
   struct mem_block *i_am = block_head;
   for(;;) {
@@ -137,6 +176,11 @@ struct mem_block *find_next_free(struct mem_block **was, size_t size) {
   return i_am;
 }
 
+/**
+ * ask `brk` for more memory
+ * @param was pointer to the previous memory block
+ * @param size n bytes to request
+ */
 struct mem_block *request_memory(struct mem_block *was, size_t size) {
   struct mem_block *block;
   block = brk(0);
@@ -160,6 +204,14 @@ struct mem_block *request_memory(struct mem_block *was, size_t size) {
   return block;
 }
 
+
+/**
+ * get pointer to the block of memory
+ * just does pointer - 1 but is more semantic / easier
+ * to read than pointer arithmetic and casting to struct
+ * each time
+ * @param ptr pointer to get block of memory for
+ */
 struct mem_block *get_block_ptr(void *ptr) {
   return (struct mem_block*) --ptr;
 }
