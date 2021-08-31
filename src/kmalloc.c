@@ -78,10 +78,6 @@ void *kmalloc(size_t size)
   }
 
   return (++i_am);
-
-  // u32 ptr = (u32) heap;
-  // heap += size;
-  // return (void *) ptr;
 }
 
 /**
