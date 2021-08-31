@@ -41,6 +41,9 @@ void kmain()
 	for(int i =0; i<14;i++) {
 		kprintf("%c", str[i]);
 	}
+	kprintf("\n");
+	kprintf("memory block free bit (*str): %d\n", get_block_ptr(str)->free);
+	kprintf("memory block debug value (*str): %x\n", get_block_ptr(str)->debug);
 
 	kfree(str);
 	kprintf("\nafter freeing str (should be the same as above bc its just marked as free):\n");
@@ -56,6 +59,9 @@ void kmain()
 		kprintf("%c", str[i]);
 	}
 	kprintf("\n");
+	kprintf("memory block free bit (*str): %d\n", get_block_ptr(str)->free);
+	kprintf("memory block debug value (*str): %x\n", get_block_ptr(str)->debug);
+
 	kprintf("Finding 7! (factorial (but filling the array with each number))\n");
 	kprintf("filling the array: ");
 	int *fac = kmalloc(8 * sizeof(*fac));
@@ -65,6 +71,8 @@ void kmain()
 		else kprintf("%d", i);
 	}
 	kprintf("\n");
+	kprintf("memory block free bit (*fac): %d\n", get_block_ptr(fac)->free);
+	kprintf("memory block debug value (*fac): %x\n", get_block_ptr(fac)->debug);
 
 	kprintf("7! = ");
 	for(int i=1;i<=7;i++){
@@ -78,6 +86,11 @@ void kmain()
 		sol *= fac[i];
 	}
 	kprintf("7! = %d\n",sol);
+	kfree(fac);
+	kprintf("freed the array of numbers :)\n");
+	kprintf("memory block free bit (*fac): %d\n", get_block_ptr(fac)->free);
+	kprintf("memory block debug value (*fac): %x\n", get_block_ptr(fac)->debug);
+	
 
 	asm("sti");
 

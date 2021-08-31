@@ -21,7 +21,9 @@ void kfree(void *ptr)
     struct mem_block *block_ptr = get_block_ptr(ptr);
     
     // assign block as free
+    // debug will be 0xB19B00B5 if successfully freed
     block_ptr->free = 1;
+    block_ptr->debug = 0xB19B00B5;
   }
 }
 
