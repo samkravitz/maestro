@@ -49,7 +49,7 @@ void kmain()
 	}
 
 	memcpy(str, "Big Chungis", strlen("Big Chungis"));
-	kprintf("after reassigning str:\n");
+	kprintf("\nafter reassigning str:\n");
 	kprintf("Char is filled with: \n");
 	for(int i =0; i<14;i++) {
 		kprintf("%c", str[i]);
