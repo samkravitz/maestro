@@ -35,6 +35,7 @@ void kmain()
 	char *str;
 	str = kmalloc(11 * sizeof(*str));
 	memcpy(str, "Hello world..?", strlen("Hello world..?"));
+	kprintf("Running a test on chars: \n");
 	kprintf("\nafter filling str\n");
 	kprintf("Char is filled with: \n");
 	for(int i =0; i<14;i++) {
@@ -55,7 +56,28 @@ void kmain()
 		kprintf("%c", str[i]);
 	}
 	kprintf("\n");
+	kprintf("Finding 7! (factorial (but filling the array with each number))\n");
+	kprintf("filling the array: ");
+	int *fac = kmalloc(8 * sizeof(*fac));
+	for(int i=1;i<=7;i++){
+		fac[i-1] = i;
+		if(i < 7) kprintf("%d, ", i);
+		else kprintf("%d", i);
+	}
+	kprintf("\n");
 
+	kprintf("7! = ");
+	for(int i=1;i<=7;i++){
+		if(i < 7) kprintf("%d * ", fac[i-1]);
+		else kprintf("%d", fac[i-1]);
+	}
+	kprintf("\n");
+
+	int sol = 1;
+	for(int i=1;i<7;i++) {
+		sol *= fac[i];
+	}
+	kprintf("7! = %d\n",sol);
 
 	asm("sti");
 
