@@ -8,8 +8,9 @@
  * DESCRIPTION: process management
  */
 #include <proc.h>
+#include <kmalloc.h>
 
-#include "malloc.h"
+// #include "malloc.h"
 #include "string.h"
 
 struct proc *curr;
@@ -27,7 +28,7 @@ static void pterm()
 
 struct proc *create(void (*func)(void), const char *name)
 {
-	struct proc *pptr = (struct proc *) malloc(sizeof(struct proc));
+	struct proc *pptr = (struct proc *) kmalloc(sizeof(struct proc));
 	memcpy(pptr->name, name, strlen(name) + 1);
 	pptr->name[strlen(name)] = '\0'; 
 	

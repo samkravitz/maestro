@@ -32,7 +32,7 @@ struct pq *dequeue(struct pq **head)
 
 struct pq *newpq(void *data)
 {
-	struct pq *pq = (struct pq *) malloc(sizeof(struct pq));
+	struct pq *pq = (struct pq *) kmalloc(sizeof(struct pq));
 	pq->data = data;
 	pq->next = NULL;
 	return pq;

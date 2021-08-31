@@ -8,8 +8,9 @@
  * DESCRIPTION: Priority queue implementation
  */
 #include <pq.h>
+#include <kmalloc.h>
 
-#include "malloc.h"
+// #include "malloc.h"
 
 void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 {
@@ -41,7 +42,7 @@ struct pq *dequeue(struct pq **head)
 
 struct pq *newpq(void *data)
 {
-	struct pq *pq = (struct pq *) malloc(sizeof(struct pq));
+	struct pq *pq = (struct pq *) kmalloc(sizeof(struct pq));
 	pq->data = data;
 	pq->next = NULL;
 	return pq;
