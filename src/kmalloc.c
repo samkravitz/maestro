@@ -21,9 +21,9 @@ void kfree(void *ptr)
     struct mem_block *block_ptr = get_block_ptr(ptr);
     
     // assign block as free
-    // debug will be 0xB19B00B5 if successfully freed
+    // debug will be 0xBAADF00D if successfully freed
     block_ptr->free = 1;
-    block_ptr->debug = 0xB19B00B5;
+    block_ptr->debug = 0xBAADF00D;
   }
 }
 
@@ -62,7 +62,7 @@ void *kmalloc(size_t size)
     } else {
       // successfully found a free block
       i_am->free = 0;
-      i_am->debug = 0xBADB100D;
+      i_am->debug = 0xBAD1DEED;
     }
   }
 
@@ -156,7 +156,7 @@ struct mem_block *request_memory(struct mem_block *was, size_t size) {
   block->next = NULL;
   block->size = size;
   block->free = 0;
-  block->debug = 0xBAADF00D;
+  block->debug = 0xBAD1F00D;
   return block;
 }
 
