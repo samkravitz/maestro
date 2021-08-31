@@ -106,12 +106,6 @@ void kmain()
 	}
 	kprintf("\n");
 
-	sol = 1;
-	for(int i=0;i<=10;i++) {
-		sol *= fac[i];
-	}
-	kprintf("10! = %d\n",sol);
-
 	kfree(fac);
 	kprintf("freed the array of numbers :)\n");
 	kprintf("memory block free bit (*fac): %d\n", get_block_ptr(fac)->free);
