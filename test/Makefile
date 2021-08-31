@@ -1,11 +1,12 @@
 CC = gcc
-CFLAGS = -std=gnu99 -Wall -Wextra
+CFLAGS = -std=gnu99 -m32 -Wall -Wextra $(INCLUDE)
 SRC = \
 	pq.test.c \
-	kmalloc.test.c \
+	# kmalloc.test.c \
 
 TESTS = $(SRC:.c=.out)
 INCLUDE = -I ../include
+VPATH = ../src/
 
 all: tests
 

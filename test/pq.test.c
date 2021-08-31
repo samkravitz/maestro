@@ -1,5 +1,5 @@
 #include "../include/pq.h"
-#include "../include/kmalloc.h"
+// #include "../include/kmalloc.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,7 +33,7 @@ struct pq *dequeue(struct pq **head)
 
 struct pq *newpq(void *data)
 {
-	struct pq *pq = (struct pq *) kmalloc(sizeof(struct pq));
+	struct pq *pq = (struct pq *) malloc(sizeof(struct pq));
 	pq->data = data;
 	pq->next = NULL;
 	return pq;
