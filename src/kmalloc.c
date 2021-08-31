@@ -181,7 +181,8 @@ void *kcalloc(size_t len, size_t size_el)
 struct mem_block *find_next_free(struct mem_block **was, size_t size) 
 {
   struct mem_block *i_am = block_head;
-  for(;;) {
+  for(;;) 
+  {
     if(i_am && i_am->free && i_am->size >= size) 
     {
       break;
