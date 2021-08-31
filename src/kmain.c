@@ -90,7 +90,7 @@ void kmain()
 	kprintf("Now finding 10!\n");
 	kprintf("filling the array: ");
 	fac = krealloc(fac, 11 * sizeof(*fac));
-	for(int i=7;i<11;i++){
+	for(int i=1;i<11;i++){
 		fac[i] = i+1;
 		if(i < 11) kprintf("%d, ", i);
 		else kprintf("%d", i);
@@ -100,8 +100,8 @@ void kmain()
 	kprintf("memory block debug value (*fac): %x\n", get_block_ptr(fac)->debug);
 
 	kprintf("10! = ");
-	for(int i=1;i<=11;i++){
-		if(i < 11) kprintf("%d * ", fac[i-1]);
+	for(int i=1;i<11;i++){
+		if(i < 10) kprintf("%d * ", fac[i-1]);
 		else kprintf("%d", fac[i-1]);
 	}
 	kprintf("\n");
