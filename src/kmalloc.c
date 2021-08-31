@@ -24,12 +24,15 @@ void kfree(void *ptr)
     return;
   }
 
-  struct mem_block *block_ptr = get_block_ptr(ptr);
+
+  struct mem_block *freeing_block_ptr = get_block_ptr(ptr);
+  // struct mem_block *head_block_ptr = get_block_ptr(block_head);
   
   // assign block as free
   // debug will be 0xBAADF00D if successfully freed
-  block_ptr->free = 1;
-  block_ptr->debug = 0xBAADF00D;
+  freeing_block_ptr->free = 1;
+  freeing_block_ptr->debug = 0xBAADF00D;
+  // head_block_ptr->next = freeing_block_ptr->next;
 }
 
 /**
@@ -45,38 +48,41 @@ void *kmalloc(size_t size)
   // if someone is playing games... return null
   if(size <= 0) 
   {
+    kprintf("Tried to malloc a size of 0");
     return NULL;
   }
 
 
   if(!block_head) 
   {
-    // make request, if denied return null
+    // if head is undefined, make request
+    // if denied return null
     i_am = request_memory(NULL, size);
     if(!i_am) 
     {
       return NULL;
     }
   } 
+
+  struct mem_block *was = block_head;
+  i_am = find_next_free(&was, size);
+
+  if(!i_am) 
+  {
+    // request more mem if no free blocks were found
+    i_am = request_memory(was, size);
+    if(!i_am) 
+    {
+      // if request from was was denied return null
+      return NULL;
+    }
+  } 
   else 
   {
-    struct mem_block *was = block_head;
-    i_am = find_next_free(&was, size);
-
-    if(!i_am) {
-      // request more mem if no free blocks were found
-      i_am = request_memory(was, size);
-      if(!i_am) {
-        // if request from was was denied return null
-        return NULL;
-      }
-    } else {
-      // successfully found a free block
-      i_am->free = 0;
-      i_am->debug = 0xBAD1DEED;
-    }
+    // successfully found a free block
+    i_am->free = 0;
+    i_am->debug = 0xBAD1DEED;
   }
-
   return (++i_am);
 }
 
@@ -199,10 +205,11 @@ struct mem_block *request_memory(struct mem_block *was, size_t size)
 {
   struct mem_block *block;
   block = brk(0);
-  void *requested_mem = brk(sizeof(block) + size);
+  void *requested_mem = brk(sizeof(*block) + size);
   if(requested_mem == (void *) - 1) 
   {
     // failed to fetch more memory
+    kprintf("ERR: Failed to allocate more memory!");
     return NULL;
   }
 

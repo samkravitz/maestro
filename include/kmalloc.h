@@ -11,6 +11,7 @@ struct mem_block
   size_t size;
   u8 free;
   struct mem_block *next;
+  struct mem_block *prev;
   int debug; // delete me
 };
 
