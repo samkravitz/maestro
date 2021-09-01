@@ -41,7 +41,7 @@ LIB = \
 
 OBJ = $(C:.c=.o) $(ASM:.s=.o) $(LIB:.c=.o)
 
-all: libs maestro.bin iso
+all: libs maestro.bin img
 
 maestro.bin: $(OBJ)
 	$(CC) $(CFLAGS) -T linker.ld -o $@ $^ $(LDFLAGS)
@@ -55,11 +55,14 @@ maestro.bin: $(OBJ)
 libs:
 	$(MAKE) -C lib
 
-iso: maestro.bin
-	mkdir -p iso/boot/grub
-	cp maestro.bin iso/boot
-	cp grub.cfg iso/boot/grub
-	grub-mkrescue -o maestro.iso iso
+img: maestro.bin
+	mkdir -p mnt
+	sudo mount -o loop,offset=1048576 disk.img mnt
+	sudo cp maestro.bin mnt/boot
+	sudo cp grub.cfg mnt/boot/grub
+	sync
+	sudo umount mnt
+	rmdir mnt
 
 .PHONY: test
 test:
@@ -67,17 +70,12 @@ test:
 
 .PHONY: start
 start:
-	qemu-system-i386 -hda disk.img -cdrom maestro.iso
-	
+	qemu-system-i386 -drive file=disk.img,format=raw,index=0,media=disk
 
 .PHONY: clean
 clean:
-	rm -rf *.o *.bin *.iso
-	rm -rf iso
+	rm -f *.o *.bin
+	rm -rf mnt
 	$(MAKE) -C lib clean
 	$(MAKE) -C test clean
-
-# creates a 1M raw disk image for maestro
-.PHONY: disk
-disk:
 	qemu-img create -f raw disk.img 1M

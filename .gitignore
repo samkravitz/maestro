@@ -58,3 +58,6 @@ iso/
 
 # hard disk image
 disk.img
+
+# filesystem mount
+mnt/
