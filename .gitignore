@@ -61,3 +61,6 @@ disk.img
 
 # filesystem mount
 mnt/
+
+# build directory
+bin/

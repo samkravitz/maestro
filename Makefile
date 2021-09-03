@@ -39,17 +39,17 @@ LIB = \
 	string.c \
 	malloc.c \
 
-OBJ = $(C:.c=.o) $(ASM:.s=.o) $(LIB:.c=.o)
+OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o) $(LIB:.c=.o))
 
 all: libs maestro.bin img
 
 maestro.bin: $(OBJ)
 	$(CC) $(CFLAGS) -T linker.ld -o $@ $^ $(LDFLAGS)
 
-%.o: %.c
+bin/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.s
+bin/%.o: %.s
 	$(AS) -f elf32 $< -o $@
 
 libs:
@@ -74,8 +74,7 @@ start:
 
 .PHONY: clean
 clean:
-	rm -f *.o *.bin
+	rm -f bin/* *.bin
 	rm -rf mnt
 	$(MAKE) -C lib clean
 	$(MAKE) -C test clean
-	qemu-img create -f raw disk.img 1M
