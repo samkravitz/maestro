@@ -55,34 +55,45 @@ void *kmalloc(size_t size)
 
   if(!block_head) 
   {
-    // if head is undefined, make request
-    // if denied return null
+    // if head is undefined, make request for memory
+    // if denied return null, otherwise we know
+    // the memory block head is defined
+    kprintf("no mem yet.. requesting to allocatie\n");
     i_am = request_memory(NULL, size);
     if(!i_am) 
     {
-      return NULL;
-    }
-  } 
-
-  struct mem_block *was = block_head;
-  i_am = find_next_free(&was, size);
-
-  if(!i_am) 
-  {
-    // request more mem if no free blocks were found
-    i_am = request_memory(was, size);
-    if(!i_am) 
-    {
-      // if request from was was denied return null
+      kprintf("i am null\n");
       return NULL;
     }
   } 
   else 
   {
-    // successfully found a free block
-    i_am->free = 0;
-    i_am->debug = 0xBAD1DEED;
+    // keep previous block head, next block head is 
+    // defined when finding the next free
+    struct mem_block *was = block_head;
+    i_am = find_next_free(&was, size);
+
+    if(!i_am) 
+    {
+      // request more mem if no free blocks were found
+      i_am = request_memory(was, size);
+      if(!i_am) 
+      {
+        // if request from was was denied return null
+        return NULL;
+      }
+    } 
+    else 
+    {
+      // successfully found a free block
+      i_am->free = 0;
+      i_am->debug = 0xBAD1DEED;
+      i_am->prev = was;
+    }
   }
+
+
+  // return the available memory
   return (++i_am);
 }
 
@@ -129,8 +140,9 @@ void *krealloc(void *ptr, size_t size)
     return kmalloc(size);
   }
 
-  struct mem_block *current = get_block_ptr(ptr);
-  if(current->size > size) 
+  // get the current block
+  struct mem_block *my = get_block_ptr(ptr);
+  if(my->size > size) 
   {
     // decide for caller that there's already enough memory...
     // blocks could split here in the future, thus freeing some
@@ -149,7 +161,7 @@ void *krealloc(void *ptr, size_t size)
 
   // copy memory from old block to new block, then 
   // free the old block
-  memcpy(new_block_ptr, ptr, current->size);
+  memcpy(new_block_ptr, ptr, my->size);
   free(ptr);
   return new_block_ptr;
 }
@@ -182,17 +194,33 @@ void *kcalloc(size_t len, size_t size_el)
  */ 
 struct mem_block *find_next_free(struct mem_block **was, size_t size) 
 {
+  kprintf("finding next free\n");
   struct mem_block *i_am = block_head;
+  int i =0;
   for(;;) 
   {
+    // iterate through the list until free mem is found
     if(i_am && i_am->free && i_am->size >= size) 
     {
+      // if block is not null, and the block is free, and
+      // the block is of a valid size, correct block 
+      // has been found
       break;
     } 
 
+    if(!i_am->next) {
+      kprintf("next is null: %d\n",i);
+      break;
+    }
+    
     *was = i_am;
     i_am = i_am->next;
+    i++;
   }
+  kprintf("found next free\n");
+
+
+  // return the found free block
   return i_am;
 }
 
@@ -219,12 +247,15 @@ struct mem_block *request_memory(struct mem_block *was, size_t size)
     // because we're starting with the head of the list
     was->next = block;
   }
+  kprintf("returning with block\n");
   
-  // prepend this block to the head of the heap
+  // prepend this block to the head of the heap and
+  // append the new tail of the list to this block
   block->next = NULL;
+  block->prev = was;
   block->size = size;
   block->free = 0;
-  block->debug = 0xBAD1F00D;
+  block->debug = 0xBADDDD1E;
   return block;
 }
 
