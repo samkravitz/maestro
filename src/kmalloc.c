@@ -58,11 +58,9 @@ void *kmalloc(size_t size)
     // if head is undefined, make request for memory
     // if denied return null, otherwise we know
     // the memory block head is defined
-    kprintf("no mem yet.. requesting to allocatie\n");
     i_am = request_memory(NULL, size);
     if(!i_am) 
     {
-      kprintf("i am null\n");
       return NULL;
     }
   } 
@@ -194,7 +192,6 @@ void *kcalloc(size_t len, size_t size_el)
  */ 
 struct mem_block *find_next_free(struct mem_block **was, size_t size) 
 {
-  kprintf("finding next free\n");
   struct mem_block *i_am = block_head;
   int i =0;
   for(;;) 
@@ -217,8 +214,6 @@ struct mem_block *find_next_free(struct mem_block **was, size_t size)
     i_am = i_am->next;
     i++;
   }
-  kprintf("found next free\n");
-
 
   // return the found free block
   return i_am;
@@ -247,7 +242,6 @@ struct mem_block *request_memory(struct mem_block *was, size_t size)
     // because we're starting with the head of the list
     was->next = block;
   }
-  kprintf("returning with block\n");
   
   // prepend this block to the head of the heap and
   // append the new tail of the list to this block
