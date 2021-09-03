@@ -24,9 +24,12 @@ void kfree(void *ptr)
     return;
   }
 
-
+  // get memory block that is being freed
   struct mem_block *freeing_block_ptr = get_block_ptr(ptr);
   
+  // return if block is already free
+  if(freeing_block_ptr->free) return;
+
   // assign block as free
   // debug will be 0xBAADF00D if successfully freed
   // the block previous to the block that is being freed
@@ -34,7 +37,7 @@ void kfree(void *ptr)
   // memory that is available
   freeing_block_ptr->free = 1;
   freeing_block_ptr->debug = 0xBAADF00D;
-
+  
   if(!freeing_block_ptr->prev) return;
   freeing_block_ptr->prev->next = freeing_block_ptr->next;
 }
