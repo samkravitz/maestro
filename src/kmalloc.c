@@ -26,13 +26,15 @@ void kfree(void *ptr)
 
 
   struct mem_block *freeing_block_ptr = get_block_ptr(ptr);
-  // struct mem_block *head_block_ptr = get_block_ptr(block_head);
   
   // assign block as free
   // debug will be 0xBAADF00D if successfully freed
+  // the block previous to the block that is being freed
+  // is assigned to the next block to prevent 'gaps' in the
+  // memory that is available
   freeing_block_ptr->free = 1;
   freeing_block_ptr->debug = 0xBAADF00D;
-  // head_block_ptr->next = freeing_block_ptr->next;
+  freeing_block_ptr->prev = freeing_block_ptr->next;
 }
 
 /**
@@ -205,11 +207,6 @@ struct mem_block *find_next_free(struct mem_block **was, size_t size)
       break;
     } 
 
-    if(!i_am->next) {
-      kprintf("next is null: %d\n",i);
-      break;
-    }
-    
     *was = i_am;
     i_am = i_am->next;
     i++;
