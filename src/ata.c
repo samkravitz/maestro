@@ -10,7 +10,8 @@
 #include <ata.h>
 #include <io.h>
 
-static void ata_wait(enum ata_wait_occasion);
+static void ata_wait_bsy();
+static void ata_wait_rdy();
 
 void ata_read(void *buff, uint lba, size_t len)
 {
@@ -47,7 +48,7 @@ void ata_write(void *buff, uint lba, size_t len)
 void ata_read_sector(u16 *buff, uint lba)
 {
 	// wait until disk is not busy
-	ata_wait(~ATA_WAIT_BSY);
+	ata_wait_bsy();
 
 	// send 0xe0 ORed with the highest 4 bits of the LBA to port 0x1f6:
 	outb(ATA_LBA_PORT, 0xe0 | (lba >> 24 & 0xf));
@@ -64,8 +65,8 @@ void ata_read_sector(u16 *buff, uint lba)
 	outb(ATA_CMD_PORT, ATA_CMD_READ);
 
 	// wait until disk is ready to transfer data
-	ata_wait(~ATA_WAIT_BSY);
-	ata_wait(ATA_WAIT_RDY);
+	ata_wait_bsy();
+	ata_wait_rdy();
 
 	// 256 instead of 512 because we transfer by word
 	for (int i = 0; i < 256; ++i)
@@ -74,7 +75,9 @@ void ata_read_sector(u16 *buff, uint lba)
 
 void ata_write_sector(u16 *buff, uint lba)
 {
-	ata_wait(~ATA_WAIT_BSY);
+	// wait until disk is not busy
+	ata_wait_bsy();
+
 	outb(ATA_LBA_PORT, 0xe0 | (lba >> 24 & 0xf));
 
 	// write just one sector
@@ -89,16 +92,22 @@ void ata_write_sector(u16 *buff, uint lba)
 	outb(ATA_CMD_PORT, ATA_CMD_WRITE);
 
 	// wait until disk is ready to transfer data
-	ata_wait(~ATA_WAIT_BSY);
-	ata_wait(ATA_WAIT_RDY);
+	ata_wait_bsy();
+	ata_wait_rdy();
 
 	// 256 instead of 512 because we transfer by word
 	for(int i = 0; i < 256; ++i)
 		outw(ATA_DATA_PORT, buff[i]);
 }
 
-static void ata_wait(enum ata_wait_occasion occasion)
+static void ata_wait_bsy()
 {
-	while (!(inb(ATA_STATUS_PORT) & occasion))
+	while (inb(ATA_STATUS_PORT) & ATA_WAIT_BSY)
+		;
+}
+
+static void ata_wait_rdy()
+{
+	while (!(inb(ATA_STATUS_PORT) & ATA_WAIT_RDY))
 		;
 }

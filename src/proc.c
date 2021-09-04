@@ -15,9 +15,16 @@
 
 struct proc *curr;
 struct proc *proctab[NPROC];
+const struct proc nullproc = {
+	.stkptr = 0,
+	.name = "null process",
+	.pid = -1,
+};
 
 // number of active processes
 int nproc = 0;
+
+int next_pid = 0;
 
 // where processes return when they terminate
 static void pterm()
@@ -44,6 +51,7 @@ struct proc *create(void (*func)(void), const char *name)
 	stkptr--; *stkptr = 0;			// esi
 	stkptr--; *stkptr = 0;			// edi
 	pptr->stkptr = stkptr;
+	pptr->pid = next_pid++;
 
 	nproc++;
 	return pptr;

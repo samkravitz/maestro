@@ -7,12 +7,14 @@
 - [nasm](https://nasm.us/)
 - [grub](https://www.gnu.org/software/grub/)
 - An i686 cross-compiler (on x64 Linux machines, this should be achievable with some gcc flags)
+- At least 512M of space for the disk image
 
 ### Usage
+create disk image: (this only needs to be done once) \
+(root access is required) \
+`meta/make_disk.sh` \
 build: \
 `make` \
-create disk image: (this only needs to be done once) \
-`make disk` \
 launch: \
 `make start`
 
