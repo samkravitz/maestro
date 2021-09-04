@@ -86,7 +86,7 @@ void mminit()
 	meminfo.size = info->mem_upper;
 	meminfo.max_blocks = meminfo.size * 1024 / PAGE_SIZE;
 	meminfo.used_blocks = meminfo.max_blocks; // by default all blocks are used
-	meminfo.mmap = (u8 *) malloc(meminfo.max_blocks / 8);
+	meminfo.mmap = (u8 *) kmalloc(meminfo.max_blocks / 8);
 	memset(meminfo.mmap, 0, meminfo.max_blocks / 8);
 
 	// get memory map if valid

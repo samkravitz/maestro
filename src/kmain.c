@@ -11,8 +11,8 @@
 #include <intr.h>
 #include <kout.h>
 #include <proc.h>
+#include <kmalloc.h>
 
-#include "malloc.h"
 #include "string.h"
 
 extern struct proc *curr;
