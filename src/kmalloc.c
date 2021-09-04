@@ -2,12 +2,12 @@
 
 // start of heap begins at end of maestro image
 extern u32 end;
-u32 heap = (u32) &end;
+uptr heap = (uptr) &end;
 void *block_head = NULL;
 
 void *brk(int amt)
 {
-  u32 ptr = heap;
+  uptr ptr = heap;
   heap += amt;
   return (void *) ptr;
 }
@@ -18,17 +18,16 @@ void *brk(int amt)
  */
 void kfree(void *ptr)
 {
-  if(!ptr) 
-  {
-    // ignore null pointers :o
-    return;
-  }
+	// ignore null pointers :o
+	if (!ptr) 
+	return;
 
   // get memory block that is being freed
   struct mem_block *freeing_block_ptr = get_block_ptr(ptr);
   
   // return if block is already free
-  if(freeing_block_ptr->free) return;
+  if (freeing_block_ptr->free)
+	return;
 
   // assign block as free
   // debug will be 0xBAADF00D if successfully freed
@@ -38,8 +37,8 @@ void kfree(void *ptr)
   freeing_block_ptr->free = 1;
   freeing_block_ptr->debug = 0xBAADF00D;
   
-  if(!freeing_block_ptr->prev) return;
-  freeing_block_ptr->prev->next = freeing_block_ptr->next;
+  if (freeing_block_ptr->prev)
+  	freeing_block_ptr->prev->next = freeing_block_ptr->next;
 }
 
 /**
@@ -53,23 +52,19 @@ void *kmalloc(size_t size)
   // actually i thhink it works with kmalloca
 
   // if someone is playing games... return null
-  if(size <= 0) 
-  {
+  if (size <= 0) 
     return NULL;
-  }
 
-
-  if(!block_head) 
+  if (!block_head) 
   {
     // if head is undefined, make request for memory
     // if denied return null, otherwise we know
     // the memory block head is defined
     i_am = request_memory(NULL, size);
-    if(!i_am) 
-    {
+    if (!i_am) 
       return NULL;
-    }
-  } 
+  }
+
   else 
   {
     // keep previous block head, next block head is 
@@ -77,16 +72,16 @@ void *kmalloc(size_t size)
     struct mem_block *was = block_head;
     i_am = find_next_free(&was, size);
 
-    if(!i_am) 
+    if (!i_am) 
     {
       // request more mem if no free blocks were found
       i_am = request_memory(was, size);
-      if(!i_am) 
-      {
-        // if request from was was denied return null
+
+	  // if request from was was denied return null
+      if (!i_am) 
         return NULL;
-      }
-    } 
+    }
+
     else 
     {
       // successfully found a free block
@@ -96,9 +91,8 @@ void *kmalloc(size_t size)
     }
   }
 
-
   // return the available memory
-  return (++i_am);
+  return ++i_am;
 }
 
 /**
@@ -108,7 +102,7 @@ void *kmalloc(size_t size)
  */
 void *kmalloca(size_t size)
 {
-  if(heap & 0xFFFFF000)
+  if (heap & 0xFFFFF000)
   {
     heap &= 0xFFFFF000;
 
@@ -138,15 +132,13 @@ void *kmallocp(size_t nbytes, u32 *phys)
  */
 void *krealloc(void *ptr, size_t size) 
 {
-  if(!ptr) 
-  {
     // if null pointer is passed, realloc functions as malloc
+  if (!ptr) 
     return kmalloc(size);
-  }
 
   // get the current block
   struct mem_block *my = get_block_ptr(ptr);
-  if(my->size > size) 
+  if (my->size > size) 
   {
     // decide for caller that there's already enough memory...
     // blocks could split here in the future, thus freeing some
@@ -157,11 +149,10 @@ void *krealloc(void *ptr, size_t size)
 
   // initialize new block
   void *new_block_ptr = kmalloc(size);
-  if(!new_block_ptr) 
-  {
-    // failled to malloc
+
+  // failled to malloc
+  if (!new_block_ptr) 
     return NULL;
-  }
 
   // copy memory from old block to new block, then 
   // free the old block
@@ -179,11 +170,10 @@ void *kcalloc(size_t len, size_t size_el)
 {
   size_t size = len * size_el;
   void *ptr;
+
+	// check for overflow
   if(size > heap) 
-  {
-    // check for overflow
     return NULL;
-  }
 
   // initialize allocation to zero
   ptr = kmalloc(size);
@@ -199,11 +189,11 @@ void *kcalloc(size_t len, size_t size_el)
 struct mem_block *find_next_free(struct mem_block **was, size_t size) 
 {
   struct mem_block *i_am = block_head;
-  int i =0;
-  for(;;) 
-  {
+  int i = 0;
     // iterate through the list until free mem is found
-    if(i_am && i_am->free && i_am->size >= size) 
+  for (;;) 
+  {
+    if (i_am && i_am->free && i_am->size >= size) 
     {
       // if block is not null, and the block is free, and
       // the block is of a valid size, correct block 
@@ -230,18 +220,15 @@ struct mem_block *request_memory(struct mem_block *was, size_t size)
   struct mem_block *block;
   block = brk(0);
   void *requested_mem = brk(sizeof(*block) + size);
-  if(requested_mem == (void *) - 1) 
-  {
-    // failed to fetch more memory
-    return NULL;
-  }
 
-  if(was) 
-  {
-    // was will always be null on the first request
-    // because we're starting with the head of the list
+	// failed to fetch more memory
+  if (requested_mem == (void *) - 1) 
+    return NULL;
+
+	// was will always be null on the first request
+  // because we're starting with the head of the list
+  if (was) 
     was->next = block;
-  }
   
   // prepend this block to the head of the heap and
   // append the new tail of the list to this block
