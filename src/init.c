@@ -22,7 +22,7 @@ void init()
 	idtinit();
 	intrinit();
 	clkinit();
-	mminit();
+	// mminit();
 	fatinit();
 
 	// set keyboard interrupt handler

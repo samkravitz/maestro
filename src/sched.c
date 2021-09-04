@@ -35,5 +35,5 @@ void sched()
 		return;
 
 	curr = pnew;
-	ctxsw(&pold->stkptr, pnew->stkptr);
+	ctxsw(&pold->stkptr, (u8 *) pnew->stkptr);
 }

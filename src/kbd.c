@@ -15,7 +15,10 @@
 
 #include "stdlib.h"
 
+// state of special characters
 static u32 state = 0;
+
+#define PRESSED(k) (state & (k))
 
 void kbdhandler()
 {

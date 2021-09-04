@@ -39,7 +39,7 @@ extern void ctxsw(void *, void *);
 // process ready list
 extern struct pq *readylist;
 
-static int proccmp(void *a, void *b) { return -1; }
+// static int proccmp(void *a, void *b) { return -1; }
 
 void sched();
 

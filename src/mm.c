@@ -15,9 +15,9 @@
 #include "string.h"
 
 // macros to manipulate bitmap
-#define MMAP_SET(bit)		meminfo.mmap[bit / 8]  =  (1 << (bit % 8))
-#define MMAP_CLEAR(bit)		meminfo.mmap[bit / 8] &= ~(1 << (bit % 8))
-#define MMAP_TEST(bit)		meminfo.mmap[bit / 8] &   (1 << (bit % 8))
+#define MMAP_SET(bit)		(meminfo.mmap[bit / 8]  =  (1 << (bit % 8)))
+#define MMAP_CLEAR(bit)		(meminfo.mmap[bit / 8] &= ~(1 << (bit % 8)))
+#define MMAP_TEST(bit)		(meminfo.mmap[bit / 8] &   (1 << (bit % 8)))
 
 // address of multiboot information struct 
 extern uptr mboot_info;
@@ -34,7 +34,7 @@ void pfault() { }
 // gets index of first available frame
 int first_free_frame()
 {
-	for (int i = 0; i < meminfo.max_blocks / 8; ++i)
+	for (uint i = 0; i < meminfo.max_blocks / 8; ++i)
 	{
 		// all 8 bits are set
 		if (meminfo.mmap[i] == 0xff)
@@ -136,29 +136,29 @@ void mminit()
 		}
 	}
 
-	kpd = (u32 *) kmalloca(sizeof(struct pagedir));
-	memset(kpd, 0, sizeof(kpd));
+	// kpd = (u32 *) kmalloca(sizeof(struct pagedir));
+	// memset(kpd, 0, sizeof(kpd));
 
-	pagetable = (struct pagetab *) kmalloca(sizeof(struct pagetab));
+	// pagetable = (struct pagetab *) kmalloca(sizeof(struct pagetab));
 
-	// map the first 4MB of memory
-	for(int i = 0; i < 1024; i++)
-	{
-		struct page pg;
-		pg.present = 1;
-		pg.rw = 1;
-		pg.user = 0;
-		pg.faddr = i;
-		pagetable->pages[i] = pg;
-	};
+	// // map the first 4MB of memory
+	// for(int i = 0; i < 1024; i++)
+	// {
+	// 	struct page pg;
+	// 	pg.present = 1;
+	// 	pg.rw = 1;
+	// 	pg.user = 0;
+	// 	pg.faddr = i;
+	// 	pagetable->pages[i] = pg;
+	// };
 
-	// mark the first page directory entry as being present
-	kpd[0] = (u32) pagetable | 3;
+	// // mark the first page directory entry as being present
+	// kpd[0] = (u32) pagetable | 3;
 
-	// map the rest of the page directories to not present
-	for(int i = 1; i < 1024; i++)
-		kpd[i] = 2;
+	// // map the rest of the page directories to not present
+	// for(int i = 1; i < 1024; i++)
+	// 	kpd[i] = 2;
 
-	cpd = kpd;
-	pdsw(kpd);
+	// cpd = kpd;
+	// pdsw(kpd);
 }

@@ -12,9 +12,6 @@
 
 #include <maestro.h>
 
-// state of special characters
-static u32 state;
-
 #define NUM_KEYS        128
 #define KBD_IN			0x60
 
@@ -34,7 +31,6 @@ static u32 state;
 #define LALT            0x10
 #define CAPSLOCK        0x20
 
-#define PRESSED(k) (state & (k))
 
 // scancode -> key look up table
 // scan code set 1 - US QWERTY

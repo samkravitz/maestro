@@ -75,7 +75,7 @@ struct fsinfo
     u32 trail_signature;        // should be 0xaa550000
 } __attribute__((packed));
 
-static enum fat_attr
+enum fat_attr
 {
     ATTR_READ_ONLY      =   0x01,
     ATTR_HIDDEN         = 	0x02,
@@ -117,18 +117,7 @@ struct dirent_short
     u32 size;                   // size in bytes
 } __attribute__((packed));
 
-static u32 root_dir_sectors = 0;    // in FAT32, this is always 0
-static u32 first_data_sector;
-static u32 data_sectors;            // number of data sectors on disk
-static u32 cluster_count;           // count of data clusers STARTING at cluster 2
-static uint active_cluster;
-
 void fatinit();
-
-static uint first_sector_of_cluster(uint);
-
-// given any valid cluster number, where in the FAT(s) is the entry for the cluster?
-static uint fat_offset(uint, uint);
 
 void print_bpb(struct bpb *);
 void print_fsinfo(struct fsinfo *);

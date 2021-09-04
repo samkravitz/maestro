@@ -9,6 +9,7 @@
  */
 #include <proc.h>
 #include <kmalloc.h>
+#include <kout.h>
 
 // #include "malloc.h"
 #include "string.h"
@@ -43,14 +44,14 @@ struct proc *create(void (*func)(void), const char *name)
 
 	// create dummy stack frame that ctxsw can return to
 	// only need callee-saved registers
-	stkptr--; *stkptr = pterm;		// return address of process
-	stkptr--; *stkptr = func;		// eip - where the process will begin execution
-	stkptr--; *stkptr = 0x202;		// eflags (start with interrupts enabled)
-	stkptr--; *stkptr = 0;			// ebp
-	stkptr--; *stkptr = 0;			// ebx
-	stkptr--; *stkptr = 0;			// esi
-	stkptr--; *stkptr = 0;			// edi
-	pptr->stkptr = stkptr;
+	stkptr--; *stkptr = (uptr) pterm;		// return address of process
+	stkptr--; *stkptr = (uptr) func;		// eip - where the process will begin execution
+	stkptr--; *stkptr = 0x202;				// eflags (start with interrupts enabled)
+	stkptr--; *stkptr = 0;					// ebp
+	stkptr--; *stkptr = 0;					// ebx
+	stkptr--; *stkptr = 0;					// esi
+	stkptr--; *stkptr = 0;					// edi
+	pptr->stkptr = (uptr) stkptr;
 	pptr->pid = next_pid++;
 
 	nproc++;

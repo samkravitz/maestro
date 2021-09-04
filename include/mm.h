@@ -61,7 +61,7 @@ struct page
 	u8 user		:	1;	// set if this is a user mode page
 	u8 accessed	:	1;	// set by the cpu if page has been accessed
 	u8 dirty	:	1;	// set if page has been written to
-	u8 rsvd		:	7;	// reserved by intel
+	u16 rsvd	:	7;	// reserved by intel
 	u32 faddr   :	20;	// frame address in physical memory
 } __attribute__((packed));
 

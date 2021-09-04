@@ -12,6 +12,17 @@
 #include <ata.h>
 #include <kout.h>
 
+static u32 root_dir_sectors = 0;    // in FAT32, this is always 0
+static u32 first_data_sector;
+static u32 data_sectors;            // number of data sectors on disk
+static u32 cluster_count;           // count of data clusers STARTING at cluster 2
+static uint active_cluster;
+
+// static uint first_sector_of_cluster(uint);
+
+// given any valid cluster number, where in the FAT(s) is the entry for the cluster?
+//static uint fat_offset(uint, uint);
+
 struct bpb bpb;
 struct fsinfo fsinfo;
 
@@ -23,7 +34,7 @@ u8 secbuff[512];
 void fatinit()
 {
     ata_read(&bpb, FAT_OFFSET, sizeof(bpb));
-    //ata_read(&fsinfo, bpb.fsinfo_sector + FAT_OFFSET, sizeof(fsinfo));
+    ata_read(&fsinfo, bpb.fsinfo_sector + FAT_OFFSET, sizeof(fsinfo));
     //ata_read(fat, bpb.reserved_sectors + FAT_OFFSET, sizeof(fat));
 
     first_data_sector = bpb.reserved_sectors + (bpb.num_fats * bpb.sectors_per_fat) + root_dir_sectors + FAT_OFFSET;
@@ -54,24 +65,24 @@ void fatinit()
     kprintf("%x\n", s->size);
 }
 
-static uint first_sector_of_cluster(uint cluster)
-{
-    return (cluster - 2) * bpb.sectors_per_cluster + first_data_sector;
-}
+// static uint first_sector_of_cluster(uint cluster)
+// {
+//     return (cluster - 2) * bpb.sectors_per_cluster + first_data_sector;
+// }
 
-// given any valid cluster number, where in the FAT(s) is the entry for the cluster?
-static uint fat_offset(uint cluster, uint fat)
-{
-    if (fat > bpb.num_fats)
-    {
-        kprintf("Given invalid FAT for fat_offset!\n");
-    }
+// // given any valid cluster number, where in the FAT(s) is the entry for the cluster?
+// static uint fat_offset(uint cluster, uint fat)
+// {
+//     if (fat > bpb.num_fats)
+//     {
+//         kprintf("Given invalid FAT for fat_offset!\n");
+//     }
 
-    uint offset = cluster * 4;
-    uint secnum = bpb.reserved_sectors + offset / bpb.bytes_per_sector;
-    secnum += fat * bpb.sectors_per_fat;
-    return offset % bpb.bytes_per_sector;
-}
+//     uint offset = cluster * 4;
+//     uint secnum = bpb.reserved_sectors + offset / bpb.bytes_per_sector;
+//     secnum += fat * bpb.sectors_per_fat;
+//     return offset % bpb.bytes_per_sector;
+// }
 
 void print_bpb(struct bpb *bpb)
 {
