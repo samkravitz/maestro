@@ -3,7 +3,7 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: fat.h
+ * FILE: fat.c
  * DATE: September 3, 2021
  * DESCRIPTION: FAT32 driver
  */
