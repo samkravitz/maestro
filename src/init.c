@@ -10,6 +10,7 @@
 #include <init.h>
 
 #include <clk.h>
+#include <ext2.h>
 #include <fat.h>
 #include <idt.h>
 #include <intr.h>
@@ -23,7 +24,8 @@ void init()
 	intrinit();
 	clkinit();
 	// mminit();
-	fatinit();
+	//fatinit();
+	ext2_init();
 
 	// set keyboard interrupt handler
 	svect(IRQ1, kbdhandler);

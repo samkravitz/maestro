@@ -9,6 +9,7 @@ VPATH = src/ lib/libc
 C = \
 	ata.c \
 	clk.c \
+	ext2.c \
 	fat.c \
 	idt.c \
 	init.c \
@@ -69,7 +70,7 @@ test:
 
 .PHONY: start
 start:
-	qemu-system-i386 -m 4M -drive file=disk.img,format=raw,index=0,media=disk
+	qemu-system-i386 -m 16M -drive file=disk.img,format=raw,index=0,media=disk
 
 .PHONY: clean
 clean:
