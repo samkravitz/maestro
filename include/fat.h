@@ -9,6 +9,7 @@
  * RESOURCES:
  * http://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/fatgen103.doc
  * https://www.pjrc.com/tech/8051/ide/fat32.html
+ * https://averstak.tripod.com/fatdox/dir.htm
  */
 #ifndef FAT_H
 #define FAT_H
