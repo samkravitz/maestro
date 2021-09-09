@@ -56,8 +56,8 @@ libs:
 	$(MAKE) -C lib
 
 img: maestro.bin
-	mkdir -p mnt
-	sudo mount -o loop,offset=1048576 disk.img mnt
+	mkdir mnt
+	sudo mount -t ext2 -o loop,offset=1048576 disk.img mnt
 	sudo cp maestro.bin mnt/boot
 	sudo cp grub.cfg mnt/boot/grub
 	sync

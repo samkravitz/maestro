@@ -30,4 +30,5 @@ grub-install --target=i386-pc --boot-directory=./tmp/boot --modules="biosdisk ex
 umount ./tmp
 losetup -d /dev/loop1
 losetup -d /dev/loop0
+sudo mount -t ext2 /dev/loop1 ./tmp
 rmdir ./tmp
