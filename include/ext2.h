@@ -6,13 +6,24 @@
  * FILE: ext2.h
  * DATE: September 8, 2021
  * DESCRIPTION: ext2 filesystem driver
+ * RESOURCES: http://www.nongnu.org/ext2-doc/ext2.html
  */
 #ifndef EXT2_H
 #define EXT2_H
 
 #include <maestro.h>
 
+// ext2 filesystem start sector
 #define EXT2_OFFSET						2048
+
+// index of ext2 root inode
+// this is supposed to be 2 but inode indexing starts at 1
+#define ROOT_INODE						2
+
+// size of ext2 block in bytes
+// this corresponds to -b argument to mkfs.ext2 in meta/make_disk.sh
+// ext2_init will perform a sanity check just to make sure
+#define BLOCK_SIZE						1024
 
 struct superblock
 {
@@ -73,7 +84,7 @@ struct block_group_desc
 	u16 free_inode_count;
 	u16 used_dir_count;
 	u16 pad;
-	u8 rsvd[14];
+	u8 rsvd[12];
 } __attribute__((packed));
 
 struct inode
@@ -90,7 +101,10 @@ struct inode
 	u32 blocks;							// number of disk sectors reserved to contain data
 	u32 flags;
 	u32 osd1;							// OS specific value
-	u32 block[15];						// pointers to the blocks containing data for this inode
+	u32 block_ptr[12];					// pointers to the blocks containing data for this inode
+	u32 singly_block_ptr;				// points to a block that is a list of block pointers to data
+	u32 double_block_ptr;				// points to a block that is a list of block pointers to Singly Indirect Blocks
+	u32 triply_block_ptr;				// points to a block that is a list of block pointers to Doubly Indirect Blocks
 	u32 generation;						// indicates the file version (used by NFS)
 	u32 file_acl;						// extended attributes (always 0 in revision 0)
 	u32 dir_acl;						// extended attributes (always 0 in revision 0)
@@ -144,7 +158,9 @@ struct ext2_dir_entry
 	u16 rec_len;	// displacement to the next directory entry
 	u8 name_len;
 	u8 type;
-	char *name;
+
+	// name goes here
+	// char *name;
 
 	// type values
 	#define DIR_TYPE_UNKNOWN		0
@@ -155,7 +171,7 @@ struct ext2_dir_entry
 	#define DIR_TYPE_FIFO			5
 	#define DIR_TYPE_SOCK			6
 	#define DIR_TYPE_SYMLINK		7
-};
+} __attribute__((packed));
 
 void ext2_init();
 

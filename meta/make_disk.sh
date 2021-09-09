@@ -23,7 +23,7 @@ p
 w
 EOF
 losetup -o 1048576 /dev/loop1 /dev/loop0
-mkfs.ext2 -q /dev/loop1
+mke2fs -I 128 -b 1024 -q /dev/loop1
 mkdir tmp
 mount /dev/loop1 ./tmp
 grub-install --target=i386-pc --boot-directory=./tmp/boot --modules="biosdisk ext2 part_msdos" /dev/loop0
