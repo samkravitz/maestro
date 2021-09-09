@@ -16,6 +16,12 @@
 // ext2 filesystem start sector
 #define EXT2_OFFSET						2048
 
+// block that superblock begins
+#define EXT2_SUPERBLOCK					1
+
+// block that block group descriptor table begins
+#define EXT2_BLOCK_DESCRIPTOR			(EXT2_SUPERBLOCK + 1)
+
 // index of ext2 root inode
 // this is supposed to be 2 but inode indexing starts at 1
 #define ROOT_INODE						2
@@ -24,6 +30,9 @@
 // this corresponds to -b argument to mkfs.ext2 in meta/make_disk.sh
 // ext2_init will perform a sanity check just to make sure
 #define BLOCK_SIZE						1024
+
+// number of 512 byte disk sectors in an ext2 block
+#define EXT2_SECTORS_PER_BLOCK			(BLOCK_SIZE / 512)
 
 struct superblock
 {
