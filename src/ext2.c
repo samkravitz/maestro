@@ -26,7 +26,7 @@ void read_inode(u32);
 
 void ext2_init()
 {
-    ata_read(&sblk, EXT2_OFFSET + 2, sizeof(sblk));
+    ata_read(&sblk, EXT2_OFFSET + 2, sizeof(sblk) / 512);
 
     int inodes = sblk.inode_count;
     int blocks = sblk.block_count;
@@ -52,7 +52,7 @@ void ext2_init()
     // allocate space for block group descriptor table
 	block_group_desc_table = kmalloc(sizeof(struct block_group_desc) * block_groups);
 
-    ata_read(block_group_desc_table, EXT2_OFFSET + 2 + 1 * sectors_per_block, sizeof(struct block_group_desc) * block_groups);
+    ata_read(block_group_desc_table, EXT2_OFFSET + 2 + 1 * sectors_per_block, sizeof(struct block_group_desc) * block_groups / 512);
 
     read_inode(ROOT_INODE);
 }
@@ -67,7 +67,7 @@ void read_inode(u32 ino)
 
     // read inode table for this block group into memory
     struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
-    ata_read(inode_table, EXT2_OFFSET + bgd.inode_table * sectors_per_block, sizeof(struct inode) * sblk.inodes_per_group);
+    ata_read(inode_table, EXT2_OFFSET + bgd.inode_table * sectors_per_block, sizeof(struct inode) * sblk.inodes_per_group / 512);
 
     // index of inode in inode table (NOTE - inode index starts at 1)
     int index = (ino - 1) % sblk.inodes_per_group;
@@ -76,7 +76,7 @@ void read_inode(u32 ino)
 
     // buffer to hold block
     u8 buff[BLOCK_SIZE];
-    ata_read(buff, EXT2_OFFSET + node->block_ptr[0] * sectors_per_block, sizeof(buff));
+    ata_read(buff, EXT2_OFFSET + node->block_ptr[0] * sectors_per_block, sizeof(buff) / 512);
 
     // inode is a directory
     if (node->mode & INODE_MODE_DIR)

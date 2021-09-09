@@ -13,35 +13,19 @@
 static void ata_wait_bsy();
 static void ata_wait_rdy();
 
-void ata_read(void *buff, uint lba, size_t len)
+void ata_read(void *buff, uint lba, size_t sector_count)
 {
 	u16 *p = (u16 *) buff;
-
-	// get how many sectors we need to transfer
-	int sector_count = len / 512;
-	if (sector_count == 0)
-		sector_count = 1;
 	
-	else if (len % 512 != 0)
-		sector_count++;
-	
-	for (int i = 0; i < sector_count; ++i, lba++, p += 256)
+	for (uint i = 0; i < sector_count; ++i, ++lba, p += 256)
 		ata_read_sector(p, lba);
 }
 
-void ata_write(void *buff, uint lba, size_t len)
+void ata_write(void *buff, uint lba, size_t sector_count)
 {
 	u16 *p = (u16 *) buff;
 
-	// get how many sectors we need to transfer
-	int sector_count = len / 512;
-	if (sector_count == 0)
-		sector_count = 1;
-	
-	else if (len % 512 != 0)
-		sector_count++;
-	
-	for (int i = 0; i < sector_count; ++i, lba++, p += 256)
+	for (uint i = 0; i < sector_count; ++i, ++lba, p += 256)
 		ata_write_sector(p, lba);
 }
 
