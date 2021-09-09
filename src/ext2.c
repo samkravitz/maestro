@@ -33,9 +33,6 @@ void ext2_init()
     int block_size = 1024 << sblk.log_block_size;
     sectors_per_block = block_size / 512;
 
-    kprintf("%d %d\n", inodes, blocks);
-    kprintf("%d %d\n", sblk.inodes_per_group, sblk.blocks_per_group);
-
     /*
     *   determine number of block groups
     *   as a sanity check, use both blocks and inodes to calculate
@@ -68,23 +65,18 @@ void read_inode(u32 ino)
     // block group descriptor corresponding to the group the inodes belongs to
     struct block_group_desc bgd = block_group_desc_table[bg];
 
-    kprintf("%d %d\n", bg, bgd.inode_table);
-
     // read inode table for this block group into memory
     struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
     ata_read(inode_table, EXT2_OFFSET + bgd.inode_table * sectors_per_block, sizeof(struct inode) * sblk.inodes_per_group);
 
     // index of inode in inode table (NOTE - inode index starts at 1)
     int index = (ino - 1) % sblk.inodes_per_group;
-    kprintf("idx %d\n", index);
 
     struct inode *node = &inode_table[index];
 
     // buffer to hold block
     u8 buff[BLOCK_SIZE];
     ata_read(buff, EXT2_OFFSET + node->block_ptr[0] * sectors_per_block, sizeof(buff));
-
-    kprintf("%x\n", node->mode);
 
     // inode is a directory
     if (node->mode & INODE_MODE_DIR)
@@ -106,8 +98,7 @@ void read_inode(u32 ino)
     // inode is a regular file
     else if (node->mode & INODE_MODE_REG)
     {
-        u64 size = (node->dir_acl) << 32 | (node->size);
-        kprintf("Reading inode of regular file %d\n", size);
+        kprintf("Reading inode of regular file %d\n", node->size);
     }
 
     // release resources
