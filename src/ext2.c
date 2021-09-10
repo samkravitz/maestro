@@ -35,6 +35,9 @@ static inline void read_block(u8 *buff, uint blk, int n)
     ata_read(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
 
+// given a number of bytes, convert to how many ext2 blocks that is
+#define get_num_blocks(x) (x / BLOCK_SIZE)
+
 void ext2_init()
 {
     read_block((u8 *) &sblk, EXT2_SUPERBLOCK, 1);
@@ -63,7 +66,7 @@ void ext2_init()
     // allocate space for block group descriptor table
 	block_group_desc_table = kmalloc(sizeof(struct block_group_desc) * block_groups);
 
-    read_block((u8 *) block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, sizeof(struct block_group_desc) * block_groups / BLOCK_SIZE);
+    read_block((u8 *) block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
     read_inode(ROOT_INODE);
 }
@@ -78,7 +81,7 @@ void read_inode(u32 ino)
 
     // read inode table for this block group into memory
     struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
-    read_block((u8 *) inode_table, bgd.inode_table, sizeof(struct inode) * sblk.inodes_per_group / BLOCK_SIZE);
+    read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
 
     // index of inode in inode table (NOTE - inode index starts at 1)
     int index = (ino - 1) % sblk.inodes_per_group;
