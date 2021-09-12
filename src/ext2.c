@@ -25,6 +25,7 @@ static int sectors_per_block;
 void read_inode(u32);
 
 static u32 alloc_inode_id();
+static u32 alloc_block();
 
 /**
  * macros to manipulate block/inode bitmaps
@@ -183,5 +184,45 @@ static u32 alloc_inode_id()
     }
 
     // no free inode could be found
+    return -1;
+}
+
+/**
+ * finds the id of the first unused block
+ * also updates the block group descriptor it's block bitmap
+ * @return id of the block inode or -1 if none is found
+ */
+static u32 alloc_block()
+{
+    for (int i = 0; i < block_groups; ++i)
+    {
+        struct block_group_desc *bgd = &block_group_desc_table[i];
+
+        // no free inodes in this block group
+        if (bgd->free_block_count <= 0)
+            continue;
+        
+        // get this group's inode bitmap
+        u8 buff[BLOCK_SIZE];
+        read_block(buff, bgd->block_bitmap, 1);
+
+        for (int n = 0; n < sblk.blocks_per_group / 8; ++n)
+        {
+            if (!BMAP_TEST(buff, n))
+            {
+                u32 index = i * sblk.blocks_per_group + n;
+                bgd->free_block_count--;
+                BMAP_SET(buff, n);
+                write_block(buff, bgd->block_bitmap, 1);
+                flush_block_group_descriptor_table();
+                return index;
+            }
+        }
+
+        // should never get here
+        kprintf("EXT2 alloc_block_id: something has gone terribly wrong!\n");
+    }
+
+    // no free block could be found
     return -1;
 }
