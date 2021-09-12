@@ -31,6 +31,9 @@
 // ext2_init will perform a sanity check just to make sure
 #define BLOCK_SIZE						1024
 
+// given a number of bytes, convert to how many ext2 blocks that is
+#define get_num_blocks(x) (x / BLOCK_SIZE)
+
 // number of 512 byte disk sectors in an ext2 block
 #define EXT2_SECTORS_PER_BLOCK			(BLOCK_SIZE / 512)
 

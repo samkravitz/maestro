@@ -25,6 +25,14 @@ static int sectors_per_block;
 void read_inode(u32);
 
 /**
+ * macros to manipulate block/inode bitmaps
+ * pass in buffer to bitmap and index to be worked with
+ */
+#define BMAP_SET(map, bit)		    (map[bit / 8] |=  (1 << (bit % 8)))
+#define BMAP_CLEAR(map, bit)	    (map[bit / 8] &= ~(1 << (bit % 8)))
+#define BMAP_TEST(map, bit)		    (map[bit / 8] &   (1 << (bit % 8)))
+
+/**
  * reads ext2 filesystem block(s) from disk
  * @param buff buffer of at least BLOCK_SIZE bytes to read into
  * @param blk index of block in filesystem to read
@@ -35,8 +43,24 @@ static inline void read_block(u8 *buff, uint blk, int n)
     ata_read(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
 
-// given a number of bytes, convert to how many ext2 blocks that is
-#define get_num_blocks(x) (x / BLOCK_SIZE)
+/**
+ * reads ext2 filesystem block(s) from disk
+ * @param buff buffer of at least BLOCK_SIZE bytes to read into
+ * @param blk index of block in filesystem to read
+ * @param n number of blocks to read
+ */
+static inline void write_block(u8 *buff, uint blk, int n)
+{
+    ata_write(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
+}
+
+/**
+ * writes the block group descriptor table to disk
+ */
+static inline void flush_block_group_descriptor_table()
+{
+    write_block(block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
+}
 
 void ext2_init()
 {
