@@ -13,6 +13,8 @@
 #include <kmalloc.h>
 #include <kout.h>
 
+#include "string.h"
+
 struct superblock sblk;
 
 struct block_group_desc *block_group_desc_table;
@@ -22,10 +24,11 @@ static int block_groups;
 
 static int sectors_per_block;
 
-void read_inode(u32);
-
 static u32 alloc_inode_id();
 static u32 alloc_block();
+static void print_inode(u32);
+static struct inode *read_inode(struct inode *, u32);
+static void write_inode(struct inode *, u32);
 
 /**
  * macros to manipulate block/inode bitmaps
@@ -95,32 +98,51 @@ void ext2_init()
 
     read_block((u8 *) block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
-    read_inode(ROOT_INODE);
+    print_inode(ROOT_INODE);
+
+    // get this group's inode bitmap
+    u8 buff[BLOCK_SIZE];
+    read_block(buff, block_group_desc_table[0].inode_bitmap, 1);
+
+
+
+
+    kprintf("First 16 inodes: ");
+    for (int i = 0; i < 16; i++) {
+        kprintf("%d ", BMAP_TEST(buff, i));
+    }
+    kprintf("\n");
+
+    u32 in = alloc_inode_id();
+    kprintf("%d %d\n", block_group_desc_table[0].inode_bitmap, in);
 }
 
-void read_inode(u32 ino)
+void print_inode(u32 ino)
 {
     // find which block group the inode belongs to
-    int bg = (ino - 1) / sblk.inodes_per_group;
+    // int bg = (ino - 1) / sblk.inodes_per_group;
 
-    // block group descriptor corresponding to the group the inodes belongs to
-    struct block_group_desc bgd = block_group_desc_table[bg];
+    // // block group descriptor corresponding to the group the inodes belongs to
+    // struct block_group_desc bgd = block_group_desc_table[bg];
 
-    // read inode table for this block group into memory
-    struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
-    read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
+    // // read inode table for this block group into memory
+    // struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
+    // read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
 
-    // index of inode in inode table (NOTE - inode index starts at 1)
-    int index = (ino - 1) % sblk.inodes_per_group;
+    // // index of inode in inode table (NOTE - inode index starts at 1)
+    // int index = (ino - 1) % sblk.inodes_per_group;
 
-    struct inode *node = &inode_table[index];
+    // struct inode *node = &inode_table[index];
 
-    // buffer to hold block
+    struct inode node;
+    read_inode(&node, ino);
+
+    // // buffer to hold block
     u8 buff[BLOCK_SIZE];
-    read_block(buff, node->block_ptr[0], 1);
+    read_block(buff, node.block_ptr[0], 1);
 
     // inode is a directory
-    if (node->mode & INODE_MODE_DIR)
+    if (node.mode & INODE_MODE_DIR)
     {
         struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
         uint bytes_read = 0;
@@ -137,13 +159,13 @@ void read_inode(u32 ino)
     }
 
     // inode is a regular file
-    else if (node->mode & INODE_MODE_REG)
+    else if (node.mode & INODE_MODE_REG)
     {
-        kprintf("Reading inode of regular file %d\n", node->size);
+        kprintf("Reading inode of regular file %d\n", node.size);
     }
 
     // release resources
-    kfree(inode_table);
+    //kfree(inode_table);
 }
 
 /**
@@ -225,4 +247,73 @@ static u32 alloc_block()
 
     // no free block could be found
     return -1;
+}
+
+static struct inode *read_inode(struct inode *inode, u32 idx)
+{
+    // find which block group the inode belongs to
+    int bg = (idx - 1) / sblk.inodes_per_group;
+
+    // block group descriptor corresponding to the group the inodes belongs to
+    struct block_group_desc bgd = block_group_desc_table[bg];
+
+    // read inode table for this block group into memory
+    struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
+    read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
+
+    // index of inode in inode table (NOTE - inode index starts at 1)
+    int index = (idx - 1) % sblk.inodes_per_group;
+
+    memcpy(inode, &inode_table[index], sizeof(struct inode));
+
+    // release resources
+    kfree(inode_table);
+
+    return inode;
+}
+
+static void write_inode(struct inode *inode, u32 idx)
+{
+    // find which block group the inode belongs to
+    int bg = (idx - 1) / sblk.inodes_per_group;
+
+    // block group descriptor corresponding to the group the inodes belongs to
+    struct block_group_desc bgd = block_group_desc_table[bg];
+
+    // read inode table for this block group into memory
+    struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
+    read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
+
+    // index of inode in inode table (NOTE - inode index starts at 1)
+    int index = (idx - 1) % sblk.inodes_per_group;
+
+    memcpy(&inode_table[index], inode, sizeof(struct inode));
+    write_block(inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
+
+    // release resources
+    kfree(inode_table);
+}
+
+void ext2_mkdir(const char *name)
+{
+    u32 inode_idx = alloc_inode_id();
+    u32 block_idx = alloc_block();
+
+    // unsuccessful at finding a free block or free inode
+    if (inode_idx == -1 || block_idx == -1)
+    {
+        kprintf("ext2_mkdir: no free inode or block\n");
+        return;
+    }
+
+    struct inode dir;
+    memset(&dir, 0, sizeof(dir));
+
+    dir.mode |= INODE_MODE_DIR;
+    dir.block_ptr[0] = block_idx;
+
+    struct inode root;
+    read_inode(&root, ROOT_INODE);
+
+    
 }
