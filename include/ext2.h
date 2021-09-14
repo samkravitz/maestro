@@ -37,6 +37,8 @@
 // number of 512 byte disk sectors in an ext2 block
 #define EXT2_SECTORS_PER_BLOCK			(BLOCK_SIZE / 512)
 
+#define EXT2_ALLOC_ERROR				0xffffffff
+
 struct superblock
 {
 	// base superblock fields

@@ -171,7 +171,7 @@ void print_inode(u32 ino)
 /**
  * finds the id of the first unused id
  * also updates the block group descriptor it's inode bitmap
- * @return id of the free inode or -1 if none is found
+ * @return id of the free inode or error if none is found
  */
 static u32 alloc_inode_id()
 {
@@ -206,13 +206,13 @@ static u32 alloc_inode_id()
     }
 
     // no free inode could be found
-    return -1;
+    return EXT2_ALLOC_ERROR;
 }
 
 /**
  * finds the id of the first unused block
  * also updates the block group descriptor it's block bitmap
- * @return id of the block inode or -1 if none is found
+ * @return id of the block inode or error if none is found
  */
 static u32 alloc_block()
 {
@@ -246,7 +246,7 @@ static u32 alloc_block()
     }
 
     // no free block could be found
-    return -1;
+    return EXT2_ALLOC_ERROR;
 }
 
 static struct inode *read_inode(struct inode *inode, u32 idx)
@@ -300,7 +300,7 @@ void ext2_mkdir(const char *name)
     u32 block_idx = alloc_block();
 
     // unsuccessful at finding a free block or free inode
-    if (inode_idx == -1 || block_idx == -1)
+    if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
     {
         kprintf("ext2_mkdir: no free inode or block\n");
         return;
