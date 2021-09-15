@@ -17,7 +17,7 @@
 #define TTY_HEIGHT		25
 
 // attribute byte for white text on black background
-#define ATTRIBUTE		(0xF << 8)
+#define ATTRIBUTE		(0xf << 8)
 
 // get color
 #define GETCOL(c)		(c | ATTRIBUTE)
@@ -27,7 +27,7 @@ static u8 x = 0;
 static u8 y = 0;
 
 // vga base address
-u16 *VGA_BASE = (u16 *) 0xB8000;
+u16 *VGA_BASE = (u16 *) 0xb8000;
 
 static void scroll();
 static void setcur();
@@ -110,8 +110,8 @@ static void scroll()
 static void setcur()
 {
 	u16 pos = y * TTY_WIDTH + x;
-	outb(0x3D4, 0xE);
+	outb(0x3D4, 0xe);
 	outb(0x3D5, pos >> 8);
-	outb(0x3D4, 0xF);
+	outb(0x3D4, 0xf);
 	outb(0x3D5, pos);
 }
