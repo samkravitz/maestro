@@ -10,7 +10,6 @@ C = \
 	ata.c \
 	clk.c \
 	ext2.c \
-	fat.c \
 	idt.c \
 	init.c \
 	intr.c \

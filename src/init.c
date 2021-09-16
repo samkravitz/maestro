@@ -24,7 +24,6 @@ void init()
 	intrinit();
 	clkinit();
 	// mminit();
-	//fatinit();
 	ext2_init();
 
 	// set keyboard interrupt handler
