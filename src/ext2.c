@@ -68,6 +68,14 @@ static inline void flush_block_group_descriptor_table()
     write_block(block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
 }
 
+/**
+ * writes the superblock to disk
+ */
+static inline void flush_superblock()
+{
+    write_block(&sblk, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblk)));
+}
+
 void ext2_init()
 {
     read_block((u8 *) &sblk, EXT2_SUPERBLOCK, 1);
