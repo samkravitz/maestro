@@ -265,17 +265,15 @@ static struct inode *read_inode(struct inode *inode, u32 idx)
     // block group descriptor corresponding to the group the inodes belongs to
     struct block_group_desc bgd = block_group_desc_table[bg];
 
-    // read inode table for this block group into memory
-    struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
-    read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
-
     // index of inode in inode table (NOTE - inode index starts at 1)
     int index = (idx - 1) % sblk.inodes_per_group;
+    int offset_within_block = index % (BLOCK_SIZE / sizeof(struct inode));
 
-    memcpy(inode, &inode_table[index], sizeof(struct inode));
+    // read block in inode table for this block group into memory
+    uint8_t buff[BLOCK_SIZE];
+    read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 
-    // release resources
-    kfree(inode_table);
+    memcpy(inode, &buff[offset_within_block * sizeof(struct inode)], sizeof(struct inode));
 
     return inode;
 }
@@ -288,20 +286,22 @@ static void write_inode(struct inode *inode, u32 idx)
     // block group descriptor corresponding to the group the inodes belongs to
     struct block_group_desc bgd = block_group_desc_table[bg];
 
-    // read inode table for this block group into memory
-    struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
-    read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
-
     // index of inode in inode table (NOTE - inode index starts at 1)
     int index = (idx - 1) % sblk.inodes_per_group;
+    int offset_within_block = index % (BLOCK_SIZE / sizeof(struct inode));
 
-    memcpy(&inode_table[index], inode, sizeof(struct inode));
-    write_block(inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
+    // read block in inode table for this block group into memory
+    uint8_t buff[BLOCK_SIZE];
+    read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 
-    // release resources
-    kfree(inode_table);
+    memcpy(&buff[offset_within_block * sizeof(struct inode)], inode, sizeof(struct inode));
+    write_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 }
 
+/**
+ * creates a new, empty ext2 directory
+ * @param path absolute path of directory to create (must be null-terminated!)
+ */
 void ext2_mkdir(const char *name)
 {
     u32 inode_idx = alloc_inode_id();
