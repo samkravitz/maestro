@@ -13,10 +13,11 @@
 #include "stdio.h"
 
 int close(int);
-FILE *(*open)(const char *);
-size_t (*read)(int, void *, size_t);
-size_t (*write)(int, const void*, size_t);
+FILE *open(const char *);
+size_t read(int, void *, size_t);
+size_t write(int, const void*, size_t);
 
 void fsinit();
+void mount();
 
 #endif // FS_H

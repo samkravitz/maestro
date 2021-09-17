@@ -11,11 +11,12 @@
 
 #include <clk.h>
 #include <ext2.h>
-#include <fat.h>
+#include <fs.h>
 #include <idt.h>
 #include <intr.h>
 #include <kbd.h>
 #include <mm.h>
+
 
 // initializes IDT, interrupts, and the clock
 void init()
@@ -24,8 +25,8 @@ void init()
 	intrinit();
 	clkinit();
 	// mminit();
-	ext2_init();
-
+	
+	mount();
 	// set keyboard interrupt handler
 	svect(IRQ1, kbdhandler);
 }
