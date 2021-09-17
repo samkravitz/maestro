@@ -15,14 +15,12 @@
 
 #include "string.h"
 
-struct superblock sblk;
+struct superblock sblock;
 
 struct block_group_desc *block_group_desc_table;
 
 // number of block groups in volume
 static int block_groups;
-
-static int sectors_per_block;
 
 static u32 alloc_inode_id();
 static u32 alloc_block();
@@ -44,7 +42,7 @@ static void write_inode(struct inode *, u32);
  * @param blk index of block in filesystem to read
  * @param n number of blocks to read
  */
-static inline void read_block(u8 *buff, uint blk, int n)
+static inline void read_block(void *buff, uint blk, int n)
 {
     ata_read(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
@@ -55,7 +53,7 @@ static inline void read_block(u8 *buff, uint blk, int n)
  * @param blk index of block in filesystem to read
  * @param n number of blocks to read
  */
-static inline void write_block(u8 *buff, uint blk, int n)
+static inline void write_block(void *buff, uint blk, int n)
 {
     ata_write(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
@@ -73,17 +71,16 @@ static inline void flush_block_group_descriptor_table()
  */
 static inline void flush_superblock()
 {
-    write_block(&sblk, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblk)));
+    write_block(&sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
 }
 
 void ext2_init()
 {
-    read_block((u8 *) &sblk, EXT2_SUPERBLOCK, 1);
+    read_block((u8 *) &sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
 
-    int inodes = sblk.inode_count;
-    int blocks = sblk.block_count;
-    int block_size = 1024 << sblk.log_block_size;
-    sectors_per_block = block_size / 512;
+    int inodes = sblock.inode_count;
+    int blocks = sblock.block_count;
+    int block_size = 1024 << sblock.log_block_size;
 
     /*
     *   determine number of block groups
@@ -91,8 +88,8 @@ void ext2_init()
     *   round up the total number of inodes / num inodes per group
     *   round up the total number of blocks / num blocks per group
     */
-	int block_groups_inode = inodes * 1.0f / sblk.inodes_per_group + .5f;
-	int block_groups_block = blocks * 1.0f / sblk.blocks_per_group + .5f;
+	int block_groups_inode = inodes * 1.0f / sblock.inodes_per_group + .5f;
+	int block_groups_block = blocks * 1.0f / sblock.blocks_per_group + .5f;
 
 	if (block_groups_inode != block_groups_block)
 		kprintf("ext2: inconsistency in block group count\n");
@@ -106,46 +103,16 @@ void ext2_init()
 
     read_block((u8 *) block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
+
     print_inode(ROOT_INODE);
-
-    // get this group's inode bitmap
-    u8 buff[BLOCK_SIZE];
-    read_block(buff, block_group_desc_table[0].inode_bitmap, 1);
-
-
-
-
-    kprintf("First 16 inodes: ");
-    for (int i = 0; i < 16; i++) {
-        kprintf("%d ", BMAP_TEST(buff, i));
-    }
-    kprintf("\n");
-
-    u32 in = alloc_inode_id();
-    kprintf("%d %d\n", block_group_desc_table[0].inode_bitmap, in);
 }
 
 void print_inode(u32 ino)
 {
-    // find which block group the inode belongs to
-    // int bg = (ino - 1) / sblk.inodes_per_group;
-
-    // // block group descriptor corresponding to the group the inodes belongs to
-    // struct block_group_desc bgd = block_group_desc_table[bg];
-
-    // // read inode table for this block group into memory
-    // struct inode *inode_table = kmalloc(sizeof(struct inode) * sblk.inodes_per_group);
-    // read_block((u8 *) inode_table, bgd.inode_table, get_num_blocks(sizeof(struct inode) * sblk.inodes_per_group));
-
-    // // index of inode in inode table (NOTE - inode index starts at 1)
-    // int index = (ino - 1) % sblk.inodes_per_group;
-
-    // struct inode *node = &inode_table[index];
-
     struct inode node;
     read_inode(&node, ino);
 
-    // // buffer to hold block
+    // buffer to hold block
     u8 buff[BLOCK_SIZE];
     read_block(buff, node.block_ptr[0], 1);
 
@@ -158,7 +125,6 @@ void print_inode(u32 ino)
         {
             char *ptr = (char *) entry;
             char *name = ptr + 8;
-            name[entry->name_len] = '\0';
             kprintf("{ .inode: %d, .rec_len: %d, .name_len: %d, .name: %s }\n", entry->inode, entry->rec_len, entry->name_len, name);
             bytes_read += entry->rec_len;
             ptr += entry->rec_len;
@@ -171,9 +137,6 @@ void print_inode(u32 ino)
     {
         kprintf("Reading inode of regular file %d\n", node.size);
     }
-
-    // release resources
-    //kfree(inode_table);
 }
 
 /**
@@ -183,6 +146,9 @@ void print_inode(u32 ino)
  */
 static u32 alloc_inode_id()
 {
+    if (sblock.free_block_count == 0)
+        return EXT2_ALLOC_ERROR;
+
     for (int i = 0; i < block_groups; ++i)
     {
         struct block_group_desc *bgd = &block_group_desc_table[i];
@@ -195,16 +161,18 @@ static u32 alloc_inode_id()
         u8 buff[BLOCK_SIZE];
         read_block(buff, bgd->inode_bitmap, 1);
 
-        for (int n = 0; n < sblk.inodes_per_group / 8; ++n)
+        for (int n = 0; n < sblock.inodes_per_group / 8; ++n)
         {
             if (!BMAP_TEST(buff, n))
             {
                 // inode indeces start at 1, this is why we add 1 to the free bit we found
-                u32 index = i * sblk.inodes_per_group + n + 1;
+                u32 index = i * sblock.inodes_per_group + n + 1;
                 bgd->free_inode_count--;
+                sblock.free_inode_count--;
                 BMAP_SET(buff, n);
                 write_block(buff, bgd->inode_bitmap, 1);
                 flush_block_group_descriptor_table();
+                flush_superblock();
                 return index;
             }
         }
@@ -224,6 +192,9 @@ static u32 alloc_inode_id()
  */
 static u32 alloc_block()
 {
+    if (sblock.free_block_count == 0)
+        return EXT2_ALLOC_ERROR;
+
     for (int i = 0; i < block_groups; ++i)
     {
         struct block_group_desc *bgd = &block_group_desc_table[i];
@@ -236,15 +207,17 @@ static u32 alloc_block()
         u8 buff[BLOCK_SIZE];
         read_block(buff, bgd->block_bitmap, 1);
 
-        for (int n = 0; n < sblk.blocks_per_group / 8; ++n)
+        for (int n = 0; n < sblock.blocks_per_group / 8; ++n)
         {
             if (!BMAP_TEST(buff, n))
             {
-                u32 index = i * sblk.blocks_per_group + n;
+                u32 index = i * sblock.blocks_per_group + n;
                 bgd->free_block_count--;
+                sblock.free_block_count--;
                 BMAP_SET(buff, n);
                 write_block(buff, bgd->block_bitmap, 1);
                 flush_block_group_descriptor_table();
+                flush_superblock();
                 return index;
             }
         }
@@ -260,17 +233,17 @@ static u32 alloc_block()
 static struct inode *read_inode(struct inode *inode, u32 idx)
 {
     // find which block group the inode belongs to
-    int bg = (idx - 1) / sblk.inodes_per_group;
+    int bg = (idx - 1) / sblock.inodes_per_group;
 
     // block group descriptor corresponding to the group the inodes belongs to
     struct block_group_desc bgd = block_group_desc_table[bg];
 
     // index of inode in inode table (NOTE - inode index starts at 1)
-    int index = (idx - 1) % sblk.inodes_per_group;
+    int index = (idx - 1) % sblock.inodes_per_group;
     int offset_within_block = index % (BLOCK_SIZE / sizeof(struct inode));
 
     // read block in inode table for this block group into memory
-    uint8_t buff[BLOCK_SIZE];
+    u8 buff[BLOCK_SIZE];
     read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 
     memcpy(inode, &buff[offset_within_block * sizeof(struct inode)], sizeof(struct inode));
@@ -281,17 +254,17 @@ static struct inode *read_inode(struct inode *inode, u32 idx)
 static void write_inode(struct inode *inode, u32 idx)
 {
     // find which block group the inode belongs to
-    int bg = (idx - 1) / sblk.inodes_per_group;
+    int bg = (idx - 1) / sblock.inodes_per_group;
 
     // block group descriptor corresponding to the group the inodes belongs to
     struct block_group_desc bgd = block_group_desc_table[bg];
 
     // index of inode in inode table (NOTE - inode index starts at 1)
-    int index = (idx - 1) % sblk.inodes_per_group;
+    int index = (idx - 1) % sblock.inodes_per_group;
     int offset_within_block = index % (BLOCK_SIZE / sizeof(struct inode));
 
     // read block in inode table for this block group into memory
-    uint8_t buff[BLOCK_SIZE];
+    u8 buff[BLOCK_SIZE];
     read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 
     memcpy(&buff[offset_within_block * sizeof(struct inode)], inode, sizeof(struct inode));

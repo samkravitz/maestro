@@ -114,7 +114,7 @@ struct inode
 	u32 mtime;							// seconds since 1/1/1970 of modification
 	u32 dtime;							// seconds since 1/1/1970 of deletion
 	u16 gid;							// group id having access to file
-	u16 links_count;					// how masy times this inode is linked
+	u16 links_count;					// how many times this inode is linked
 	u32 blocks;							// number of disk sectors reserved to contain data
 	u32 flags;
 	u32 osd1;							// OS specific value
