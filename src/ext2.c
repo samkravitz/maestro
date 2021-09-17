@@ -302,7 +302,7 @@ static void write_inode(struct inode *inode, u32 idx)
  * creates a new, empty ext2 directory
  * @param path absolute path of directory to create (must be null-terminated!)
  */
-void ext2_mkdir(const char *name)
+void ext2_mkdir(const char *path)
 {
     u32 inode_idx = alloc_inode_id();
     u32 block_idx = alloc_block();
@@ -314,14 +314,91 @@ void ext2_mkdir(const char *name)
         return;
     }
 
+    // inode representing the new directory
     struct inode dir;
     memset(&dir, 0, sizeof(dir));
 
     dir.mode |= INODE_MODE_DIR;
     dir.block_ptr[0] = block_idx;
+    dir.links_count = 1;
+    dir.size = 1024;
+
+    // r/w/x permissions for user, group, others for now
+    dir.mode |= INODE_MODE_RUSR;
+	dir.mode |= INODE_MODE_WUSR;
+	dir.mode |= INODE_MODE_XUSR;
+	dir.mode |= INODE_MODE_RGRP;
+	dir.mode |= INODE_MODE_WGRP;
+	dir.mode |= INODE_MODE_XGRP;
+	dir.mode |= INODE_MODE_ROTH;
+	dir.mode |= INODE_MODE_WOTH;
+	dir.mode |= INODE_MODE_XOTH;
+    write_inode(&dir, inode_idx);
 
     struct inode root;
     read_inode(&root, ROOT_INODE);
 
-    
+    // buffer to hold block
+    u8 buff[BLOCK_SIZE];
+    read_block(buff, root.block_ptr[0], 1);
+
+    struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+    uint bytes_read = 0;
+    while (1)
+    {
+        char *ptr = (char *) entry;
+
+        if (bytes_read + entry->rec_len == BLOCK_SIZE)
+        {
+            // adjust previously last entry's length
+            entry->rec_len = round(sizeof(entry->inode) +
+                                    sizeof(entry->rec_len) +
+                                    sizeof(entry->name_len) +
+                                    sizeof(entry->type) +
+                                    entry->name_len, 4);
+
+            // create entry for new directory
+            struct ext2_dir_entry new_dir_entry;
+            size_t name_len = strlen(path);
+            new_dir_entry.inode = inode_idx;
+            new_dir_entry.name_len = name_len;
+            new_dir_entry.type = DIR_TYPE_DIR;
+            new_dir_entry.rec_len = round(sizeof(new_dir_entry.inode) +
+                                            sizeof(new_dir_entry.rec_len) +
+                                            sizeof(new_dir_entry.name_len) +
+                                            sizeof(new_dir_entry.type) +
+                                            new_dir_entry.name_len, 4);
+            
+            // create . and .. entries for new directory
+            char dotbuff[BLOCK_SIZE];
+            struct ext2_dir_entry dot = {
+                .inode = ROOT_INODE,
+                .rec_len = 12,
+                .name_len = 1,
+                .type = DIR_TYPE_DIR,
+            };
+            struct ext2_dir_entry dotdot = {
+                .inode = ROOT_INODE,
+                .rec_len = 1024 - 12,
+                .name_len = 2,
+                .type = DIR_TYPE_DIR,
+            };
+            memcpy(&dotbuff[0], &dot, sizeof(dot));
+            memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
+            strcpy(&dotbuff[0 + 8], ".");
+            strcpy(&dotbuff[12 + 8], "..");
+            write_block(dotbuff, block_idx, 1);
+
+            new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
+            memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
+            strcpy(&buff[bytes_read + entry->rec_len + 8], path);
+            break;
+        }
+
+        bytes_read += entry->rec_len;
+        ptr += entry->rec_len;
+        entry = (struct ext2_dir_entry *) ptr;
+    }
+
+    write_block(buff, root.block_ptr[0], 1);
 }

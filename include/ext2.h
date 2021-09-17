@@ -39,6 +39,9 @@
 
 #define EXT2_ALLOC_ERROR				0xffffffff
 
+// rounds an integer x up to the nearest multiple of to
+#define round(x, to) ((x + to - 1) & (-to))
+
 struct superblock
 {
 	// base superblock fields
@@ -188,5 +191,6 @@ struct ext2_dir_entry
 } __attribute__((packed));
 
 void ext2_init();
+void ext2_mkdir(const char *);
 
 #endif // EXT2_H
