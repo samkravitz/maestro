@@ -10,6 +10,20 @@
 
 #include "string.h"
 
+/**
+ * returns first index of c in str or -1 if c does not appear
+ */
+int indexOf(const char *str, char c)
+{
+	for (int i = 0; i < strlen(str); ++i)
+	{
+		if (str[i] == c)
+			return i;
+	}
+
+	return -1;
+}
+
 // compares n bytes of s1 with s2
 // returns:
 //   <0 if s1 < s2
