@@ -1,6 +1,8 @@
 CC = gcc
+CXX = g++
 AS = nasm
 CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -no-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE)
+CXXFLAGS = -std=c++17 -m32 -fno-pie -fno-stack-protector -fno-exceptions -fno-rtti -ffreestanding -nostdlib -O2 -Wall -Wextra $(INCLUDE)
 LDFLAGS = -L lib/libc -l:libc.a -L lib/mxx -l:mxx.a
 INCLUDE = -I include -I lib/libc -I lib/mxx
 VPATH = src/ lib/libc
@@ -25,6 +27,10 @@ C = \
 	sched.c \
 	tty.c
 
+# C++ sources
+CPP = \
+	plus.cpp \
+
 # asm sources
 ASM = \
 	boot.s \
@@ -34,7 +40,7 @@ ASM = \
 	isr.s \
 	pdsw.s \
 
-OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))
+OBJ = $(addprefix bin/, $(C:.c=.o) $(CPP:.cpp=.o) $(ASM:.s=.o))
 
 all: libs maestro.bin img
 
@@ -43,6 +49,9 @@ maestro.bin: $(OBJ)
 
 bin/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+	
+bin/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 bin/%.o: %.s
 	$(AS) -f elf32 $< -o $@
