@@ -1,7 +1,7 @@
 CC = gcc
 AS = nasm
 CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -no-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE)
-LDFLAGS =
+LDFLAGS = -L lib/libc -l:libc.a
 INCLUDE = -I include -I lib/libc
 VPATH = src/ lib/libc
 
@@ -34,12 +34,7 @@ ASM = \
 	isr.s \
 	pdsw.s \
 
-# lib sources
-LIB = \
-	stdlib.c \
-	string.c \
-
-OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o) $(LIB:.c=.o))
+OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))
 
 all: libs maestro.bin img
 
