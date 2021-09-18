@@ -38,6 +38,7 @@
 #define EXT2_SECTORS_PER_BLOCK			(BLOCK_SIZE / 512)
 
 #define EXT2_ALLOC_ERROR				0xffffffff
+#define EXT2_INODE_INVALID				0xffffffff
 
 // rounds an integer x up to the nearest multiple of to
 #define round(x, to) ((x + to - 1) & (-to))
