@@ -6,12 +6,16 @@ namespace std
 {
 class mstring
 {
+// rounds an integer x up to the nearest multiple of to
+#define round(x, to) ((x + to - 1) & (-to))
 public:
     mstring();
+    mstring(const char *);
+    mstring(const mstring &);
     ~mstring();
 
     void append(const char *);
-    char *c_str();
+    const char *c_str();
 
     inline mstring & operator += (const char *str)
     {

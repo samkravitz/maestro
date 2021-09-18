@@ -13,7 +13,23 @@ mstring::mstring()
 {
     len = 0;
     cap = 8;
-    data = new char[8];
+    data = new char[cap];
+}
+
+mstring::mstring(const char *str)
+{
+    len = strlen(str);
+    cap = round(len, 8);
+    data = new char[cap];
+    strcpy(data, str);
+}
+
+mstring::mstring(const mstring &other)
+{
+    len = strlen(other.c_str());
+    cap = round(len, 8);
+    data = new char[cap];
+    strcpy(data, other.c_str());
 }
 
 mstring::~mstring()
@@ -22,7 +38,7 @@ mstring::~mstring()
         delete[] data;
 }
 
-char *mstring::c_str()
+const char *mstring::c_str()
 {
     return data;
 }
