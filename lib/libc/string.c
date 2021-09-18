@@ -135,6 +135,11 @@ char *strcpy(char *dest, const char *src)
 	return dest;
 }
 
+int strcmp(const char *a, const char *b)
+{
+	return memcmp(a, b, strlen(a));
+}
+
 // compute the length of a null-terminated string
 size_t strlen(const char *str)
 {
