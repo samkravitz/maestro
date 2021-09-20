@@ -10,8 +10,6 @@
 #include <pq.h>
 #include <kmalloc.h>
 
-// #include "malloc.h"
-
 void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 {
 	// node to insert 
