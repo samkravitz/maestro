@@ -62,10 +62,10 @@ static void lidt()
 // sets a gate in the idt
 static void set_idt(int num, u32 base, u16 select, u8 flags)
 {
-	idt[num].offlow   = (base >> 0)  & 0xFFFF;
-	idt[num].offhigh  = (base >> 16) & 0xFFFF;
+	idt[num].offlow   = (base >> 0)  & 0xffff;
+	idt[num].offhigh  = (base >> 16) & 0xffff;
 	idt[num].selector = select;
-	idt[num].type     = (flags >> 0) & 0xF;
+	idt[num].type     = (flags >> 0) & 0xf;
 	idt[num].sseg     = (flags >> 4) & 0x1;
 	idt[num].dpl      = (flags >> 5) & 0x3;
 	idt[num].present  = (flags >> 7) & 0x1;
