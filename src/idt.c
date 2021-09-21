@@ -25,11 +25,11 @@ void idtinit()
 	memset(idt, 0, sizeof(idt));
 
 	for (int i = 0; i < 32; ++i)
-        set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
+		set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
 
 
 	for (int i = 32; i < 48; ++i)
-        set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
+		set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
     
 	// remap the PIC
 	outb(0x20, 0x11);
