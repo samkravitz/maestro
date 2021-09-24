@@ -27,6 +27,7 @@ void init()
 	// mminit();
 	
 	mount();
+
 	// set keyboard interrupt handler
 	svect(IRQ1, kbdhandler);
 }
