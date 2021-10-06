@@ -35,7 +35,7 @@ static u32 get_inode_from_path(char *);
  * pass in buffer to bitmap and index to be worked with
  */
 #define BMAP_SET(map, bit)		(map[bit / 8] |=  (1 << (bit % 8)))
-#define BMAP_CLEAR(map, bit)		(map[bit / 8] &= ~(1 << (bit % 8)))
+#define BMAP_CLEAR(map, bit)	(map[bit / 8] &= ~(1 << (bit % 8)))
 #define BMAP_TEST(map, bit)		(map[bit / 8] &   (1 << (bit % 8)))
 
 /**
