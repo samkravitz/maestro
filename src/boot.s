@@ -32,10 +32,10 @@ extern kmain
 section .text
 global boot:
 boot:
-	mov [mboot_info], ebx	; store multiboot info for later
-	lgdt [gdt_descriptor]	; load gdt into gdtr
-	mov ax, 0x10			; 0x10 is the offset in the gdt to data segment
-	mov ds, ax				; reload remainder of data segment registers
+	mov [mboot_info], ebx		; store multiboot info for later
+	lgdt [gdt_descriptor]		; load gdt into gdtr
+	mov ax, 0x10				; 0x10 is the offset in the gdt to data segment
+	mov ds, ax					; reload remainder of data segment registers
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
