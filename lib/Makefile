@@ -2,7 +2,6 @@ all: libs
 
 libs:
 	$(MAKE) -C libc
-	$(MAKE) -C mxx
 
 .PHONY: clean
 clean:
