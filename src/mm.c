@@ -29,7 +29,7 @@ u32 *cpd; // current page directory
 struct pagetab *pagetable;
 
 // page fault handler
-void pfault() { }
+void pfault() {}
 
 // gets index of first available frame
 int first_free_frame()
