@@ -3,15 +3,15 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: pit.h
+ * FILE: clk.h
  * DATE: August 2nd, 2021
- * DESCRIPTION: Controllers for the PIT
+ * DESCRIPTION: clock control
  */
-#ifndef PIT_H
-#define PIT_H
+#ifndef CLK_H
+#define CLK_H
 
 #include <maestro.h>
 
 void clkinit();
 
-#endif
+#endif  // CLK_H
