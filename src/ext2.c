@@ -34,9 +34,9 @@ static u32 get_inode_from_path(char *);
  * macros to manipulate block/inode bitmaps
  * pass in buffer to bitmap and index to be worked with
  */
-#define BMAP_SET(map, bit)		(map[bit / 8] |=  (1 << (bit % 8)))
-#define BMAP_CLEAR(map, bit)	(map[bit / 8] &= ~(1 << (bit % 8)))
-#define BMAP_TEST(map, bit)		(map[bit / 8] &   (1 << (bit % 8)))
+#define BMAP_SET(map, bit)   (map[bit / 8] |= (1 << (bit % 8)))
+#define BMAP_CLEAR(map, bit) (map[bit / 8] &= ~(1 << (bit % 8)))
+#define BMAP_TEST(map, bit)  (map[bit / 8] & (1 << (bit % 8)))
 
 /**
  * reads ext2 filesystem block(s) from disk
@@ -46,7 +46,7 @@ static u32 get_inode_from_path(char *);
  */
 static inline void read_block(void *buff, uint blk, int n)
 {
-    ata_read(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
+	ata_read(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
 
 /**
@@ -57,7 +57,7 @@ static inline void read_block(void *buff, uint blk, int n)
  */
 static inline void write_block(void *buff, uint blk, int n)
 {
-    ata_write(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
+	ata_write(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
 
 /**
@@ -65,7 +65,8 @@ static inline void write_block(void *buff, uint blk, int n)
  */
 static inline void flush_block_group_descriptor_table()
 {
-    write_block(block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
+	write_block(
+	    block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
 }
 
 /**
@@ -73,18 +74,18 @@ static inline void flush_block_group_descriptor_table()
  */
 static inline void flush_superblock()
 {
-    write_block(&sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
+	write_block(&sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
 }
 
 void ext2_init()
 {
-    read_block((u8 *) &sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
+	read_block((u8 *) &sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
 
-    int inodes = sblock.inode_count;
-    int blocks = sblock.block_count;
-    int block_size = 1024 << sblock.log_block_size;
+	int inodes             = sblock.inode_count;
+	int blocks             = sblock.block_count;
+	int block_size         = 1024 << sblock.log_block_size;
 
-    /*
+	/*
     *   determine number of block groups
     *   as a sanity check, use both blocks and inodes to calculate
     *   round up the total number of inodes / num inodes per group
@@ -96,51 +97,56 @@ void ext2_init()
 	if (block_groups_inode != block_groups_block)
 		kprintf("ext2: inconsistency in block group count\n");
 
-    // set global block groups to calculates number of block groups
-    // this could be block_groups_inode or block_groups_block, they are equivalent
-	block_groups = block_groups_inode;
+	// set global block groups to calculates number of block groups
+	// this could be block_groups_inode or block_groups_block, they are equivalent
+	block_groups           = block_groups_inode;
 
-    // allocate space for block group descriptor table
+	// allocate space for block group descriptor table
 	block_group_desc_table = kmalloc(sizeof(struct block_group_desc) * block_groups);
 
-    read_block((u8 *) block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
+	read_block((u8 *) block_group_desc_table,
+	           EXT2_BLOCK_DESCRIPTOR,
+	           get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
-    get_inode_from_path("/root/usr/bin/apps/chrome.exe");
+	get_inode_from_path("/root/usr/bin/apps/chrome.exe");
 
-
-    print_inode(ROOT_INODE);
+	print_inode(ROOT_INODE);
 }
 
 void print_inode(u32 ino)
 {
-    struct inode node;
-    read_inode(&node, ino);
+	struct inode node;
+	read_inode(&node, ino);
 
-    // buffer to hold block
-    u8 buff[BLOCK_SIZE];
-    read_block(buff, node.block_ptr[0], 1);
+	// buffer to hold block
+	u8 buff[BLOCK_SIZE];
+	read_block(buff, node.block_ptr[0], 1);
 
-    // inode is a directory
-    if (node.mode & INODE_MODE_DIR)
-    {
-        struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-        uint bytes_read = 0;
-        do
-        {
-            char *ptr = (char *) entry;
-            char *name = ptr + 8;
-            kprintf("{ .inode: %d, .rec_len: %d, .name_len: %d, .name: %s }\n", entry->inode, entry->rec_len, entry->name_len, name);
-            bytes_read += entry->rec_len;
-            ptr += entry->rec_len;
-            entry = (struct ext2_dir_entry  *) ptr;
-        } while (bytes_read < 1024); // directory entries must fit in size of 1 block
-    }
+	// inode is a directory
+	if (node.mode & INODE_MODE_DIR)
+	{
+		struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+		uint bytes_read              = 0;
+		do
+		{
+			char *ptr  = (char *) entry;
+			char *name = ptr + 8;
+			kprintf("{ .inode: %d, .rec_len: %d, .name_len: %d, .name: %s }\n",
+			        entry->inode,
+			        entry->rec_len,
+			        entry->name_len,
+			        name);
+			bytes_read += entry->rec_len;
+			ptr += entry->rec_len;
+			entry = (struct ext2_dir_entry *) ptr;
+		} while (bytes_read < 1024);    // directory entries must fit in size of 1 block
+	}
 
-    // inode is a regular file
-    else if (node.mode & INODE_MODE_REG)
-    {
-        kprintf("Reading inode of regular file %d\n", node.size);
-    }
+	// inode is a regular file
+	else if (node.mode & INODE_MODE_REG)
+	{
+		kprintf("Reading inode of regular file %d\n", node.size);
+	}
 }
 
 /**
@@ -150,43 +156,43 @@ void print_inode(u32 ino)
  */
 static u32 alloc_inode_id()
 {
-    if (sblock.free_block_count == 0)
-        return EXT2_ALLOC_ERROR;
+	if (sblock.free_block_count == 0)
+		return EXT2_ALLOC_ERROR;
 
-    for (int i = 0; i < block_groups; ++i)
-    {
-        struct block_group_desc *bgd = &block_group_desc_table[i];
+	for (int i = 0; i < block_groups; ++i)
+	{
+		struct block_group_desc *bgd = &block_group_desc_table[i];
 
-        // no free inodes in this block group
-        if (bgd->free_inode_count <= 0)
-            continue;
-        
-        // get this group's inode bitmap
-        u8 buff[BLOCK_SIZE];
-        read_block(buff, bgd->inode_bitmap, 1);
+		// no free inodes in this block group
+		if (bgd->free_inode_count <= 0)
+			continue;
 
-        for (int n = 0; n < sblock.inodes_per_group / 8; ++n)
-        {
-            if (!BMAP_TEST(buff, n))
-            {
-                // inode indeces start at 1, this is why we add 1 to the free bit we found
-                u32 index = i * sblock.inodes_per_group + n + 1;
-                bgd->free_inode_count--;
-                sblock.free_inode_count--;
-                BMAP_SET(buff, n);
-                write_block(buff, bgd->inode_bitmap, 1);
-                flush_block_group_descriptor_table();
-                flush_superblock();
-                return index;
-            }
-        }
+		// get this group's inode bitmap
+		u8 buff[BLOCK_SIZE];
+		read_block(buff, bgd->inode_bitmap, 1);
 
-        // should never get here
-        kprintf("EXT2 alloc_inode_id: something has gone terribly wrong!\n");
-    }
+		for (int n = 0; n < sblock.inodes_per_group / 8; ++n)
+		{
+			if (!BMAP_TEST(buff, n))
+			{
+				// inode indeces start at 1, this is why we add 1 to the free bit we found
+				u32 index = i * sblock.inodes_per_group + n + 1;
+				bgd->free_inode_count--;
+				sblock.free_inode_count--;
+				BMAP_SET(buff, n);
+				write_block(buff, bgd->inode_bitmap, 1);
+				flush_block_group_descriptor_table();
+				flush_superblock();
+				return index;
+			}
+		}
 
-    // no free inode could be found
-    return EXT2_ALLOC_ERROR;
+		// should never get here
+		kprintf("EXT2 alloc_inode_id: something has gone terribly wrong!\n");
+	}
+
+	// no free inode could be found
+	return EXT2_ALLOC_ERROR;
 }
 
 /**
@@ -196,83 +202,83 @@ static u32 alloc_inode_id()
  */
 static u32 alloc_block()
 {
-    if (sblock.free_block_count == 0)
-        return EXT2_ALLOC_ERROR;
+	if (sblock.free_block_count == 0)
+		return EXT2_ALLOC_ERROR;
 
-    for (int i = 0; i < block_groups; ++i)
-    {
-        struct block_group_desc *bgd = &block_group_desc_table[i];
+	for (int i = 0; i < block_groups; ++i)
+	{
+		struct block_group_desc *bgd = &block_group_desc_table[i];
 
-        // no free inodes in this block group
-        if (bgd->free_block_count <= 0)
-            continue;
-        
-        // get this group's inode bitmap
-        u8 buff[BLOCK_SIZE];
-        read_block(buff, bgd->block_bitmap, 1);
+		// no free inodes in this block group
+		if (bgd->free_block_count <= 0)
+			continue;
 
-        for (int n = 0; n < sblock.blocks_per_group / 8; ++n)
-        {
-            if (!BMAP_TEST(buff, n))
-            {
-                u32 index = i * sblock.blocks_per_group + n;
-                bgd->free_block_count--;
-                sblock.free_block_count--;
-                BMAP_SET(buff, n);
-                write_block(buff, bgd->block_bitmap, 1);
-                flush_block_group_descriptor_table();
-                flush_superblock();
-                return index;
-            }
-        }
+		// get this group's inode bitmap
+		u8 buff[BLOCK_SIZE];
+		read_block(buff, bgd->block_bitmap, 1);
 
-        // should never get here
-        kprintf("EXT2 alloc_block_id: something has gone terribly wrong!\n");
-    }
+		for (int n = 0; n < sblock.blocks_per_group / 8; ++n)
+		{
+			if (!BMAP_TEST(buff, n))
+			{
+				u32 index = i * sblock.blocks_per_group + n;
+				bgd->free_block_count--;
+				sblock.free_block_count--;
+				BMAP_SET(buff, n);
+				write_block(buff, bgd->block_bitmap, 1);
+				flush_block_group_descriptor_table();
+				flush_superblock();
+				return index;
+			}
+		}
 
-    // no free block could be found
-    return EXT2_ALLOC_ERROR;
+		// should never get here
+		kprintf("EXT2 alloc_block_id: something has gone terribly wrong!\n");
+	}
+
+	// no free block could be found
+	return EXT2_ALLOC_ERROR;
 }
 
 static struct inode *read_inode(struct inode *inode, u32 idx)
 {
-    // find which block group the inode belongs to
-    int bg = (idx - 1) / sblock.inodes_per_group;
+	// find which block group the inode belongs to
+	int bg                      = (idx - 1) / sblock.inodes_per_group;
 
-    // block group descriptor corresponding to the group the inodes belongs to
-    struct block_group_desc bgd = block_group_desc_table[bg];
+	// block group descriptor corresponding to the group the inodes belongs to
+	struct block_group_desc bgd = block_group_desc_table[bg];
 
-    // index of inode in inode table (NOTE - inode index starts at 1)
-    int index = (idx - 1) % sblock.inodes_per_group;
-    int offset_within_block = index % (BLOCK_SIZE / sizeof(struct inode));
+	// index of inode in inode table (NOTE - inode index starts at 1)
+	int index                   = (idx - 1) % sblock.inodes_per_group;
+	int offset_within_block     = index % (BLOCK_SIZE / sizeof(struct inode));
 
-    // read block in inode table for this block group into memory
-    u8 buff[BLOCK_SIZE];
-    read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
+	// read block in inode table for this block group into memory
+	u8 buff[BLOCK_SIZE];
+	read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 
-    memcpy(inode, &buff[offset_within_block * sizeof(struct inode)], sizeof(struct inode));
+	memcpy(inode, &buff[offset_within_block * sizeof(struct inode)], sizeof(struct inode));
 
-    return inode;
+	return inode;
 }
 
 static void write_inode(struct inode *inode, u32 idx)
 {
-    // find which block group the inode belongs to
-    int bg = (idx - 1) / sblock.inodes_per_group;
+	// find which block group the inode belongs to
+	int bg                      = (idx - 1) / sblock.inodes_per_group;
 
-    // block group descriptor corresponding to the group the inodes belongs to
-    struct block_group_desc bgd = block_group_desc_table[bg];
+	// block group descriptor corresponding to the group the inodes belongs to
+	struct block_group_desc bgd = block_group_desc_table[bg];
 
-    // index of inode in inode table (NOTE - inode index starts at 1)
-    int index = (idx - 1) % sblock.inodes_per_group;
-    int offset_within_block = index % (BLOCK_SIZE / sizeof(struct inode));
+	// index of inode in inode table (NOTE - inode index starts at 1)
+	int index                   = (idx - 1) % sblock.inodes_per_group;
+	int offset_within_block     = index % (BLOCK_SIZE / sizeof(struct inode));
 
-    // read block in inode table for this block group into memory
-    u8 buff[BLOCK_SIZE];
-    read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
+	// read block in inode table for this block group into memory
+	u8 buff[BLOCK_SIZE];
+	read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 
-    memcpy(&buff[offset_within_block * sizeof(struct inode)], inode, sizeof(struct inode));
-    write_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
+	memcpy(&buff[offset_within_block * sizeof(struct inode)], inode, sizeof(struct inode));
+	write_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
 }
 
 /**
@@ -281,27 +287,27 @@ static void write_inode(struct inode *inode, u32 idx)
  */
 void ext2_mkdir(const char *path)
 {
-    u32 inode_idx = alloc_inode_id();
-    u32 block_idx = alloc_block();
+	u32 inode_idx = alloc_inode_id();
+	u32 block_idx = alloc_block();
 
-    // unsuccessful at finding a free block or free inode
-    if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
-    {
-        kprintf("ext2_mkdir: no free inode or block\n");
-        return;
-    }
+	// unsuccessful at finding a free block or free inode
+	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
+	{
+		kprintf("ext2_mkdir: no free inode or block\n");
+		return;
+	}
 
-    // inode representing the new directory
-    struct inode dir;
-    memset(&dir, 0, sizeof(dir));
+	// inode representing the new directory
+	struct inode dir;
+	memset(&dir, 0, sizeof(dir));
 
-    dir.mode |= INODE_MODE_DIR;
-    dir.block_ptr[0] = block_idx;
-    dir.links_count = 1;
-    dir.size = 1024;
+	dir.mode |= INODE_MODE_DIR;
+	dir.block_ptr[0] = block_idx;
+	dir.links_count  = 1;
+	dir.size         = 1024;
 
-    // r/w/x permissions for user, group, others for now
-    dir.mode |= INODE_MODE_RUSR;
+	// r/w/x permissions for user, group, others for now
+	dir.mode |= INODE_MODE_RUSR;
 	dir.mode |= INODE_MODE_WUSR;
 	dir.mode |= INODE_MODE_XUSR;
 	dir.mode |= INODE_MODE_RGRP;
@@ -310,74 +316,71 @@ void ext2_mkdir(const char *path)
 	dir.mode |= INODE_MODE_ROTH;
 	dir.mode |= INODE_MODE_WOTH;
 	dir.mode |= INODE_MODE_XOTH;
-    write_inode(&dir, inode_idx);
+	write_inode(&dir, inode_idx);
 
-    struct inode root;
-    read_inode(&root, ROOT_INODE);
+	struct inode root;
+	read_inode(&root, ROOT_INODE);
 
-    // buffer to hold block
-    u8 buff[BLOCK_SIZE];
-    read_block(buff, root.block_ptr[0], 1);
+	// buffer to hold block
+	u8 buff[BLOCK_SIZE];
+	read_block(buff, root.block_ptr[0], 1);
 
-    struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-    uint bytes_read = 0;
-    while (1)
-    {
-        char *ptr = (char *) entry;
+	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+	uint bytes_read              = 0;
+	while (1)
+	{
+		char *ptr = (char *) entry;
 
-        if (bytes_read + entry->rec_len == BLOCK_SIZE)
-        {
-            // adjust previously last entry's length
-            entry->rec_len = round(sizeof(entry->inode) +
-                                    sizeof(entry->rec_len) +
-                                    sizeof(entry->name_len) +
-                                    sizeof(entry->type) +
-                                    entry->name_len, 4);
+		if (bytes_read + entry->rec_len == BLOCK_SIZE)
+		{
+			// adjust previously last entry's length
+			entry->rec_len = round(sizeof(entry->inode) + sizeof(entry->rec_len) + sizeof(entry->name_len) +
+			                           sizeof(entry->type) + entry->name_len,
+			                       4);
 
-            // create entry for new directory
-            struct ext2_dir_entry new_dir_entry;
-            size_t name_len = strlen(path);
-            new_dir_entry.inode = inode_idx;
-            new_dir_entry.name_len = name_len;
-            new_dir_entry.type = DIR_TYPE_DIR;
-            new_dir_entry.rec_len = round(sizeof(new_dir_entry.inode) +
-                                            sizeof(new_dir_entry.rec_len) +
-                                            sizeof(new_dir_entry.name_len) +
-                                            sizeof(new_dir_entry.type) +
-                                            new_dir_entry.name_len, 4);
-            
-            // create . and .. entries for new directory
-            char dotbuff[BLOCK_SIZE];
-            struct ext2_dir_entry dot = {
-                .inode = ROOT_INODE,
-                .rec_len = 12,
-                .name_len = 1,
-                .type = DIR_TYPE_DIR,
-            };
-            struct ext2_dir_entry dotdot = {
-                .inode = ROOT_INODE,
-                .rec_len = 1024 - 12,
-                .name_len = 2,
-                .type = DIR_TYPE_DIR,
-            };
-            memcpy(&dotbuff[0], &dot, sizeof(dot));
-            memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
-            strcpy(&dotbuff[0 + 8], ".");
-            strcpy(&dotbuff[12 + 8], "..");
-            write_block(dotbuff, block_idx, 1);
+			// create entry for new directory
+			struct ext2_dir_entry new_dir_entry;
+			size_t name_len        = strlen(path);
+			new_dir_entry.inode    = inode_idx;
+			new_dir_entry.name_len = name_len;
+			new_dir_entry.type     = DIR_TYPE_DIR;
+			new_dir_entry.rec_len =
+			    round(sizeof(new_dir_entry.inode) + sizeof(new_dir_entry.rec_len) + sizeof(new_dir_entry.name_len) +
+			              sizeof(new_dir_entry.type) + new_dir_entry.name_len,
+			          4);
 
-            new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
-            memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-            strcpy(&buff[bytes_read + entry->rec_len + 8], path);
-            break;
-        }
+			// create . and .. entries for new directory
+			char dotbuff[BLOCK_SIZE];
+			struct ext2_dir_entry dot = {
+				.inode    = ROOT_INODE,
+				.rec_len  = 12,
+				.name_len = 1,
+				.type     = DIR_TYPE_DIR,
+			};
+			struct ext2_dir_entry dotdot = {
+				.inode    = ROOT_INODE,
+				.rec_len  = 1024 - 12,
+				.name_len = 2,
+				.type     = DIR_TYPE_DIR,
+			};
+			memcpy(&dotbuff[0], &dot, sizeof(dot));
+			memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
+			strcpy(&dotbuff[0 + 8], ".");
+			strcpy(&dotbuff[12 + 8], "..");
+			write_block(dotbuff, block_idx, 1);
 
-        bytes_read += entry->rec_len;
-        ptr += entry->rec_len;
-        entry = (struct ext2_dir_entry *) ptr;
-    }
+			new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
+			memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
+			strcpy(&buff[bytes_read + entry->rec_len + 8], path);
+			break;
+		}
 
-    write_block(buff, root.block_ptr[0], 1);
+		bytes_read += entry->rec_len;
+		ptr += entry->rec_len;
+		entry = (struct ext2_dir_entry *) ptr;
+	}
+
+	write_block(buff, root.block_ptr[0], 1);
 }
 
 /**
@@ -386,27 +389,27 @@ void ext2_mkdir(const char *path)
  */
 void ext2_mkfile(const char *path)
 {
-    u32 inode_idx = alloc_inode_id();
-    u32 block_idx = alloc_block();
+	u32 inode_idx = alloc_inode_id();
+	u32 block_idx = alloc_block();
 
-    // unsuccessful at finding a free block or free inode
-    if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
-    {
-        kprintf("ext2_mkdir: no free inode or block\n");
-        return;
-    }
+	// unsuccessful at finding a free block or free inode
+	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
+	{
+		kprintf("ext2_mkdir: no free inode or block\n");
+		return;
+	}
 
-    // inode representing the new directory
-    struct inode dir;
-    memset(&dir, 0, sizeof(dir));
+	// inode representing the new directory
+	struct inode dir;
+	memset(&dir, 0, sizeof(dir));
 
-    dir.mode |= INODE_MODE_DIR;
-    dir.block_ptr[0] = block_idx;
-    dir.links_count = 1;
-    dir.size = 1024;
+	dir.mode |= INODE_MODE_DIR;
+	dir.block_ptr[0] = block_idx;
+	dir.links_count  = 1;
+	dir.size         = 1024;
 
-    // r/w/x permissions for user, group, others for now
-    dir.mode |= INODE_MODE_RUSR;
+	// r/w/x permissions for user, group, others for now
+	dir.mode |= INODE_MODE_RUSR;
 	dir.mode |= INODE_MODE_WUSR;
 	dir.mode |= INODE_MODE_XUSR;
 	dir.mode |= INODE_MODE_RGRP;
@@ -415,91 +418,87 @@ void ext2_mkfile(const char *path)
 	dir.mode |= INODE_MODE_ROTH;
 	dir.mode |= INODE_MODE_WOTH;
 	dir.mode |= INODE_MODE_XOTH;
-    write_inode(&dir, inode_idx);
+	write_inode(&dir, inode_idx);
 
-    struct inode root;
-    read_inode(&root, ROOT_INODE);
+	struct inode root;
+	read_inode(&root, ROOT_INODE);
 
-    // buffer to hold block
-    u8 buff[BLOCK_SIZE];
-    read_block(buff, root.block_ptr[0], 1);
+	// buffer to hold block
+	u8 buff[BLOCK_SIZE];
+	read_block(buff, root.block_ptr[0], 1);
 
-    struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-    uint bytes_read = 0;
-    while (1)
-    {
-        char *ptr = (char *) entry;
+	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+	uint bytes_read              = 0;
+	while (1)
+	{
+		char *ptr = (char *) entry;
 
-        if (bytes_read + entry->rec_len == BLOCK_SIZE)
-        {
-            // adjust previously last entry's length
-            entry->rec_len = round(sizeof(entry->inode) +
-                                    sizeof(entry->rec_len) +
-                                    sizeof(entry->name_len) +
-                                    sizeof(entry->type) +
-                                    entry->name_len, 4);
+		if (bytes_read + entry->rec_len == BLOCK_SIZE)
+		{
+			// adjust previously last entry's length
+			entry->rec_len = round(sizeof(entry->inode) + sizeof(entry->rec_len) + sizeof(entry->name_len) +
+			                           sizeof(entry->type) + entry->name_len,
+			                       4);
 
-            // create entry for new directory
-            struct ext2_dir_entry new_dir_entry;
-            size_t name_len = strlen(path);
-            new_dir_entry.inode = inode_idx;
-            new_dir_entry.name_len = name_len;
-            new_dir_entry.type = DIR_TYPE_DIR;
-            new_dir_entry.rec_len = round(sizeof(new_dir_entry.inode) +
-                                            sizeof(new_dir_entry.rec_len) +
-                                            sizeof(new_dir_entry.name_len) +
-                                            sizeof(new_dir_entry.type) +
-                                            new_dir_entry.name_len, 4);
-            
-            // create . and .. entries for new directory
-            char dotbuff[BLOCK_SIZE];
-            struct ext2_dir_entry dot = {
-                .inode = ROOT_INODE,
-                .rec_len = 12,
-                .name_len = 1,
-                .type = DIR_TYPE_DIR,
-            };
-            struct ext2_dir_entry dotdot = {
-                .inode = ROOT_INODE,
-                .rec_len = 1024 - 12,
-                .name_len = 2,
-                .type = DIR_TYPE_DIR,
-            };
-            memcpy(&dotbuff[0], &dot, sizeof(dot));
-            memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
-            strcpy(&dotbuff[0 + 8], ".");
-            strcpy(&dotbuff[12 + 8], "..");
-            write_block(dotbuff, block_idx, 1);
+			// create entry for new directory
+			struct ext2_dir_entry new_dir_entry;
+			size_t name_len        = strlen(path);
+			new_dir_entry.inode    = inode_idx;
+			new_dir_entry.name_len = name_len;
+			new_dir_entry.type     = DIR_TYPE_DIR;
+			new_dir_entry.rec_len =
+			    round(sizeof(new_dir_entry.inode) + sizeof(new_dir_entry.rec_len) + sizeof(new_dir_entry.name_len) +
+			              sizeof(new_dir_entry.type) + new_dir_entry.name_len,
+			          4);
 
-            new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
-            memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-            strcpy(&buff[bytes_read + entry->rec_len + 8], path);
-            break;
-        }
+			// create . and .. entries for new directory
+			char dotbuff[BLOCK_SIZE];
+			struct ext2_dir_entry dot = {
+				.inode    = ROOT_INODE,
+				.rec_len  = 12,
+				.name_len = 1,
+				.type     = DIR_TYPE_DIR,
+			};
+			struct ext2_dir_entry dotdot = {
+				.inode    = ROOT_INODE,
+				.rec_len  = 1024 - 12,
+				.name_len = 2,
+				.type     = DIR_TYPE_DIR,
+			};
+			memcpy(&dotbuff[0], &dot, sizeof(dot));
+			memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
+			strcpy(&dotbuff[0 + 8], ".");
+			strcpy(&dotbuff[12 + 8], "..");
+			write_block(dotbuff, block_idx, 1);
 
-        bytes_read += entry->rec_len;
-        ptr += entry->rec_len;
-        entry = (struct ext2_dir_entry *) ptr;
-    }
+			new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
+			memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
+			strcpy(&buff[bytes_read + entry->rec_len + 8], path);
+			break;
+		}
 
-    write_block(buff, root.block_ptr[0], 1);
+		bytes_read += entry->rec_len;
+		ptr += entry->rec_len;
+		entry = (struct ext2_dir_entry *) ptr;
+	}
+
+	write_block(buff, root.block_ptr[0], 1);
 }
 
 static u32 get_inode_from_path(char *path)
 {
-    char *s = path;
-    s++;
-    struct inode node;
-    int idx;
-    while ((idx = indexOf(s, '/')) != -1)
-    {
-        kprintf("%s\n", s);
-        s += idx + 1;
-        // kprintf("%s\n", s);
-    }
+	char *s = path;
+	s++;
+	struct inode node;
+	int idx;
+	while ((idx = indexOf(s, '/')) != -1)
+	{
+		kprintf("%s\n", s);
+		s += idx + 1;
+		// kprintf("%s\n", s);
+	}
 
-    kprintf("%s\n", s);
+	kprintf("%s\n", s);
 
-    return EXT2_INODE_INVALID;
+	return EXT2_INODE_INVALID;
 }
-

@@ -14,4 +14,4 @@
 
 void clkinit();
 
-#endif  // CLK_H
+#endif    // CLK_H

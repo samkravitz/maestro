@@ -24,7 +24,7 @@ void kbdhandler()
 {
 	u8 scancode = inb(KBD_IN);
 
-	char c = '\0';
+	char c      = '\0';
 	if (scancode < NUM_KEYS)
 		c = kbdus[scancode];
 
@@ -34,17 +34,17 @@ void kbdhandler()
 		case LSHIFT_IDX:
 			state |= LSHIFT;
 			break;
-		
+
 		// left shift released
 		case LSHIFT_IDX + 0x80:
 			state &= ~LSHIFT;
 			break;
-		
+
 		// right shift pressed
 		case RSHIFT_IDX:
 			state |= RSHIFT;
 			break;
-		
+
 		// right shift released
 		case RSHIFT_IDX + 0x80:
 			state &= ~RSHIFT;

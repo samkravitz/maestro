@@ -27,7 +27,7 @@ int kprintf(const char *fmt, ...)
 	va_start(args, fmt);
 
 	int x, i = 0;
-	char buff[256] = {0}; // note - kprintf can print a max length of 256
+	char buff[256] = { 0 };    // note - kprintf can print a max length of 256
 	char c;
 
 	char fmtbuf[32];
@@ -37,7 +37,7 @@ int kprintf(const char *fmt, ...)
 		// check for a format specifier
 		if (c == '%')
 		{
-			// clear format buffer 
+			// clear format buffer
 			memset(fmtbuf, 0, sizeof(fmtbuf));
 
 			// min width of format
@@ -54,14 +54,14 @@ int kprintf(const char *fmt, ...)
 			{
 				// character
 				case 'c':
-					x = va_arg(args, int);
+					x       = va_arg(args, int);
 					buff[i] = (char) x;
 					i++;
 					fmt += 2;
 					break;
-				
+
 				// base 10 integer
-				case 'd': ;
+				case 'd':;
 					x = va_arg(args, int);
 					itoa(x, fmtbuf, 10);
 					pad(fmtbuf, width, '0');
@@ -71,7 +71,7 @@ int kprintf(const char *fmt, ...)
 					break;
 
 				// base 16 integer
-				case 'x': ;
+				case 'x':;
 					u32 px = va_arg(args, u32);
 					itoa(px, fmtbuf, 16);
 					pad(fmtbuf, width, '0');
@@ -79,9 +79,9 @@ int kprintf(const char *fmt, ...)
 					i += strlen(fmtbuf);
 					fmt += 2;
 					break;
-				
+
 				// string
-				case 's': ;
+				case 's':;
 					char *str = va_arg(args, char *);
 					strcat(buff, str);
 					i += strlen(str);
@@ -92,7 +92,7 @@ int kprintf(const char *fmt, ...)
 				default:
 					buff[i] = '%';
 					i++;
-					fmt++;		
+					fmt++;
 			}
 		}
 
@@ -102,7 +102,6 @@ int kprintf(const char *fmt, ...)
 			buff[i++] = c;
 			fmt++;
 		}
-
 	}
 
 	va_end(args);

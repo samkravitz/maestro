@@ -5,14 +5,14 @@
 
 void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 {
-	// node to insert 
+	// node to insert
 	struct pq *ins = newpq(data);
 
 	// special case - insnode belongs at head of list
 	if (cmp((*head)->data, ins->data) > 0)
 	{
 		ins->next = *head;
-		*head = ins;
+		*head     = ins;
 		return;
 	}
 
@@ -27,15 +27,15 @@ void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 struct pq *dequeue(struct pq **head)
 {
 	struct pq *tmp = *head;
-	*head = tmp->next;
+	*head          = tmp->next;
 	return tmp;
 }
 
 struct pq *newpq(void *data)
 {
 	struct pq *pq = (struct pq *) malloc(sizeof(struct pq));
-	pq->data = data;
-	pq->next = NULL;
+	pq->data      = data;
+	pq->next      = NULL;
 	return pq;
 }
 
@@ -47,10 +47,10 @@ int intcmp(void *a, void *b)
 
 	if (*ap > *bp)
 		return -1;
-	
+
 	if (*ap < *bp)
 		return 1;
-	
+
 	return 0;
 }
 
@@ -68,15 +68,15 @@ void printpq(struct pq *head)
 
 int main()
 {
-	int zero = 0;
-	int one = 1;
-	int two = 2;
-	int three = 3;
-	int four = 4;
-	int five = 5;
+	int zero        = 0;
+	int one         = 1;
+	int two         = 2;
+	int three       = 3;
+	int four        = 4;
+	int five        = 5;
 	struct pq *head = newpq(&one);
 
-	// test insert 
+	// test insert
 	printf("Inserting 2...\n");
 	insert(&head, &two, intcmp);
 	printpq(head);

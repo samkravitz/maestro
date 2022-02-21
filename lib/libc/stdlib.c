@@ -27,7 +27,7 @@ int atoi(const char *str)
 
 	if (neg)
 		num *= -1;
-	
+
 	return num;
 }
 
@@ -70,12 +70,12 @@ char *itoa(u32 n, char *buff, int base)
 void pad(char *str, int width, char c)
 {
 	size_t len = strlen(str);
-	
+
 	// get number of zeros we need to pad
-	int pad = width - len;
+	int pad    = width - len;
 	if (pad <= 0)
 		return;
-	
+
 	// move what we have to the far right of the buffer
 	memmove(str + pad, str, len);
 

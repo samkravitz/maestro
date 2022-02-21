@@ -7,8 +7,8 @@
  * DATE: August 9, 2021
  * DESCRIPTION: pick the next eligible process to run
  */
-#include <proc.h>
 #include <kout.h>
+#include <proc.h>
 
 extern struct proc *proctab[];
 extern struct proc *curr;

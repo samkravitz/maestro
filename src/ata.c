@@ -16,7 +16,7 @@ static void ata_wait_rdy();
 void ata_read(void *buff, uint lba, size_t sector_count)
 {
 	u16 *p = (u16 *) buff;
-	
+
 	for (uint i = 0; i < sector_count; ++i, ++lba, p += 256)
 		ata_read_sector(p, lba);
 }
@@ -41,8 +41,8 @@ void ata_read_sector(u16 *buff, uint lba)
 	outb(ATA_SECTOR_COUNT_PORT, 1);
 
 	// send lba to the disk byte by byte
-	outb(ATA_LBA_LOW_PORT,  lba >> 0);
-	outb(ATA_LBA_MID_PORT,  lba >> 8);
+	outb(ATA_LBA_LOW_PORT, lba >> 0);
+	outb(ATA_LBA_MID_PORT, lba >> 8);
 	outb(ATA_LBA_HIGH_PORT, lba >> 16);
 
 	// send the read command
@@ -68,11 +68,11 @@ void ata_write_sector(u16 *buff, uint lba)
 	outb(ATA_SECTOR_COUNT_PORT, 1);
 
 	// send lba to the disk byte by byte
-	outb(ATA_LBA_LOW_PORT,  lba >> 0);
-	outb(ATA_LBA_MID_PORT,  lba >> 8);
+	outb(ATA_LBA_LOW_PORT, lba >> 0);
+	outb(ATA_LBA_MID_PORT, lba >> 8);
 	outb(ATA_LBA_HIGH_PORT, lba >> 16);
 
-	// send the write command 
+	// send the write command
 	outb(ATA_CMD_PORT, ATA_CMD_WRITE);
 
 	// wait until disk is ready to transfer data
@@ -80,7 +80,7 @@ void ata_write_sector(u16 *buff, uint lba)
 	ata_wait_rdy();
 
 	// 256 instead of 512 because we transfer by word
-	for(int i = 0; i < 256; ++i)
+	for (int i = 0; i < 256; ++i)
 		outw(ATA_DATA_PORT, buff[i]);
 }
 

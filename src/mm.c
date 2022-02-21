@@ -9,27 +9,27 @@
  */
 #include <mm.h>
 
-#include <intr.h>
-#include <kout.h>
-#include <kmalloc.h>
 #include "string.h"
+#include <intr.h>
+#include <kmalloc.h>
+#include <kout.h>
 
 // macros to manipulate bitmap
-#define MMAP_SET(bit)		(meminfo.mmap[bit / 8]  =  (1 << (bit % 8)))
-#define MMAP_CLEAR(bit)		(meminfo.mmap[bit / 8] &= ~(1 << (bit % 8)))
-#define MMAP_TEST(bit)		(meminfo.mmap[bit / 8] &   (1 << (bit % 8)))
+#define MMAP_SET(bit)   (meminfo.mmap[bit / 8] = (1 << (bit % 8)))
+#define MMAP_CLEAR(bit) (meminfo.mmap[bit / 8] &= ~(1 << (bit % 8)))
+#define MMAP_TEST(bit)  (meminfo.mmap[bit / 8] & (1 << (bit % 8)))
 
-// address of multiboot information struct 
+// address of multiboot information struct
 extern uptr mboot_info;
 
 struct meminfo meminfo;
 
-u32 *kpd; // kernel page directory
-u32 *cpd; // current page directory
+u32 *kpd;    // kernel page directory
+u32 *cpd;    // current page directory
 struct pagetab *pagetable;
 
 // page fault handler
-void pfault() {}
+void pfault() { }
 
 // gets index of first available frame
 int first_free_frame()
@@ -39,7 +39,7 @@ int first_free_frame()
 		// all 8 bits are set
 		if (meminfo.mmap[i] == 0xff)
 			continue;
-		
+
 		for (int j = 0; j < 8; j++)
 		{
 			uint bit = i * 8 + j;
@@ -60,7 +60,7 @@ void *balloc()
 	int frame;
 	if ((frame = first_free_frame()) == -1)
 		return 0;
-	
+
 	MMAP_SET(frame);
 
 	uptr addr = frame * PAGE_SIZE;
@@ -83,10 +83,10 @@ void mminit()
 	svect(14, pfault);
 
 	struct mboot_info *info = (struct mboot_info *) mboot_info;
-	meminfo.size = info->mem_upper;
-	meminfo.max_blocks = meminfo.size * 1024 / PAGE_SIZE;
-	meminfo.used_blocks = meminfo.max_blocks; // by default all blocks are used
-	meminfo.mmap = (u8 *) kmalloc(meminfo.max_blocks / 8);
+	meminfo.size            = info->mem_upper;
+	meminfo.max_blocks      = meminfo.size * 1024 / PAGE_SIZE;
+	meminfo.used_blocks     = meminfo.max_blocks;    // by default all blocks are used
+	meminfo.mmap            = (u8 *) kmalloc(meminfo.max_blocks / 8);
 	memset(meminfo.mmap, 0, meminfo.max_blocks / 8);
 
 	// get memory map if valid
@@ -110,25 +110,34 @@ void mminit()
 			u32 len_low;
 			u32 len_high;
 			u32 type;
-			#define MULTIBOOT_MEMORY_AVAILABLE              1
-			#define MULTIBOOT_MEMORY_RESERVED               2
-			#define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE       3
-			#define MULTIBOOT_MEMORY_NVS                    4
-			#define MULTIBOOT_MEMORY_BADRAM                 5
+#define MULTIBOOT_MEMORY_AVAILABLE        1
+#define MULTIBOOT_MEMORY_RESERVED         2
+#define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE 3
+#define MULTIBOOT_MEMORY_NVS              4
+#define MULTIBOOT_MEMORY_BADRAM           5
 		};
 
-		uint len = 0;
+		uint len                           = 0;
 		struct multiboot_mmap_entry *entry = (struct multiboot_mmap_entry *) info->mmap_addr;
 		while (len < info->mmap_length)
 		{
 			char typestr[32];
 			switch (entry->type)
 			{
-				case MULTIBOOT_MEMORY_AVAILABLE:        strcpy(typestr, "Available");        break;
-				case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE: strcpy(typestr, "ACPI Reclaimable"); break;
-				case MULTIBOOT_MEMORY_NVS:              strcpy(typestr, "NVS");              break;
-				case MULTIBOOT_MEMORY_BADRAM:           strcpy(typestr, "Defective RAM");    break;
-				default:                                strcpy(typestr, "Reserved");
+				case MULTIBOOT_MEMORY_AVAILABLE:
+					strcpy(typestr, "Available");
+					break;
+				case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
+					strcpy(typestr, "ACPI Reclaimable");
+					break;
+				case MULTIBOOT_MEMORY_NVS:
+					strcpy(typestr, "NVS");
+					break;
+				case MULTIBOOT_MEMORY_BADRAM:
+					strcpy(typestr, "Defective RAM");
+					break;
+				default:
+					strcpy(typestr, "Reserved");
 			}
 			kprintf("0x%8x-0x%8x:	%s\n", entry->addr_low, entry->addr_low + entry->len_low - 1, typestr);
 			entry++;

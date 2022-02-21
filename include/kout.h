@@ -16,4 +16,4 @@
 void kout(const char *);
 int kprintf(const char *, ...);
 
-#endif // KOUT_H
+#endif    // KOUT_H

@@ -13,10 +13,13 @@
 #include <kout.h>
 
 // holds registered interrupt handlers
-void (*intr_handlers[NUM_INTERRUPTS]) (void) = {0};
+void (*intr_handlers[NUM_INTERRUPTS])(void) = { 0 };
 
 // dummy nop function
-static void nop() { asm("nop"); }
+static void nop()
+{
+	asm("nop");
+}
 
 // end of interrupt - acknowledges interrupt to PIC
 // @param x index of acknowledged interrupt
@@ -25,7 +28,7 @@ void eoi(int x)
 	// clear PIC2
 	if (x >= 40)
 		outb(0xA1, 0x20);
-    
+
 	// clear PIC1
 	outb(0x20, 0x20);
 }
@@ -62,7 +65,7 @@ void panic(struct state s)
 
 	if (s.inum < NMSG)
 		kprintf("Exception %d: %s\n", s.inum, excmsg[s.inum]);
-	
+
 	kprintf("registers: \n");
 	kprintf("eax: %x\n", s.eax);
 	kprintf("ebx: %x\n", s.ebx);
@@ -75,10 +78,11 @@ void panic(struct state s)
 
 	if (s.errcode)
 		kprintf("Error code: %d\n", s.errcode);
-	
+
 	kprintf("Panic complete...\n");
 
-	while (1) ;
+	while (1)
+		;
 }
 
 /* set exception vector handler

@@ -7,19 +7,19 @@
  * DATE: August 9th, 2021
  * DESCRIPTION: Priority queue implementation
  */
-#include <pq.h>
 #include <kmalloc.h>
+#include <pq.h>
 
 void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 {
-	// node to insert 
+	// node to insert
 	struct pq *ins = newpq(data);
 
 	// special case - ins belongs at head of list
 	if (cmp((*head)->data, ins->data) > 0)
 	{
 		ins->next = *head;
-		*head = ins;
+		*head     = ins;
 		return;
 	}
 
@@ -34,14 +34,14 @@ void insert(struct pq **head, void *data, int (*cmp)(void *a, void *b))
 struct pq *dequeue(struct pq **head)
 {
 	struct pq *tmp = *head;
-	*head = tmp->next;
+	*head          = tmp->next;
 	return tmp;
 }
 
 struct pq *newpq(void *data)
 {
 	struct pq *pq = (struct pq *) kmalloc(sizeof(struct pq));
-	pq->data = data;
-	pq->next = NULL;
+	pq->data      = data;
+	pq->next      = NULL;
 	return pq;
 }

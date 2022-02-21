@@ -24,4 +24,4 @@ int strcmp(const char *, const char *);
 char *strcpy(char *, const char *);
 size_t strlen(const char *);
 
-#endif // STRING_H
+#endif    // STRING_H

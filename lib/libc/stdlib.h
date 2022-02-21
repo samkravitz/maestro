@@ -3,12 +3,12 @@
 
 #include <maestro.h>
 
-#define is_alpha(c)     ((c >= 'a') && (c <= 'z'))
-#define is_numeric(c)	((c >= '0') && (c <= '9'))
-#define to_upper(c)     ('A' + c - 'a')
+#define is_alpha(c)   ((c >= 'a') && (c <= 'z'))
+#define is_numeric(c) ((c >= '0') && (c <= '9'))
+#define to_upper(c)   ('A' + c - 'a')
 
 int atoi(const char *);
 void pad(char *, int, char);
 char *itoa(u32, char *, int);
 
-#endif // STDLIB_H
+#endif    // STDLIB_H

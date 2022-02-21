@@ -15,10 +15,10 @@
 #include <proc.h>
 
 // base frequency of the PIT, in Hz
-#define PIT_BASE_RATE 	1193180
+#define PIT_BASE_RATE 1193180
 
-static u64 sec = 0; 	// seconds since maestro was bootstrapped
-static int ms  = 0; 	// ms since sec was last updated
+static u64 sec = 0;    // seconds since maestro was bootstrapped
+static int ms  = 0;    // ms since sec was last updated
 
 static void clkhandler()
 {

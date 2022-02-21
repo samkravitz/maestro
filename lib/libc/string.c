@@ -51,7 +51,7 @@ int memcmp(const void *s1, const void *s2, size_t n)
 // copies n bytes of memory from src to dest
 void *memcpy(void *dest, const void *src, size_t n)
 {
-	char *dp = (char *) dest;
+	char *dp       = (char *) dest;
 	const char *sp = (const char *) src;
 
 	while (n--)
@@ -63,12 +63,12 @@ void *memcpy(void *dest, const void *src, size_t n)
 // copy memory area
 void *memmove(void *dest, const void *src, size_t n)
 {
-	char *dp = (char *) dest;
+	char *dp       = (char *) dest;
 	const char *sp = (const char *) src;
 
 	if (dest == src)
 		return dest;
-	
+
 	// copy from end
 	if (src < dest)
 	{
@@ -100,7 +100,7 @@ void *memset(void *ptr, int c, size_t n)
 char *strcat(char *dest, const char *src)
 {
 	size_t i = 0, len = strlen(dest);
-	
+
 	while (src[i])
 	{
 		dest[i + len] = src[i];
@@ -115,7 +115,7 @@ char *strcat(char *dest, const char *src)
 char *strncat(char *dest, const char *src, size_t n)
 {
 	size_t i = 0, len = strlen(dest);
-	
+
 	while (src[i] && n--)
 	{
 		dest[i + len] = src[i];

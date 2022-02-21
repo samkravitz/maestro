@@ -9,9 +9,9 @@
  */
 #include <init.h>
 #include <intr.h>
+#include <kmalloc.h>
 #include <kout.h>
 #include <proc.h>
-#include <kmalloc.h>
 
 #include "string.h"
 

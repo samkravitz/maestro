@@ -9,26 +9,26 @@
  */
 #include <tty.h>
 
+#include "string.h"
 #include <intr.h>
 #include <io.h>
-#include "string.h"
 
-#define TTY_WIDTH 		80
-#define TTY_HEIGHT		25
+#define TTY_WIDTH  80
+#define TTY_HEIGHT 25
 
 // attribute byte for white text on black background
-#define ATTRIBUTE		(0xf << 8)
+#define ATTRIBUTE  (0xf << 8)
 
 // get color
-#define GETCOL(c)		(c | ATTRIBUTE)
+#define GETCOL(c)  (c | ATTRIBUTE)
 
 // coordinate of cursor
-static u8 x = 0;
-static u8 y = 0;
+static u8 x   = 0;
+static u8 y   = 0;
 
 // vga base address
 // this is the virtual address of 0xb8000 mapped to kernel page 1023
-u16 *VGA_BASE = (u16 *) (uint16_t*) 0xc03ff000;
+u16 *VGA_BASE = (u16 *) (uint16_t *) 0xc03ff000;
 
 static void scroll();
 static void setcur();
@@ -47,7 +47,7 @@ void putc(char c)
 			if (x > 0)
 				x--;
 
-			u16 index = y * TTY_WIDTH + x;
+			u16 index       = y * TTY_WIDTH + x;
 			VGA_BASE[index] = GETCOL(' ');
 			break;
 
@@ -59,7 +59,7 @@ void putc(char c)
 			// is a printable char
 			if (c >= 32)
 			{
-				u16 index = y * TTY_WIDTH + x;
+				u16 index       = y * TTY_WIDTH + x;
 				VGA_BASE[index] = GETCOL(c);
 				x++;
 			}

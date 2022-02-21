@@ -17,7 +17,6 @@
 #include <kbd.h>
 #include <mm.h>
 
-
 // initializes IDT, interrupts, and the clock
 void init()
 {
@@ -25,7 +24,7 @@ void init()
 	intrinit();
 	clkinit();
 	// mminit();
-	
+
 	//mount();
 
 	// set keyboard interrupt handler

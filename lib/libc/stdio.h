@@ -22,4 +22,4 @@ typedef struct
 	int fd;
 } FILE;
 
-#endif // STDIO_H
+#endif    // STDIO_H

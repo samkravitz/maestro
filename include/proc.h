@@ -13,8 +13,8 @@
 #include <maestro.h>
 #include <state.h>
 
-// max number of processes (for now), 
-#define NPROC		100
+// max number of processes (for now),
+#define NPROC 100
 
 enum prstate
 {
@@ -26,7 +26,7 @@ enum prstate
 struct proc
 {
 	uptr stkptr;
-	u32	 stack[1024];
+	u32 stack[1024];
 	char name[32];
 	int pid;
 };
@@ -43,4 +43,4 @@ extern struct pq *readylist;
 
 void sched();
 
-#endif // PROC_H
+#endif    // PROC_H
