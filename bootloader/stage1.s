@@ -55,7 +55,7 @@ mov [lba], ax                      ; bgdt begins at lba 4
 call read_disk
 
 ; now, load part of the inode table into memory
-; (we are only concerned with inode 5), so we don't need to read that much
+; (we are only concerned with inode 2), so we don't need to read that much
 
 mov cx, [superblock + 1024 + 8]    ; cx = bgdt->inode_table
 
@@ -63,19 +63,55 @@ mov cx, [superblock + 1024 + 8]    ; cx = bgdt->inode_table
 shl cx, 1                          ; cx = lba of inode table
 mov bx, 0x1000                     ; load inode table to address 0x1000
 mov [buffer], bx                   ; where inode table will be loaded into memory
-mov ax, 2
-mov [sector_count], ax             ; read 2 sectors of inode table
+mov ax, 8
+mov [sector_count], ax             ; read 8 sectors of inode table
 mov [lba], cx                      ; starting lba of inode table
 call read_disk
 
-; inode table is now loaded into memory, so lets get the info for inode 5 (bootloader inode)
-mov cx, [0x1000 + 4 * 128 + 40]    ; cx = inode_table[4]->block[0]
-shl cx, 1                          ; cx = lba of inode 5
-mov bx, 0x5000                     ; load stage2.bin to address 0x5000
-mov [buffer], bx                   ; where stage2.bin will be loaded into memory
-mov ax, 1
-mov [sector_count], ax             ; read 1 sectors of inode 5
-mov [lba], cx                      ; starting lba of inode 5
+; inode table is now loaded into memory, so lets get the info for inode 2 (root dir inode)
+mov cx, [0x1000 + 128 + 40]        ; cx = inode_table[1]->block[0]
+shl cx, 1                          ; cx = lba of inode 2
+mov bx, 0x2000                     ; load root dir entries to address 0x2000
+mov [buffer], bx                   ; where root dir entries will be loaded into memory
+mov ax, 2
+mov [sector_count], ax             ; read 2 sectors of inode 2
+mov [lba], cx                      ; starting lba of inode 2
+call read_disk
+
+; now that root dir entries have been loaded into memory, we can search for the file "stage2.bin"
+mov eax, 0                         ; i = 0
+
+stage2_search:
+mov si, stage2_filename 
+cmp ax, 1024                       ; if i > 1024, quit searching
+je stage2_not_found
+mov cx, 10                         ; cx = 10 strlen("stage2.bin")
+lea di, [eax + 0x2000]             ; di = &(rootdir_inode + i)
+push di
+repe cmpsb                         ; strcmp(si, di)
+pop di
+je .done                           ; if strcmp(si, di) == 0, we found stage2.bin
+inc ax                             ; i++
+jmp stage2_search
+
+; stage2.bin was found
+; ax points to the offset in root dir that points to the first character in the name field
+; so we want to subtract past file_type, name_len, and rec_len fields to get to inode field
+.done:
+sub ax, 8                          ; eax = &stage2->inode
+mov eax, dword [0x2000 + eax]      ; eax = stage2->inode
+dec eax                            ; inode indeces start at 1
+mov ecx, 128                       ; ecx = sizeof(inode)
+mul ecx                            ; eax = eax * ecx
+
+; now we know the inode of stage2.bin, so let's load it into memory
+mov cx, [0x1000 + eax + 40]        ; cx = inode_table[stage2]->block[0]
+shl cx, 1                          ; cx = lba of stage2
+mov bx, 0x5000                     ; load stage2.bin 0x5000
+mov [buffer], bx                   ; where stage2 will be loaded into memory
+mov ax, 2
+mov [sector_count], ax             ; read 2 sectors of stage2.bin
+mov [lba], cx                      ; starting lba of stage2.bin
 call read_disk
 
 jmp 0x5000                         ; jump to stage 2
@@ -89,6 +125,16 @@ read_disk:
 
 error:
     jmp $
+
+stage2_not_found:
+    mov si, stage2_notfound_msg
+    call puts
+    jmp error
+
+%include 'puts.inc'
+
+stage2_notfound_msg: db 'stage2.bin was not found', 0
+stage2_filename:     db 'stage2.bin', 0
 
 ; disk address packet structure - allows us to use lba values for disk reads
 align 4
