@@ -61,12 +61,8 @@ jmp 0x08:pmode                 ; jump to protected mode!
 ; 32 bit protected mode
 pmode:
 [bits 32]
-; set up new segments
-mov ax, 10h
-mov ds, ax
-mov ss, ax
 
-jmp $
+jmp 0x10000
 
 ; tell nasm remainder of this file is 16 bit mode
 [bits 16]
