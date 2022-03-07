@@ -15,6 +15,18 @@
 ; and
 ; NanobyteOS - overall a great resource for osdev
 ; https://github.com/chibicitiberiu/nanobyte_os/blob/master/src/bootloader/stage1/boot.asm
+;
+;	MEMORY MAP
+; 0x2000 : 0x2200 - superblock
+; 0x2200 : 0x2400 - block group descriptor table
+; 0x2400 : 0x2600 - root directory inode entries
+; 0x4000 : 0x4200 - kernel's indirect blocks 
+; 0x5000 : 0x5200 - stage2 bootloader
+; 0x7c00 : 0x7e00 - stage1 bootloader
+; 0x7e00 : 0x8000 - extended bootsector
+; 0x8000 : 0xffff - inode table
+;
+; 0x10000 : ?     - kernel
 
 [bits 16]
 org 0x7c00
