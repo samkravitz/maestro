@@ -157,17 +157,7 @@ a20_disabled_error:
     call puts
     jmp $
 
-; prints a string to the screen
-; si - pointer to string to be printed
-puts:
-    lodsb
-	or al, al		; test for NULL termination
-	jz .done 
-	mov ah, 0xe 
-	int 10h
-	jmp puts
-.done:
-	ret
+%include "puts.inc"
 
 hello: db 'hello from stage2!', 0
 memory_map_error: db 'error detecting memory map', 0
