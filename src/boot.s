@@ -28,72 +28,10 @@ align 4
 	dd FLAGS
 	dd CHECKSUM
 
-%define virt_to_phys(addr) (addr - 0xc0000000)
-
-; virtual address of kernel start and end
-extern start
-extern end
-
-; reserve memory for page table and page directory
-section .bss
-align 4096
-page_directory:
-resb 4096
-page_table:
-resb 4096
-
 extern kmain
 section .text
 global boot:
 boot:
-	; identity map kernel to 0xc0000000
-	mov edi, virt_to_phys(page_table)
-	mov esi, 0
-	mov ecx, 1023
-
-    .1:
-    cmp esi, start
-    jl .2
-    cmp esi, virt_to_phys(end)
-    jge .3
-	; mark page as present & writable
-    mov edx, esi
-    or edx, 0x3
-    mov [edi], edx
-
-    .2:
-    add esi, 4096
-    add edi, 4
-    loop .1
-
-    .3:
-	; move VGA video memory (0xb8000) to 1024th page
-    mov dword [virt_to_phys(page_table) + 1023 * 4], 0xb8003
-	; use same page table for page directory entry 0 and page directory entry 768
-	mov dword [virt_to_phys(page_directory) + 0], virt_to_phys(page_table) + 0x003
-	mov dword [virt_to_phys(page_directory) + 768 * 4], virt_to_phys(page_table) + 0x003
-
-	; set cr3 to the address of the page directory
-	mov ecx, virt_to_phys(page_directory)
-	mov cr3, ecx
-
-	; enable paging and the write-protect bit
-	mov ecx, cr0
-	or ecx, 0x80010000
-	mov cr0, ecx
-
-	; jump to higher half
-	lea ecx, .4
-	jmp ecx
-
-	.4:
-	; unmap the identity mapping as it is now unnecessary
-	mov dword [page_directory + 0], 0
-
-	; reload cr3 to force a TLB flush so the changes take effect
-	mov ecx, cr3
-	mov cr3, ecx
-
 	mov [mboot_info], ebx		; store multiboot info for later
 	lgdt [gdt_descriptor]		; load gdt into gdtr
 	mov ax, 0x10				; 0x10 is the offset in the gdt to data segment

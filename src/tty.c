@@ -27,8 +27,7 @@ static u8 x   = 0;
 static u8 y   = 0;
 
 // vga base address
-// this is the virtual address of 0xb8000 mapped to kernel page 1023
-u16 *VGA_BASE = (u16 *) (uint16_t *) 0xc03ff000;
+u16 *VGA_BASE = (u16 *) 0xb8000;
 
 static void scroll();
 static void setcur();
