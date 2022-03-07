@@ -62,7 +62,7 @@ jmp 0x08:pmode                 ; jump to protected mode!
 pmode:
 [bits 32]
 
-jmp 0x10000
+jmp KERNEL_ADDR
 
 ; tell nasm remainder of this file is 16 bit mode
 [bits 16]
@@ -159,3 +159,6 @@ hello: db 'hello from stage2!', 0
 memory_map_error: db 'error detecting memory map', 0
 a20_not_enabled: db 'a20 is not enabled!', 0
 welcome_pmode: db 'welcome to protected mode!', 0
+
+; constants
+KERNEL_ADDR equ 10000h ; address of kernel
