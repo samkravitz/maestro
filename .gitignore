@@ -27,3 +27,6 @@ mnt/
 
 # build directory
 bin/
+
+# linker map output
+maestro.map

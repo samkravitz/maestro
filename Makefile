@@ -1,11 +1,6 @@
-CC = gcc
-CXX = g++
-AS = nasm
-CFLAGS = -std=gnu99 -march=i686 -m32 -fno-stack-protector -fno-pie -ffreestanding -nostdlib -Wall -Wextra $(INCLUDE)
-CXXFLAGS = -std=c++17 -m32 -fno-pie -fno-stack-protector -fno-exceptions -fno-rtti -ffreestanding -nostdlib -O2 -Wall -Wextra $(INCLUDE)
-LDFLAGS = -L lib/libc -l:libc.a
-INCLUDE = -I include -I lib/libc -I lib/mxx
-VPATH = src/ src/bootloader lib/libc
+include config.mk
+
+VPATH = src/ src/bootloader
 
 # C sources
 C = \
@@ -41,7 +36,7 @@ OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))
 all: libs maestro.bin bootloader img 
 
 maestro.bin: $(OBJ)
-	$(CC) $(CFLAGS) -T linker.ld -o $@ $^ $(LDFLAGS)
+	$(LD) -o $@ $^ $(LDFLAGS)
 
 stage1.bin: stage1.s
 	$(AS) -i src/bootloader -f bin $< -o $@
@@ -82,6 +77,5 @@ start:
 .PHONY: clean
 clean:
 	rm -f bin/* *.bin
-	rm -rf mnt
 	$(MAKE) -C lib clean
 	$(MAKE) -C test clean

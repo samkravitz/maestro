@@ -1,7 +1,6 @@
-CXX = g++
-AR = ar
-INCLUDE = -I ../../include -I ../libc
-CXXFLAGS = -std=c++17 -static -m32 -fno-exceptions -fno-rtti -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O2 -Wall -Wextra $(INCLUDE)
+include ../../config.mk
+
+INCLUDE = -I ../../include
 LIB = mxx.a
 
 SOURCES = \
@@ -19,4 +18,4 @@ $(LIB): $(OBJ)
 
 .PHONY: clean
 clean:
-	rm *.o $(LIB)
+	rm -f *.o $(LIB)

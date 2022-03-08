@@ -1,7 +1,6 @@
-CC = gcc
-AR = ar
-INCLUDE = ../../include
-CFLAGS = -std=c99 -march=i686 -m32 -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O2 -Wall -Wextra -I $(INCLUDE)
+include ../../config.mk
+
+INCLUDE = -I ../../include
 LIB = libc.a
 
 SOURCES = \
@@ -20,4 +19,4 @@ $(LIB): $(OBJ)
 
 .PHONY: clean
 clean:
-	rm *.o $(LIB)
+	rm -f *.o $(LIB)
