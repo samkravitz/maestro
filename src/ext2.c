@@ -30,6 +30,7 @@ static void print_superblock();
 static struct inode_t read_inode(u32);
 static void write_inode(struct inode_t *, u32);
 static int inode_from_path(char *);
+static int parent_inode_from_path(char *);
 
 /**
  * macro to get the name from a dir entry
@@ -554,6 +555,31 @@ static int inode_from_path(char *path)
 
     } while ((segment = strtok(NULL, "/")) != NULL);
     
+    return ino;
+}
+
+/**
+ * @brief gets the inode of the parent of a given file
+ * @param path absolute path of the file to get the parent of
+ * @return inode index of the file's parent
+ * 
+ * e.x. parent_inode_from_path("/path/to/a/nested/file");
+ * will return the inode index of the directory "nested"
+ */
+static int parent_inode_from_path(char *path)
+{
+    // pointer to final occurrance of / in path
+    char *last_slash = strrchr(path, '/');
+
+    // if the final occurance of / is also the first, the parent is the root directory
+    if (last_slash == path)
+        return ROOT_INODE;
+
+    // temporarily null terminate path after the parent we are looking for
+    *last_slash = '\0';
+    int ino = inode_from_path(path);
+    *last_slash = '/';
+
     return ino;
 }
 
