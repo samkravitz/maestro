@@ -137,7 +137,22 @@ char *strcpy(char *dest, const char *src)
 
 int strcmp(const char *a, const char *b)
 {
-	return memcmp(a, b, strlen(a));
+    return strncmp(a, b, strlen(a));
+}
+
+int strncmp(const char *a, const char *b, size_t n)
+{
+    const u8 *s1 = (const u8 *) a;
+    const u8 *s2 = (const u8 *) b;
+
+	while (n && *s1 && (*s1 == *s2))
+    {
+        s1++;
+        s2++;
+        n--;
+    }
+ 
+    return n == 0 ? 0 : *s1 - *s2;
 }
 
 // compute the length of a null-terminated string
