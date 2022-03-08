@@ -23,14 +23,13 @@ struct block_group_desc *bgdt;
 // number of block groups in volume
 static int block_groups;
 
-static u32 alloc_inode();
-static u32 alloc_block();
+static int alloc_inode();
+static int alloc_block();
 static void print_inode(u32);
 static void print_superblock();
 static struct inode_t read_inode(u32);
 static void write_inode(struct inode_t *, u32);
-static bool file_exists(const char *);
-static u32 inode_from_path(char *);
+static int inode_from_path(char *);
 
 /**
  * macro to get the name from a dir entry
@@ -158,11 +157,10 @@ void print_inode(u32 ino)
 }
 
 /**
- * @brief gets the id of the first unused inode
- * also updates the block group descriptor table's inode bitmap
+ * @brief allocates an unused inode and updates the bgdt's inode bitmap
  * @return id of the free inode or error if none is found
  */
-static u32 alloc_inode()
+static int alloc_inode()
 {
 	if (superblock.free_block_count == 0)
 		return EXT2_ALLOC_ERROR;
@@ -204,11 +202,10 @@ static u32 alloc_inode()
 }
 
 /**
- * @brief gets the id of the first unused block
- * also updates the block group descriptor table's block bitmap
+ * @brief allocates an unused block and updates the bgdt's block bitmap
  * @return id of the block inode or error if none is found
  */
-static u32 alloc_block()
+static int alloc_block()
 {
 	if (superblock.free_block_count == 0)
 		return EXT2_ALLOC_ERROR;
@@ -306,8 +303,8 @@ static void write_inode(struct inode_t *inode, u32 idx)
  */
 void ext2_mkdir(const char *path)
 {
-	u32 inode_idx = alloc_inode();
-	u32 block_idx = alloc_block();
+	int inode_idx = alloc_inode();
+	int block_idx = alloc_block();
 
 	// unsuccessful at finding a free block or free inode
 	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
@@ -407,8 +404,8 @@ void ext2_mkdir(const char *path)
  */
 void ext2_mkfile(const char *path)
 {
-	u32 inode_idx = alloc_inode();
-	u32 block_idx = alloc_block();
+	int inode_idx = alloc_inode();
+	int block_idx = alloc_block();
 
 	// unsuccessful at finding a free block or free inode
 	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
@@ -505,15 +502,15 @@ void ext2_mkfile(const char *path)
 /**
  * @brief finds the inode number associated with a given path
  * @param path absolute path of file to find
- * @return inode index of the file
+ * @return inode index of the file or error if it doesn't exist
  */
-static u32 inode_from_path(char *path)
+static int inode_from_path(char *path)
 {
     // tokenize path into its segments
     // e.x. given the path "/home/user/bin/a.out"
     // segment will eventually be "home", "user", "bin", "a.out"
     char *segment = strtok(path, "/");
-    u32 ino;
+    int ino;
 
     // current directory we're looking in
     struct inode_t dir = read_inode(ROOT_INODE);
@@ -532,18 +529,27 @@ static u32 inode_from_path(char *path)
 
         do
         {
-            char *name = DIRENT_NAME(entry);
-            if (strcmp(name, segment) == 0)
+            if (strcmp(segment, DIRENT_NAME(entry)) == 0)
             {
                 ino = entry->inode;
-                break;
+                
+                // when the segment was found, skip to label 
+                // so we know we have found each segment
+                goto found_segment;
             }
 
             bytes_read += entry->rec_len;
+
+            // offset to next entry
             entry = (struct ext2_dir_entry *) (buff + bytes_read);
         } while (bytes_read < BLOCK_SIZE);
 
-        // we're still in a directory, so load the next level deep
+        // if the loop breaks normally, that means we didn't find the 
+        // segment we were looking for. so, short circuit
+        return EXT2_INODE_NOTFOUND;
+
+        found_segment:
+        // load the entries of the next segment
         dir = read_inode(ino);
 
     } while ((segment = strtok(NULL, "/")) != NULL);

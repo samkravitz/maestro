@@ -36,8 +36,8 @@
 // offset in bytes of an ext2 directory entry to it's name
 #define EXT2_DIRENT_NAME_OFFSET 8
 
-#define EXT2_ALLOC_ERROR       0xffffffff
-#define EXT2_INODE_INVALID     0xffffffff
+#define EXT2_ALLOC_ERROR       -1
+#define EXT2_INODE_NOTFOUND    -1
 
 // rounds an integer x up to the nearest multiple of to
 #define round(x, to)           ((x + to - 1) & (-to))
