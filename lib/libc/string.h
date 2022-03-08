@@ -24,5 +24,6 @@ int strcmp(const char *, const char *);
 int strncmp(const char *, const char *, size_t);
 char *strcpy(char *, const char *);
 size_t strlen(const char *);
+char *strtok(char *, const char *);
 
 #endif    // STRING_H
