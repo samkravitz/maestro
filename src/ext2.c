@@ -15,20 +15,21 @@
 
 #include "string.h"
 
-struct superblock sblock;
+struct superblock_t superblock;
 
-struct block_group_desc *block_group_desc_table;
+// block group descriptor table
+struct block_group_desc *bgdt;
 
 // number of block groups in volume
 static int block_groups;
 
-static u32 alloc_inode_id();
+static u32 alloc_inode();
 static u32 alloc_block();
 static void print_inode(u32);
-static struct inode *read_inode(struct inode *, u32);
-static void write_inode(struct inode *, u32);
+static struct inode_t read_inode(u32);
+static void write_inode(struct inode_t *, u32);
 static bool file_exists(const char *);
-static u32 get_inode_from_path(char *);
+static u32 inode_from_path(char *);
 
 /**
  * macros to manipulate block/inode bitmaps
@@ -46,7 +47,7 @@ static u32 get_inode_from_path(char *);
  */
 static inline void read_block(void *buff, uint blk, int n)
 {
-	ata_read(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
+	ata_read(buff, blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
 
 /**
@@ -57,7 +58,7 @@ static inline void read_block(void *buff, uint blk, int n)
  */
 static inline void write_block(void *buff, uint blk, int n)
 {
-	ata_write(buff, EXT2_OFFSET + blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
+	ata_write(buff, blk * EXT2_SECTORS_PER_BLOCK, n * EXT2_SECTORS_PER_BLOCK);
 }
 
 /**
@@ -65,8 +66,7 @@ static inline void write_block(void *buff, uint blk, int n)
  */
 static inline void flush_block_group_descriptor_table()
 {
-	write_block(
-	    block_group_desc_table, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
+	write_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
 }
 
 /**
@@ -74,16 +74,16 @@ static inline void flush_block_group_descriptor_table()
  */
 static inline void flush_superblock()
 {
-	write_block(&sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
+	write_block(&superblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(superblock)));
 }
 
 void ext2_init()
 {
-	read_block((u8 *) &sblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(sblock)));
+	read_block(&superblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(superblock)));
 
-	int inodes             = sblock.inode_count;
-	int blocks             = sblock.block_count;
-	int block_size         = 1024 << sblock.log_block_size;
+	int inodes     = superblock.inode_count;
+	int blocks     = superblock.block_count;
+	int block_size = 1024 << superblock.log_block_size;
 
 	/*
     *   determine number of block groups
@@ -91,8 +91,8 @@ void ext2_init()
     *   round up the total number of inodes / num inodes per group
     *   round up the total number of blocks / num blocks per group
     */
-	int block_groups_inode = inodes * 1.0f / sblock.inodes_per_group + .5f;
-	int block_groups_block = blocks * 1.0f / sblock.blocks_per_group + .5f;
+	int block_groups_inode = inodes * 1.0f / superblock.inodes_per_group + .5f;
+	int block_groups_block = blocks * 1.0f / superblock.blocks_per_group + .5f;
 
 	if (block_groups_inode != block_groups_block)
 		kprintf("ext2: inconsistency in block group count\n");
@@ -102,31 +102,32 @@ void ext2_init()
 	block_groups           = block_groups_inode;
 
 	// allocate space for block group descriptor table
-	block_group_desc_table = kmalloc(sizeof(struct block_group_desc) * block_groups);
+	bgdt = kmalloc(sizeof(struct block_group_desc) * block_groups);
 
-	read_block((u8 *) block_group_desc_table,
-	           EXT2_BLOCK_DESCRIPTOR,
-	           get_num_blocks(sizeof(struct block_group_desc) * block_groups));
+	read_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
-	get_inode_from_path("/root/usr/bin/apps/chrome.exe");
+	//inode_from_path("/root/usr/bin/apps/chrome.exe");
 
 	print_inode(ROOT_INODE);
 }
 
+/**
+ * @brief prints an inode to the screen
+ * @param ino index of which inode to print
+ */
 void print_inode(u32 ino)
 {
-	struct inode node;
-	read_inode(&node, ino);
+	struct inode_t inode = read_inode(ino);
 
 	// buffer to hold block
 	u8 buff[BLOCK_SIZE];
-	read_block(buff, node.block_ptr[0], 1);
+	read_block(buff, inode.block_ptr[0], 1);
 
 	// inode is a directory
-	if (node.mode & INODE_MODE_DIR)
+	if (inode.mode & INODE_MODE_DIR)
 	{
 		struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-		uint bytes_read              = 0;
+		uint bytes_read = 0;
 		do
 		{
 			char *ptr  = (char *) entry;
@@ -139,29 +140,29 @@ void print_inode(u32 ino)
 			bytes_read += entry->rec_len;
 			ptr += entry->rec_len;
 			entry = (struct ext2_dir_entry *) ptr;
-		} while (bytes_read < 1024);    // directory entries must fit in size of 1 block
+		} while (bytes_read < BLOCK_SIZE);    // directory entries must fit in size of 1 block
 	}
 
 	// inode is a regular file
-	else if (node.mode & INODE_MODE_REG)
+	else if (inode.mode & INODE_MODE_REG)
 	{
-		kprintf("Reading inode of regular file %d\n", node.size);
+		kprintf("Reading inode of regular file %d\n", inode.size);
 	}
 }
 
 /**
- * finds the id of the first unused id
- * also updates the block group descriptor it's inode bitmap
+ * @brief gets the id of the first unused inode
+ * also updates the block group descriptor table's inode bitmap
  * @return id of the free inode or error if none is found
  */
-static u32 alloc_inode_id()
+static u32 alloc_inode()
 {
-	if (sblock.free_block_count == 0)
+	if (superblock.free_block_count == 0)
 		return EXT2_ALLOC_ERROR;
 
 	for (int i = 0; i < block_groups; ++i)
 	{
-		struct block_group_desc *bgd = &block_group_desc_table[i];
+		struct block_group_desc *bgd = &bgdt[i];
 
 		// no free inodes in this block group
 		if (bgd->free_inode_count <= 0)
@@ -171,14 +172,14 @@ static u32 alloc_inode_id()
 		u8 buff[BLOCK_SIZE];
 		read_block(buff, bgd->inode_bitmap, 1);
 
-		for (int n = 0; n < sblock.inodes_per_group / 8; ++n)
+		for (int n = 0; n < superblock.inodes_per_group / 8; ++n)
 		{
 			if (!BMAP_TEST(buff, n))
 			{
 				// inode indeces start at 1, this is why we add 1 to the free bit we found
-				u32 index = i * sblock.inodes_per_group + n + 1;
+				u32 index = i * superblock.inodes_per_group + n + 1;
 				bgd->free_inode_count--;
-				sblock.free_inode_count--;
+				superblock.free_inode_count--;
 				BMAP_SET(buff, n);
 				write_block(buff, bgd->inode_bitmap, 1);
 				flush_block_group_descriptor_table();
@@ -188,7 +189,7 @@ static u32 alloc_inode_id()
 		}
 
 		// should never get here
-		kprintf("EXT2 alloc_inode_id: something has gone terribly wrong!\n");
+		kprintf("EXT2 alloc_inode: something has gone terribly wrong!\n");
 	}
 
 	// no free inode could be found
@@ -196,18 +197,18 @@ static u32 alloc_inode_id()
 }
 
 /**
- * finds the id of the first unused block
- * also updates the block group descriptor it's block bitmap
+ * @brief gets the id of the first unused block
+ * also updates the block group descriptor table's block bitmap
  * @return id of the block inode or error if none is found
  */
 static u32 alloc_block()
 {
-	if (sblock.free_block_count == 0)
+	if (superblock.free_block_count == 0)
 		return EXT2_ALLOC_ERROR;
 
 	for (int i = 0; i < block_groups; ++i)
 	{
-		struct block_group_desc *bgd = &block_group_desc_table[i];
+		struct block_group_desc *bgd = &bgdt[i];
 
 		// no free inodes in this block group
 		if (bgd->free_block_count <= 0)
@@ -217,13 +218,13 @@ static u32 alloc_block()
 		u8 buff[BLOCK_SIZE];
 		read_block(buff, bgd->block_bitmap, 1);
 
-		for (int n = 0; n < sblock.blocks_per_group / 8; ++n)
+		for (int n = 0; n < superblock.blocks_per_group / 8; ++n)
 		{
 			if (!BMAP_TEST(buff, n))
 			{
-				u32 index = i * sblock.blocks_per_group + n;
+				u32 index = i * superblock.blocks_per_group + n;
 				bgd->free_block_count--;
-				sblock.free_block_count--;
+				superblock.free_block_count--;
 				BMAP_SET(buff, n);
 				write_block(buff, bgd->block_bitmap, 1);
 				flush_block_group_descriptor_table();
@@ -240,54 +241,65 @@ static u32 alloc_block()
 	return EXT2_ALLOC_ERROR;
 }
 
-static struct inode *read_inode(struct inode *inode, u32 idx)
+/**
+ * @brief retrieves a given inode
+ * @param idx index of the inode to get
+ * @return the inode
+ */
+static struct inode_t read_inode(u32 idx)
 {
 	// find which block group the inode belongs to
-	int bg                      = (idx - 1) / sblock.inodes_per_group;
+	int bg                      = (idx - 1) / superblock.inodes_per_group;
 
 	// block group descriptor corresponding to the group the inodes belongs to
-	struct block_group_desc bgd = block_group_desc_table[bg];
+	struct block_group_desc bgd = bgdt[bg];
 
 	// index of inode in inode table (NOTE - inode index starts at 1)
-	int index                   = (idx - 1) % sblock.inodes_per_group;
-	int offset_within_block     = index % (BLOCK_SIZE / sizeof(struct inode));
+	int index                   = (idx - 1) % superblock.inodes_per_group;
+	int offset_within_block     = index % (BLOCK_SIZE / sizeof(struct inode_t));
 
 	// read block in inode table for this block group into memory
 	u8 buff[BLOCK_SIZE];
-	read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
+	read_block(buff, bgd.inode_table + (index * sizeof(struct inode_t) / BLOCK_SIZE), 1);
 
-	memcpy(inode, &buff[offset_within_block * sizeof(struct inode)], sizeof(struct inode));
-
+    struct inode_t inode;
+	memcpy(&inode, &buff[offset_within_block * sizeof(struct inode_t)], sizeof(inode));
 	return inode;
 }
 
-static void write_inode(struct inode *inode, u32 idx)
+
+/**
+ * @brief flushes an inode to disk
+ * @param inode pointer to inode to write
+ * @param idx index of the inode to write
+ */
+static void write_inode(struct inode_t *inode, u32 idx)
 {
 	// find which block group the inode belongs to
-	int bg                      = (idx - 1) / sblock.inodes_per_group;
+	int bg                      = (idx - 1) / superblock.inodes_per_group;
 
 	// block group descriptor corresponding to the group the inodes belongs to
-	struct block_group_desc bgd = block_group_desc_table[bg];
+	struct block_group_desc bgd = bgdt[bg];
 
 	// index of inode in inode table (NOTE - inode index starts at 1)
-	int index                   = (idx - 1) % sblock.inodes_per_group;
-	int offset_within_block     = index % (BLOCK_SIZE / sizeof(struct inode));
+	int index                   = (idx - 1) % superblock.inodes_per_group;
+	int offset_within_block     = index % (BLOCK_SIZE / sizeof(struct inode_t));
 
 	// read block in inode table for this block group into memory
 	u8 buff[BLOCK_SIZE];
-	read_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
+	read_block(buff, bgd.inode_table + (index * sizeof(struct inode_t) / BLOCK_SIZE), 1);
 
-	memcpy(&buff[offset_within_block * sizeof(struct inode)], inode, sizeof(struct inode));
-	write_block(buff, bgd.inode_table + (index * sizeof(struct inode) / BLOCK_SIZE), 1);
+	memcpy(&buff[offset_within_block * sizeof(struct inode_t)], inode, sizeof(struct inode_t));
+	write_block(buff, bgd.inode_table + (index * sizeof(struct inode_t) / BLOCK_SIZE), 1);
 }
 
 /**
- * creates a new, empty ext2 directory
+ * @brief creates a new, empty ext2 directory
  * @param path absolute path of directory to create (must be null-terminated!)
  */
 void ext2_mkdir(const char *path)
 {
-	u32 inode_idx = alloc_inode_id();
+	u32 inode_idx = alloc_inode();
 	u32 block_idx = alloc_block();
 
 	// unsuccessful at finding a free block or free inode
@@ -298,7 +310,7 @@ void ext2_mkdir(const char *path)
 	}
 
 	// inode representing the new directory
-	struct inode dir;
+	struct inode_t dir;
 	memset(&dir, 0, sizeof(dir));
 
 	dir.mode |= INODE_MODE_DIR;
@@ -318,8 +330,108 @@ void ext2_mkdir(const char *path)
 	dir.mode |= INODE_MODE_XOTH;
 	write_inode(&dir, inode_idx);
 
-	struct inode root;
-	read_inode(&root, ROOT_INODE);
+	struct inode_t root = read_inode(ROOT_INODE);
+
+	// buffer to hold block
+	u8 buff[BLOCK_SIZE];
+	read_block(buff, root.block_ptr[0], 1);
+
+	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+	uint bytes_read = 0;
+	while (1)
+	{
+		char *ptr = (char *) entry;
+
+		if (bytes_read + entry->rec_len == BLOCK_SIZE)
+		{
+			// adjust previously last entry's length
+			entry->rec_len = round(sizeof(entry->inode) + sizeof(entry->rec_len) + sizeof(entry->name_len) +
+			                           sizeof(entry->type) + entry->name_len,
+			                       4);
+
+			// create entry for new directory
+			struct ext2_dir_entry new_dir_entry;
+			size_t name_len        = strlen(path);
+			new_dir_entry.inode    = inode_idx;
+			new_dir_entry.name_len = name_len;
+			new_dir_entry.type     = DIR_TYPE_DIR;
+			new_dir_entry.rec_len =
+			    round(sizeof(new_dir_entry.inode) + sizeof(new_dir_entry.rec_len) + sizeof(new_dir_entry.name_len) +
+			              sizeof(new_dir_entry.type) + new_dir_entry.name_len,
+			          4);
+
+			// create . and .. entries for new directory
+			char dotbuff[BLOCK_SIZE];
+			struct ext2_dir_entry dot = {
+				.inode    = ROOT_INODE,
+				.rec_len  = 12,
+				.name_len = 1,
+				.type     = DIR_TYPE_DIR,
+			};
+			struct ext2_dir_entry dotdot = {
+				.inode    = ROOT_INODE,
+				.rec_len  = 1024 - 12,
+				.name_len = 2,
+				.type     = DIR_TYPE_DIR,
+			};
+			memcpy(&dotbuff[0], &dot, sizeof(dot));
+			memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
+			strcpy(&dotbuff[0 + 8], ".");
+			strcpy(&dotbuff[12 + 8], "..");
+			write_block(dotbuff, block_idx, 1);
+
+			new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
+			memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
+			strcpy(&buff[bytes_read + entry->rec_len + 8], path);
+			break;
+		}
+
+		bytes_read += entry->rec_len;
+		ptr += entry->rec_len;
+		entry = (struct ext2_dir_entry *) ptr;
+	}
+
+	write_block(buff, root.block_ptr[0], 1);
+}
+
+/**
+ * @brief creates a new, empty ext2 file
+ * @param path absolute path of directory to create (must be null-terminated!)
+ */
+void ext2_mkfile(const char *path)
+{
+	u32 inode_idx = alloc_inode();
+	u32 block_idx = alloc_block();
+
+	// unsuccessful at finding a free block or free inode
+	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
+	{
+		kprintf("ext2_mkdir: no free inode or block\n");
+		return;
+	}
+
+	// inode representing the new directory
+	struct inode_t dir;
+	memset(&dir, 0, sizeof(dir));
+
+	dir.mode |= INODE_MODE_DIR;
+	dir.block_ptr[0] = block_idx;
+	dir.links_count  = 1;
+	dir.size         = 1024;
+
+	// r/w/x permissions for user, group, others for now
+	dir.mode |= INODE_MODE_RUSR;
+	dir.mode |= INODE_MODE_WUSR;
+	dir.mode |= INODE_MODE_XUSR;
+	dir.mode |= INODE_MODE_RGRP;
+	dir.mode |= INODE_MODE_WGRP;
+	dir.mode |= INODE_MODE_XGRP;
+	dir.mode |= INODE_MODE_ROTH;
+	dir.mode |= INODE_MODE_WOTH;
+	dir.mode |= INODE_MODE_XOTH;
+	write_inode(&dir, inode_idx);
+
+	struct inode_t root = read_inode(ROOT_INODE);
 
 	// buffer to hold block
 	u8 buff[BLOCK_SIZE];
@@ -384,118 +496,19 @@ void ext2_mkdir(const char *path)
 }
 
 /**
- * creates a new, empty ext2 file
- * @param path absolute path of directory to create (must be null-terminated!)
+ * @brief finds the inode number associated with a given path
+ * @param path absolute path of file to find
  */
-void ext2_mkfile(const char *path)
-{
-	u32 inode_idx = alloc_inode_id();
-	u32 block_idx = alloc_block();
-
-	// unsuccessful at finding a free block or free inode
-	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
-	{
-		kprintf("ext2_mkdir: no free inode or block\n");
-		return;
-	}
-
-	// inode representing the new directory
-	struct inode dir;
-	memset(&dir, 0, sizeof(dir));
-
-	dir.mode |= INODE_MODE_DIR;
-	dir.block_ptr[0] = block_idx;
-	dir.links_count  = 1;
-	dir.size         = 1024;
-
-	// r/w/x permissions for user, group, others for now
-	dir.mode |= INODE_MODE_RUSR;
-	dir.mode |= INODE_MODE_WUSR;
-	dir.mode |= INODE_MODE_XUSR;
-	dir.mode |= INODE_MODE_RGRP;
-	dir.mode |= INODE_MODE_WGRP;
-	dir.mode |= INODE_MODE_XGRP;
-	dir.mode |= INODE_MODE_ROTH;
-	dir.mode |= INODE_MODE_WOTH;
-	dir.mode |= INODE_MODE_XOTH;
-	write_inode(&dir, inode_idx);
-
-	struct inode root;
-	read_inode(&root, ROOT_INODE);
-
-	// buffer to hold block
-	u8 buff[BLOCK_SIZE];
-	read_block(buff, root.block_ptr[0], 1);
-
-	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-	uint bytes_read              = 0;
-	while (1)
-	{
-		char *ptr = (char *) entry;
-
-		if (bytes_read + entry->rec_len == BLOCK_SIZE)
-		{
-			// adjust previously last entry's length
-			entry->rec_len = round(sizeof(entry->inode) + sizeof(entry->rec_len) + sizeof(entry->name_len) +
-			                           sizeof(entry->type) + entry->name_len,
-			                       4);
-
-			// create entry for new directory
-			struct ext2_dir_entry new_dir_entry;
-			size_t name_len        = strlen(path);
-			new_dir_entry.inode    = inode_idx;
-			new_dir_entry.name_len = name_len;
-			new_dir_entry.type     = DIR_TYPE_DIR;
-			new_dir_entry.rec_len =
-			    round(sizeof(new_dir_entry.inode) + sizeof(new_dir_entry.rec_len) + sizeof(new_dir_entry.name_len) +
-			              sizeof(new_dir_entry.type) + new_dir_entry.name_len,
-			          4);
-
-			// create . and .. entries for new directory
-			char dotbuff[BLOCK_SIZE];
-			struct ext2_dir_entry dot = {
-				.inode    = ROOT_INODE,
-				.rec_len  = 12,
-				.name_len = 1,
-				.type     = DIR_TYPE_DIR,
-			};
-			struct ext2_dir_entry dotdot = {
-				.inode    = ROOT_INODE,
-				.rec_len  = 1024 - 12,
-				.name_len = 2,
-				.type     = DIR_TYPE_DIR,
-			};
-			memcpy(&dotbuff[0], &dot, sizeof(dot));
-			memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
-			strcpy(&dotbuff[0 + 8], ".");
-			strcpy(&dotbuff[12 + 8], "..");
-			write_block(dotbuff, block_idx, 1);
-
-			new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
-			memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-			strcpy(&buff[bytes_read + entry->rec_len + 8], path);
-			break;
-		}
-
-		bytes_read += entry->rec_len;
-		ptr += entry->rec_len;
-		entry = (struct ext2_dir_entry *) ptr;
-	}
-
-	write_block(buff, root.block_ptr[0], 1);
-}
-
-static u32 get_inode_from_path(char *path)
+static u32 inode_from_path(char *path)
 {
 	char *s = path;
-	s++;
-	struct inode node;
+	s++; // skip first "/" in path
+	struct inode_t inode;
 	int idx;
 	while ((idx = indexOf(s, '/')) != -1)
 	{
 		kprintf("%s\n", s);
 		s += idx + 1;
-		// kprintf("%s\n", s);
 	}
 
 	kprintf("%s\n", s);

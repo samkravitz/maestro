@@ -13,17 +13,13 @@
 
 #include <maestro.h>
 
-// ext2 filesystem start sector
-#define EXT2_OFFSET            2048
-
-// block that superblock begins
+// block that contains superblock
 #define EXT2_SUPERBLOCK        1
 
-// block that block group descriptor table begins
+// block that contains block group descriptor table
 #define EXT2_BLOCK_DESCRIPTOR  (EXT2_SUPERBLOCK + 1)
 
-// index of ext2 root inode
-// this is supposed to be 2 but inode indexing starts at 1
+// inode of root directory
 #define ROOT_INODE             2
 
 // size of ext2 block in bytes
@@ -32,7 +28,7 @@
 #define BLOCK_SIZE             1024
 
 // given a number of bytes, convert to how many ext2 blocks that is
-#define get_num_blocks(x)      (x / BLOCK_SIZE)
+#define get_num_blocks(bytes)      (bytes / BLOCK_SIZE)
 
 // number of 512 byte disk sectors in an ext2 block
 #define EXT2_SECTORS_PER_BLOCK (BLOCK_SIZE / 512)
@@ -43,7 +39,7 @@
 // rounds an integer x up to the nearest multiple of to
 #define round(x, to)           ((x + to - 1) & (-to))
 
-struct superblock
+struct superblock_t
 {
 	// base superblock fields
 	u32 inode_count;
@@ -52,43 +48,43 @@ struct superblock
 	u32 free_block_count;
 	u32 free_inode_count;
 	u32 first_data_block;    // block number of block containing the superblock
-	u32 log_block_size;    // log2 (block size) -10 (the number to shift 1,024 to the left by to obtain the block size)
-	u32 log_frag_size;     // log2 (fragment size) -10
+	u32 log_block_size;      // log2 (block size) -10 (the number to shift 1,024 to the left by to obtain the block size)
+	u32 log_frag_size;       // log2 (fragment size) -10
 	u32 blocks_per_group;    // blocks per block group
 	u32 frags_per_group;
 	u32 inodes_per_group;
-	u32 mtime;        // last mount time (POSIX time)
-	u32 wtime;        // last write time
-	u16 mnt_count;    // how many times volume was mounted before it was verified
+	u32 mtime;               // last mount time (POSIX time)
+	u32 wtime;               // last write time
+	u16 mnt_count;           // how many times volume was mounted before it was verified
 	u16 max_mount_count;
-	u16 magic;    // ext2 signature - 0xef53
+	u16 magic;               // ext2 signature - 0xef53
 	u16 state;
 	u16 errors;
 	u16 version_minor;
 	u32 lastcheck;
-	u32 checkinterval;    // maximum UNIX time interval allowed between checks
+	u32 checkinterval;       // maximum UNIX time interval allowed between checks
 	u32 creator_os;
 	u32 version_major;
-	u16 uid;    // user id that can use reserved blocks
-	u16 gid;    // group id that can use reserved blocks
+	u16 uid;                 // user id that can use reserved blocks
+	u16 gid;                 // group id that can use reserved blocks
 
 	// extended superblock fields
-	u32 first_ino;         // first non-reserved inode
-	u16 inode_size;        // inode size in bytes
-	u16 block_group_no;    // block group that this superblock is part of
+	u32 first_ino;           // first non-reserved inode
+	u16 inode_size;          // inode size in bytes
+	u16 block_group_no;      // block group that this superblock is part of
 	u32 optional_features;
 	u32 required_features;
-	u32 ro_features;    // features that if not supported, volume must be read-only
-	u8 fsid[16];        // file system id (what is output but blkid)
-	char vname[16];     // volume name
-	char pname[64];     // path volume was last mounted to
+	u32 ro_features;         // features that if not supported, volume must be read-only
+	u8 fsid[16];             // file system id (what is output but blkid)
+	char vname[16];          // volume name
+	char pname[64];          // path volume was last mounted to
 	u32 algo_bitmap;
 	u8 prealloc_blocks;
 	u8 prealloc_dir_blocks;
 	u16 unused;
-	u8 jid[16];    // journal ID
-	u32 jinum;     // journal inode
-	u32 jdev;      // journal device
+	u8 jid[16];              // journal ID
+	u32 jinum;               // journal inode
+	u32 jdev;                // journal device
 	u32 last_orphan;
 	u8 rsvd[1024 - 236];
 } __attribute__((packed));
@@ -105,7 +101,7 @@ struct block_group_desc
 	u8 rsvd[12];
 } __attribute__((packed));
 
-struct inode
+struct inode_t
 {
 	u16 mode;                // indicates the format of the file and access rights
 	u16 uid;                 // user id associated with file
@@ -130,25 +126,25 @@ struct inode
 	u8 osd2[12];             // OS specific value
 
     // inode mode values
-    #define INODE_MODE_SOCK       0xc000    // socket
-    #define INODE_MODE_LINK       0xa000    // symbolic link
-    #define INODE_MODE_REG        0x8000    // regular file
-    #define INODE_MODE_BLKDEV     0x6000    // block device
-    #define INODE_MODE_DIR        0x4000    // directory
-    #define INODE_MODE_CHRDEV     0x2000    // char device
-    #define INODE_MODE_FIFO       0x1000    // fifo
-    #define INODE_MODE_SUSR       0x0800    // set user id
-    #define INODE_MODE_SGRP       0x0400    // set group id
-    #define INODE_MODE_STCKY      0x0200    // sticky bit
-    #define INODE_MODE_RUSR       0x0100    // usr read
-    #define INODE_MODE_WUSR       0x0080    // usr write
-    #define INODE_MODE_XUSR       0x0040    // usr execute
-    #define INODE_MODE_RGRP       0x0020    // group read
-    #define INODE_MODE_WGRP       0x0010    // group write
-    #define INODE_MODE_XGRP       0x0008    // group execute
-    #define INODE_MODE_ROTH       0x0004    // others read
-    #define INODE_MODE_WOTH       0x0002    // others write
-    #define INODE_MODE_XOTH       0x0001    // others execute
+    #define INODE_MODE_SOCK       0xc000        // socket
+    #define INODE_MODE_LINK       0xa000        // symbolic link
+    #define INODE_MODE_REG        0x8000        // regular file
+    #define INODE_MODE_BLKDEV     0x6000        // block device
+    #define INODE_MODE_DIR        0x4000        // directory
+    #define INODE_MODE_CHRDEV     0x2000        // char device
+    #define INODE_MODE_FIFO       0x1000        // fifo
+    #define INODE_MODE_SUSR       0x0800        // set user id
+    #define INODE_MODE_SGRP       0x0400        // set group id
+    #define INODE_MODE_STCKY      0x0200        // sticky bit
+    #define INODE_MODE_RUSR       0x0100        // usr read
+    #define INODE_MODE_WUSR       0x0080        // usr write
+    #define INODE_MODE_XUSR       0x0040        // usr execute
+    #define INODE_MODE_RGRP       0x0020        // group read
+    #define INODE_MODE_WGRP       0x0010        // group write
+    #define INODE_MODE_XGRP       0x0008        // group execute
+    #define INODE_MODE_ROTH       0x0004        // others read
+    #define INODE_MODE_WOTH       0x0002        // others write
+    #define INODE_MODE_XOTH       0x0001        // others execute
 
     // inode flag values
     #define INODE_FLAG_SECR       0x00000001    // secure deletion
