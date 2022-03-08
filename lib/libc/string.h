@@ -20,6 +20,8 @@ void *memmove(void *, const void *, size_t);
 void *memset(void *, int, size_t);
 char *strcat(char *, const char *);
 char *strncat(char *, const char *, size_t);
+char *strchr(const char *, char);
+char *strrchr(const char *, char);
 int strcmp(const char *, const char *);
 int strncmp(const char *, const char *, size_t);
 char *strcpy(char *, const char *);
