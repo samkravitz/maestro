@@ -18,7 +18,7 @@ jmp main
 section .text
 main:
 lgdt [gdt_descriptor]      ; load gdt into gdtr
-mov ax, 0x10               ; 0x10 is the offset in the gdt to data segment
+mov ax, 10h                ; 10h is the offset in the gdt to data segment
 mov ds, ax                 ; reload remainder of data segment registers
 mov es, ax
 mov fs, ax
@@ -39,24 +39,24 @@ jmp $              ; kernel should never return
 section .data
 gdt:
 gdt_null:           ; null descriptor
-	dd 0x0          ; 4 bytes of 0
-	dd 0x0          ; 4 bytes of 0
+	dd 0            ; 4 bytes of 0
+	dd 0            ; 4 bytes of 0
 
 gdt_code:           ; code segment descriptor
-	dw 0xffff       ; limit (bits 0-15)
-	dw 0x0          ; base  (bits 0-15)
-	db 0x0          ; base  (bits 16-23)
+	dw 0ffffh       ; limit (bits 0-15)
+	dw 0            ; base  (bits 0-15)
+	db 0            ; base  (bits 16-23)
 	db 10011010b    ; flags
 	db 11001111b    ; flags cont., limit (bits 16-19)
-	db 0x0          ; base (bits 24-31)
+	db 0            ; base (bits 24-31)
 
 gdt_data:           ; data segment descriptor
-	dw 0xffff       ; limit (bits 0-15)
-	dw 0x0          ; base (bits 0-15)
-	db 0x0          ; base (bits 16-23)
+	dw 0ffffh       ; limit (bits 0-15)
+	dw 0            ; base (bits 0-15)
+	db 0            ; base (bits 16-23)
 	db 10010010b    ; flags
 	db 11001111b    ; flags cont., limit (bits 16-19)
-	db 0x0          ; base (bits 24-31)
+	db 0            ; base (bits 24-31)
 gdt_end:
 
 ; 6 byte value to be stored in gdtr

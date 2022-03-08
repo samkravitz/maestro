@@ -17,7 +17,7 @@ disable:
 	pushf						; push flags on stack
 	pop eax						; pop flags from stack into eax
 	cli							; disable interrupts
-	and eax, 0x202				; clear all bits but  IF flag (0x200) and reserved flag (0x2)
+	and eax, 202h				; clear all bits but  IF flag (200h) and reserved flag (0x2)
 	mov ecx, [ebp + 8]			; ecx <- ptr to flags to save
 	mov [ecx], eax				; store saved flags into pointer
 	pop ebp
@@ -33,7 +33,7 @@ restore:
 	mov eax, [ebp + 8]			; eax <- saved flags argument
 	pushf						; push eflags on stack
 	pop ecx						; pop flags into ecx
-	or eax, ecx					; restore bits saved in disable() (0x200 and 0x2)
+	or eax, ecx					; restore bits saved in disable() (200h and 0x2)
 	push eax					; push eax (containing restored flags) onto stack
 	popf						; pop stack into eflags
 	pop ebp

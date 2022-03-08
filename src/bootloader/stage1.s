@@ -29,7 +29,7 @@
 ; 0x10000 : ?     - kernel
 
 [bits 16]
-org 0x7c00
+org 7c00h
 
 ; lba 0
 
@@ -40,7 +40,7 @@ mov es, ax
 
 ; setup stack
 mov ss, ax
-mov sp, 0x7c00
+mov sp, 7c00h
 
 ; read stage1 extended from disk into memory at lba 1
 lea ebx, [extended_bootsector]
@@ -56,7 +56,7 @@ call read_disk
 
 ; confirm this is a valid ext2 disk image
 mov ax, [SUPERBLOCK_ADDR + 56]     ; ext2 magic number is at offset 56 in superblock
-cmp ax, 0xef53                     ; 0xef53 is ext2 magic number
+cmp ax, 0ef53h                     ; ef53h is ext2 magic number
 jne invalid_ext2
 
 ; our next order of business is to load the stage2 bootloader (/stage2.bin) from disk into memory
@@ -69,12 +69,12 @@ call read_disk
 
 ; now, load the inode table into memory
 ; we are only concerned with inode 2 (root inode)
-; we will use 0x8000 bytes of memory to hold the inode table
-; this means we have access to 0x8000 / 128 = 256 inodes
+; we will use 8000h bytes of memory to hold the inode table
+; this means we have access to 8000h / 128 = 256 inodes
 ; a check will be performed to make sure we don't try to access higher than that
 
-lea ebx, [INODE_TABLE_ADDR]        ; load inode table to address 0x8000
-mov ax, 64                         ; read 64 sectors (0x8000 bytes) of inode table
+lea ebx, [INODE_TABLE_ADDR]        ; load inode table to address 8000h
+mov ax, 64                         ; read 64 sectors (8000h bytes) of inode table
 mov cx, [BGDT_ADDR + 8]            ; cx = bgdt->inode_table
 shl cx, 1                          ; cx = lba of inode table
 call read_disk
@@ -117,7 +117,7 @@ mul ecx                                ; eax = eax * ecx
 ; now we know the inode of stage2.bin, so let's load it into memory
 mov cx, [INODE_TABLE_ADDR + eax + 40]  ; cx = inode_table[stage2]->block[0]
 shl cx, 1                              ; cx = lba of stage2
-mov ebx, STAGE2_ADDR                   ; load stage2.bin to 0x5000
+mov ebx, STAGE2_ADDR                   ; load stage2.bin to 5000h
 mov ax, 2                              ; read 2 sectors of stage2.bin
 call read_disk
 
@@ -137,22 +137,22 @@ read_disk:
     ; convert absolute address in ebx to segment:offset
     mov edx, 0
     mov eax, ebx                   ; eax contains absolute address
-    mov ecx, 0x10                  ; absolute = 16 * segment + offset
+    mov ecx, 10h                   ; absolute = 16 * segment + offset
     div ecx                        ; eax = eax / ecx, eax is the segment
     mov [dest_offset], dx          ; edx contains the remainder of the division
     mov [dest_segment], ax
 
     mov si, packet		           ; address of disk address packet
-    mov ah, 0x42                   ; required so BIOS knows we gave it an lba and not chs
-    mov dl, 0x80		           ; BIOS drive number
-    int 0x13
+    mov ah, 42h                    ; required so BIOS knows we gave it an lba and not chs
+    mov dl, 80h		               ; BIOS drive number
+    int 13h
     popa
     ret
 
 ; disk address packet structure - allows us to use lba values for disk reads
 align 4
 packet:
-    size:            db 0x10       ; packet size (16 bytes)
+    size:            db 10h        ; packet size (16 bytes)
     zero:            db 0          ; always 0
     sector_count:    dw 0          ; # of sectors to transfer (a sector is 512 bytes)
     dest_offset:     dw 0          ; transfer destination offset
@@ -161,7 +161,7 @@ packet:
     unused:          dd 0          ; unused (upper 16 bits of 48-bit starting lba)
 
 times 510 - ($ - $$) db 0          ; pad remaining 510 bytes with zeroes
-dw 0xaa55                          ; magic number to indicate this is a bootable sector
+dw 0aa55h                          ; magic number to indicate this is a bootable sector
 
 ; lba 1
 
@@ -214,7 +214,7 @@ mov cx, [INODE_TABLE_ADDR + ebp + 4 * esi]     ; cx = inode_table[kernel]->block
 shl cx, 1                                      ; cx = lba of kernel->block[i]
 mov edx, esi                                   ; edx = i
 shl edx, 10                                    ; edx = i * BLOCK_SIZE
-lea ebx, [KERNEL_ADDR + edx]                   ; load this block to 0x10000 + i * BLOCK_SIZE
+lea ebx, [KERNEL_ADDR + edx]                   ; load this block to 10000h + i * BLOCK_SIZE
 mov ax, 2                                      ; read 2 sectors of kernel
 call read_disk
 inc esi                                        ; i++
@@ -229,7 +229,7 @@ sub ebp, 12 * BLOCK_SIZE                       ; subtract the size of 12 direct 
 add eax, 48                                    ; eax = inode_table[kernel]->indirect_block
 mov cx, [INODE_TABLE_ADDR + eax]               ; ecx = inode_table[kernel]->indirect_block
 shl cx, 1                                      ; cx = lba of inode_table[kernel]->indirect_block
-mov ebx, INDIRECT_BLOCK_ADDR                   ; load indirect block to address 0x4000
+mov ebx, INDIRECT_BLOCK_ADDR                   ; load indirect block to address 4000h
 mov ax, 2                                      ; read 2 sectors of inderect block
 call read_disk
 
@@ -294,7 +294,7 @@ KERNEL_ADDR         equ 10000h     ; address of kernel
 BLOCK_SIZE          equ 1024       ; size of an ext2 block in bytes
 
 times 1020 - ($ - $$) db 0         ; pad remaining bytes with zeroes
-dd 0xcafebabe                      ; my magic number for debugging purposes
+dd 0cafebabeh                      ; my magic number for debugging purposes
 
 ; lba 2
 superblock:

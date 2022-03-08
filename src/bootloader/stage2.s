@@ -8,33 +8,33 @@
 ; DESCRIPTION: stage 2 bootloader
 
 [bits 16]
-org 0x5000                     ; we are expecting stage1 to load us to memory address 0x5000
+org 5000h                      ; we are expecting stage1 to load us to memory address 5000h
 
 mov sp, 5000h                  ; stack now points to here
 
 ; detect memory map
-; we will store the generated list at address 0x4000 (es:di => 0000:4000)
+; we will store the generated list at address 4000h (es:di => 0000:4000)
 memory_map:
 xor ax, ax                     ; ax = 0
 mov es, ax                     ; es = 0
-mov di, 0x4000                 ; es:di => 0000:4000
+mov di, 4000h                  ; es:di => 0000:4000
 
 first_call:
 xor ebx, ebx                   ; ebx = 0
-mov edx, 0x534d4150            ; magic number
-mov ax, 0xe820                 ; needed for int 15
+mov edx, 534d4150h             ; magic number
+mov ax, 0e820h                 ; needed for int 15
 mov ecx, 24                    ; tells BIOS to give a 24 byte entry
-int 0x15
-cmp eax, 0x534d4150            ; magic number should be in eax after first call
+int 15h
+cmp eax, 534d4150h             ; magic number should be in eax after first call
 jne .error
 
 .loop:
 test ebx, ebx
 jz .done                       ; done detecting memory when ebx = 0
-mov eax, 0xe820
+mov eax, 0e820h
 mov ecx, 24
 add di, 24                     ; increment di by 24 bytes
-int 0x15
+int 15h
 jmp .loop
 
 .error:
@@ -56,7 +56,7 @@ mov eax, cr0                   ; eax = cr0
 or eax, 1                      ; enable protected mode
 mov cr0, eax                   ; cr0 = eax
 
-jmp 0x08:pmode                 ; jump to protected mode!
+jmp 8h:pmode                   ; jump to protected mode!
 
 ; 32 bit protected mode
 pmode:
@@ -70,24 +70,24 @@ jmp KERNEL_ADDR
 ; initialize gdt
 gdt:
 gdt_null:           ; null descriptor
-    dd 0x0          ; 4 bytes of 0
-    dd 0x0          ; 4 bytes of 0
+    dd 0            ; 4 bytes of 0
+    dd 0            ; 4 bytes of 0
 
 gdt_code:           ; code segment descriptor
-    dw 0xffff		; limit (bits 0-15)
-    dw 0x0          ; base  (bits 0-15)
-    db 0x0          ; base  (bits 16-23)
+    dw 0ffffh       ; limit (bits 0-15)
+    dw 0            ; base  (bits 0-15)
+    db 0            ; base  (bits 16-23)
     db 10011010b    ; flags
     db 11001111b    ; flags cont., limit (bits 16-19)
-    db 0x0          ; base (bits 24-31)
+    db 0            ; base (bits 24-31)
 
 gdt_data:           ; data segment descriptor
-    dw 0xffff       ; limit (bits 0-15)
-    dw 0x0          ; base (bits 0-15)
-    db 0x0          ; base (bits 16-23)
+    dw 0ffffh       ; limit (bits 0-15)
+    dw 0            ; base (bits 0-15)
+    db 0            ; base (bits 16-23)
     db 10010010b    ; flags
     db 11001111b    ; flags cont., limit (bits 16-19)
-    db 0x0          ; base (bits 24-31)
+    db 0            ; base (bits 24-31)
 gdt_end:
 
 ; 6 byte value to be stored in gdtr
@@ -114,8 +114,8 @@ check_a20:
     not ax                         ; ax = 0xffff
     mov ds, ax
  
-    mov di, 0x0500
-    mov si, 0x0510
+    mov di, 0500h
+    mov si, 0510h
  
     mov al, byte [es:di]
     push ax
@@ -123,8 +123,8 @@ check_a20:
     mov al, byte [ds:si]
     push ax
  
-    mov byte [es:di], 0x00
-    mov byte [ds:si], 0xff
+    mov byte [es:di], 00h
+    mov byte [ds:si], 0ffh
  
     cmp byte [es:di], 0xff
  
