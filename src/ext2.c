@@ -33,6 +33,13 @@ static bool file_exists(const char *);
 static u32 inode_from_path(char *);
 
 /**
+ * macro to get the name from a dir entry
+ * param entry struct ext2_dir_entry *
+ * return char *
+ */
+#define DIRENT_NAME(entry) ((char *) ((u8 *) entry + EXT2_DIRENT_NAME_OFFSET))
+
+/**
  * macros to manipulate block/inode bitmaps
  * pass in buffer to bitmap and index to be worked with
  */
@@ -105,11 +112,10 @@ void ext2_init()
 	// allocate space for block group descriptor table
 	bgdt = kmalloc(sizeof(struct block_group_desc) * block_groups);
 
-	read_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
+    // read block group descriptor table into memory
+    read_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
-	//inode_from_path("/root/usr/bin/apps/chrome.exe");
-
-	print_inode(ROOT_INODE);
+	// print_inode(ROOT_INODE);
 }
 
 /**
@@ -499,22 +505,50 @@ void ext2_mkfile(const char *path)
 /**
  * @brief finds the inode number associated with a given path
  * @param path absolute path of file to find
+ * @return inode index of the file
  */
 static u32 inode_from_path(char *path)
 {
-	char *s = path;
-	s++; // skip first "/" in path
-	struct inode_t inode;
-	int idx;
-	while ((idx = indexOf(s, '/')) != -1)
-	{
-		kprintf("%s\n", s);
-		s += idx + 1;
-	}
+    // tokenize path into its segments
+    // e.x. given the path "/home/user/bin/a.out"
+    // segment will eventually be "home", "user", "bin", "a.out"
+    char *segment = strtok(path, "/");
+    u32 ino;
 
-	kprintf("%s\n", s);
+    // current directory we're looking in
+    struct inode_t dir = read_inode(ROOT_INODE);
 
-	return EXT2_INODE_INVALID;
+    // block to hold directory entries
+    u8 buff[BLOCK_SIZE];
+
+    do
+    {
+        // read entries of current directory
+        read_block(buff, dir.block_ptr[0], 1);
+
+        // search for tok within directory entries
+        uint bytes_read = 0;
+        struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+
+        do
+        {
+            char *name = DIRENT_NAME(entry);
+            if (strcmp(name, segment) == 0)
+            {
+                ino = entry->inode;
+                break;
+            }
+
+            bytes_read += entry->rec_len;
+            entry = (struct ext2_dir_entry *) (buff + bytes_read);
+        } while (bytes_read < BLOCK_SIZE);
+
+        // we're still in a directory, so load the next level deep
+        dir = read_inode(ino);
+
+    } while ((segment = strtok(NULL, "/")) != NULL);
+    
+    return ino;
 }
 
 static void print_superblock()

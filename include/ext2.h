@@ -33,6 +33,9 @@
 // number of 512 byte disk sectors in an ext2 block
 #define EXT2_SECTORS_PER_BLOCK (BLOCK_SIZE / 512)
 
+// offset in bytes of an ext2 directory entry to it's name
+#define EXT2_DIRENT_NAME_OFFSET 8
+
 #define EXT2_ALLOC_ERROR       0xffffffff
 #define EXT2_INODE_INVALID     0xffffffff
 
