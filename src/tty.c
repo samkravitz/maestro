@@ -85,6 +85,10 @@ void clear()
 {
 	for (int i = 0; i < TTY_WIDTH * TTY_HEIGHT; ++i)
 		putc(' ');
+    
+    x = 0;
+    y = 0;
+    setcur();
 }
 
 // scroll screen, if necessary
