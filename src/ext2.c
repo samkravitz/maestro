@@ -26,6 +26,7 @@ static int block_groups;
 static u32 alloc_inode();
 static u32 alloc_block();
 static void print_inode(u32);
+static void print_superblock();
 static struct inode_t read_inode(u32);
 static void write_inode(struct inode_t *, u32);
 static bool file_exists(const char *);
@@ -514,4 +515,21 @@ static u32 inode_from_path(char *path)
 	kprintf("%s\n", s);
 
 	return EXT2_INODE_INVALID;
+}
+
+static void print_superblock()
+{
+	kprintf("Inode count:             %d\n", superblock.inode_count);
+	kprintf("Block count:             %d\n", superblock.block_count);
+	kprintf("Reserved blocks:         %d\n", superblock.reserved_block_count);
+	kprintf("Free blocks:             %d\n", superblock.free_block_count);
+	kprintf("Free inodes:             %d\n", superblock.free_inode_count);
+	kprintf("First data block:        %d\n", superblock.first_data_block);
+	kprintf("Block size:              %d\n", 1024 << superblock.log_block_size);
+	kprintf("Fragment size:           %d\n", 1024 << superblock.log_frag_size);
+	kprintf("Blocks per group:        %d\n", superblock.blocks_per_group);
+	kprintf("Fragments per group:     %d\n", superblock.frags_per_group);
+	kprintf("First inode:             %d\n", superblock.first_ino);
+	kprintf("Inode size:              %d\n", superblock.inode_size);
+	kprintf("Filesystem magic number: %x\n", superblock.magic);
 }
