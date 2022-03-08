@@ -12,16 +12,16 @@
 ; cdecl - void ctxsw(void *oldstk, void *newstk)
 global ctxsw:
 ctxsw:
-	mov eax, [esp + 4]		; old process
-	mov ecx, [esp + 8]		; new process
-	pushf				; save callee-saved registers
+	mov eax, [esp + 4]      ; old process
+	mov ecx, [esp + 8]      ; new process
+	pushf                   ; save callee-saved registers
 	push ebp
 	push ebx
 	push esi
 	push edi
-	mov [eax], esp			; save old stack
-	mov esp, ecx			; move new stack into esp
-	pop edi				; restore callee-saved registers of new process
+	mov [eax], esp          ; save old stack
+	mov esp, ecx            ; move new stack into esp
+	pop edi                 ; restore callee-saved registers of new process
 	pop esi
 	pop ebx
 	pop ebp

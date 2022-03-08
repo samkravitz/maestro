@@ -55,7 +55,7 @@ mov cx, 2                          ; superblock begins at lba 2 (byte-offset 102
 call read_disk
 
 ; confirm this is a valid ext2 disk image
-mov ax, [SUPERBLOCK_ADDR + 56]          ; ext2 magic number is at offset 56 in superblock
+mov ax, [SUPERBLOCK_ADDR + 56]     ; ext2 magic number is at offset 56 in superblock
 cmp ax, 0xef53                     ; 0xef53 is ext2 magic number
 jne invalid_ext2
 
@@ -142,12 +142,12 @@ read_disk:
     mov [dest_offset], dx          ; edx contains the remainder of the division
     mov [dest_segment], ax
 
-	mov si, packet		           ; address of disk address packet
-	mov ah, 0x42                   ; required so BIOS knows we gave it an lba and not chs
-	mov dl, 0x80		           ; BIOS drive number
-	int 0x13
+    mov si, packet		           ; address of disk address packet
+    mov ah, 0x42                   ; required so BIOS knows we gave it an lba and not chs
+    mov dl, 0x80		           ; BIOS drive number
+    int 0x13
     popa
-	ret
+    ret
 
 ; disk address packet structure - allows us to use lba values for disk reads
 align 4
@@ -283,18 +283,18 @@ kernel_notfound_msg:     db 'maestro.bin was not found', 0
 inode_out_of_bounds_msg: db 'inode number out of bounds', 0
 
 ; constants
-SUPERBLOCK_ADDR     equ 2000h                   ; address of superblock
-BGDT_ADDR           equ 2200h                   ; address of block group descriptor table
-ROOTDIR_ADDR        equ 2400h                   ; address of root directory entries
-INDIRECT_BLOCK_ADDR equ 4000h                   ; address of kernel indirect block
-STAGE2_ADDR         equ 5000h                   ; address of stage2
-INODE_TABLE_ADDR    equ 8000h                   ; address of inode table
-KERNEL_ADDR         equ 10000h                  ; address of kernel
+SUPERBLOCK_ADDR     equ 2000h      ; address of superblock
+BGDT_ADDR           equ 2200h      ; address of block group descriptor table
+ROOTDIR_ADDR        equ 2400h      ; address of root directory entries
+INDIRECT_BLOCK_ADDR equ 4000h      ; address of kernel indirect block
+STAGE2_ADDR         equ 5000h      ; address of stage2
+INODE_TABLE_ADDR    equ 8000h      ; address of inode table
+KERNEL_ADDR         equ 10000h     ; address of kernel
 
-BLOCK_SIZE          equ 1024                    ; size of an ext2 block inode in bytes
+BLOCK_SIZE          equ 1024       ; size of an ext2 block in bytes
 
-times 1020 - ($ - $$) db 0 ; pad remaining bytes with zeroes
-dd 0xcafebabe              ; my magic number for debugging purposes
+times 1020 - ($ - $$) db 0         ; pad remaining bytes with zeroes
+dd 0xcafebabe                      ; my magic number for debugging purposes
 
 ; lba 2
 superblock:
