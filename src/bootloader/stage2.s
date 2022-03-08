@@ -153,7 +153,7 @@ a20_disabled_error:
     call puts
     jmp $
 
-%include "puts.inc"
+%include 'puts.inc'
 
 hello: db 'hello from stage2!', 0
 memory_map_error: db 'error detecting memory map', 0

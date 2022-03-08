@@ -1,11 +1,16 @@
-ENTRY(boot)
+ENTRY(start)
+OUTPUT_FORMAT("binary")
 SECTIONS
 {
-	. = 1M;
+	. = 0x10000;
+
+    .entry :
+    {
+        *(.entry)
+    }
  
 	.text :
 	{
-		*(.multiboot)
 		*(.text)
 		etext = .;
 	}
