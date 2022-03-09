@@ -91,7 +91,7 @@ mov eax, 0                         ; i = 0
 
 stage2_search:
 mov si, stage2_filename 
-cmp ax, BLOCK_SIZE                 ; if i > BLOCK_SIZE, quit searching
+cmp ax, EXT2_BLOCK_SIZE            ; if i > EXT2_BLOCK_SIZE, quit searching
 je stage2_not_found
 mov cx, 10                         ; cx = strlen("stage2.bin")
 lea di, [ROOTDIR_ADDR + eax]       ; di = &(rootdir_inode + i)
@@ -173,7 +173,7 @@ mov eax, 0                         ; i = 0
 
 kernel_search:
 mov si, kernel_filename 
-cmp ax, BLOCK_SIZE                 ; if i > BLOCK_SIZE, quit searching
+cmp ax, EXT2_BLOCK_SIZE            ; if i > EXT2_BLOCK_SIZE, quit searching
 je kernel_not_found
 mov cx, 11                         ; cx = strlen("maestro.bin")
 lea di, [ROOTDIR_ADDR + eax]       ; di = &(rootdir_inode + i)
@@ -200,7 +200,7 @@ add ebp, 40                            ; ebp = inode_table[kernel]->block[0]
 
 ; now we know the inode of stage2.bin, so let's load it into memory
 mov ebx, dword [INODE_TABLE_ADDR + eax + 4]  ; ebx = size of kernel in bytes
-add ebx, BLOCK_SIZE                          ; add 1 block size to ebx to make sure we read entire kernel
+add ebx, EXT2_BLOCK_SIZE                          ; add 1 block size to ebx to make sure we read entire kernel
 
 ; read first 12 blocks (direct block ptrs) of kernel into memory
 mov esi, 0                         ; i = 0
@@ -213,8 +213,8 @@ je .done
 mov cx, [INODE_TABLE_ADDR + ebp + 4 * esi]     ; cx = inode_table[kernel]->block[i]
 shl cx, 1                                      ; cx = lba of kernel->block[i]
 mov edx, esi                                   ; edx = i
-shl edx, 10                                    ; edx = i * BLOCK_SIZE
-lea ebx, [KERNEL_ADDR + edx]                   ; load this block to 10000h + i * BLOCK_SIZE
+shl edx, 10                                    ; edx = i * EXT2_BLOCK_SIZE
+lea ebx, [KERNEL_ADDR + edx]                   ; load this block to 10000h + i * EXT2_BLOCK_SIZE
 mov ax, 2                                      ; read 2 sectors of kernel
 call read_disk
 inc esi                                        ; i++
@@ -223,7 +223,7 @@ jmp direct_blocks
 .done:
 mov eax, ebp                                   ; eax = inode_table[kernel]->block[0] 
 pop ebp                                        ; ebp = kernel_size
-sub ebp, 12 * BLOCK_SIZE                       ; subtract the size of 12 direct blocks we just loaded
+sub ebp, 12 * EXT2_BLOCK_SIZE                  ; subtract the size of 12 direct blocks we just loaded
 
 ; now, read indirect blocks of kernel into memory
 add eax, 48                                    ; eax = inode_table[kernel]->indirect_block
@@ -236,16 +236,16 @@ call read_disk
 mov esi, 0                                     ; i = 0
 
 indirect_block:
-cmp ebp, BLOCK_SIZE                            ; while (size_left <= sizeof(block))
+cmp ebp, EXT2_BLOCK_SIZE                       ; while (size_left <= sizeof(block))
 jle .done
 mov ecx, dword [INDIRECT_BLOCK_ADDR + esi * 4] ; ecx = kernel->indirect_block[i]
 shl ecx, 1                                     ; ecx = starting lba of kernel->indirect_block[i]
 mov edx, esi                                   ; edx = i
-shl edx, 10                                    ; edx *= BLOCK_SIZE
-lea ebx, [KERNEL_ADDR + 12 * BLOCK_SIZE + edx]
+shl edx, 10                                    ; edx *= EXT2_BLOCK_SIZE
+lea ebx, [KERNEL_ADDR + 12 * EXT2_BLOCK_SIZE + edx]
 mov ax, 2                                      ; read 2 sectors of kernel
 call read_disk
-sub ebp, BLOCK_SIZE                            ; ebp -= sizeof(block)
+sub ebp, EXT2_BLOCK_SIZE                       ; ebp -= sizeof(block)
 inc esi                                        ; i++
 jmp indirect_block
 
@@ -291,7 +291,7 @@ STAGE2_ADDR         equ 5000h      ; address of stage2
 INODE_TABLE_ADDR    equ 8000h      ; address of inode table
 KERNEL_ADDR         equ 10000h     ; address of kernel
 
-BLOCK_SIZE          equ 1024       ; size of an ext2 block in bytes
+EXT2_BLOCK_SIZE     equ 1024       ; size of an ext2 block in bytes
 
 times 1020 - ($ - $$) db 0         ; pad remaining bytes with zeroes
 dd 0cafebabeh                      ; my magic number for debugging purposes
