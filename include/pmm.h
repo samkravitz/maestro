@@ -6,60 +6,20 @@
  * FILE: pmm.h
  * DATE: March 9th, 2022
  * DESCRIPTION: physical memory manager
+ * 
+ * The base unit a virtual memory manager works with is universally known as a "page".
+ * I've seen conflicting resources on what the base unit a physical memory manager works on.
+ * "page", "frame", and "block" are used interchangeably to refer to the pmm's analog of a vmm page.
+ * So, I've decided to go with "block" here.
  */
 #ifndef PMM_H
 #define PMM_H
 
 #include <maestro.h>
 
-#define PAGE_SIZE 4096
-
-struct meminfo
-{
-	uint size;           // size of physical memory in KB
-	uint used_blocks;    // number of blocks in use
-	uint max_blocks;     // maximum number of allocable blocks
-	u8 *mmap;            // bitmap of block status
-};
-
-struct page
-{
-	u8 present  : 1;     // set if page is present in memory
-	u8 rw       : 1;     // if set, page is writable
-	u8 user     : 1;     // set if this is a user mode page
-	u8 accessed : 1;     // set by the cpu if page has been accessed
-	u8 dirty    : 1;     // set if page has been written to
-	u16 rsvd    : 7;     // reserved by intel
-	u32 faddr   : 20;    // frame address in physical memory
-} __attribute__((packed));
-
-// page table
-struct pagetab
-{
-	struct page pages[1024];
-};
-
-// page directory
-struct pagedir
-{
-	struct page *tables[1024];
-	//u32 phystab[1024];
-	//u32 physaddr;
-};
-
-// gets index of first available frame
-int first_free_frame();
-
-// allocate a free block
-void *balloc();
-
-// deallocate a block
-void bfree(void *);
+// size of a physical memory block in bytes
+#define BLOCK_SIZE 4096
 
 void pmminit();
-void pfault();
-
-// defined in pdsw.s
-extern void pdsw(u32 *pd);
 
 #endif    // PMM_H
