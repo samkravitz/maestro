@@ -38,6 +38,7 @@
 
 #define EXT2_ALLOC_ERROR       -1
 #define EXT2_MKDIR_ERROR       -1
+#define EXT2_TOUCH_ERROR       -2
 #define EXT2_INODE_NOTFOUND    -1
 
 // rounds an integer x up to the nearest multiple of to
@@ -193,5 +194,6 @@ struct ext2_dir_entry
 
 void ext2_init();
 int ext2_mkdir(const char *);
+int ext2_touch(const char *);
 
 #endif    // EXT2_H

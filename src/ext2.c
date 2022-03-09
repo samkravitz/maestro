@@ -427,103 +427,100 @@ int ext2_mkdir(const char *path)
 
 /**
  * @brief creates a new, empty ext2 file
- * @param path absolute path of directory to create (must be null-terminated!)
+ * 
+ * This function will overwrite an existing file at path,
+ * it is the caller's responsibility to ensure the file to
+ * create is a valid one.
+ * 
+ * @param path absolute path of file to create
+ * @return inode id of the created file, or error
  */
-void ext2_mkfile(const char *path)
+int ext2_touch(const char *path)
 {
 	int inode_idx = alloc_inode();
-	int block_idx = alloc_block();
 
 	// unsuccessful at finding a free block or free inode
-	if (inode_idx == EXT2_ALLOC_ERROR || block_idx == EXT2_ALLOC_ERROR)
+	if (inode_idx == EXT2_ALLOC_ERROR)
 	{
-		kprintf("ext2_mkdir: no free inode or block\n");
-		return;
+		kprintf("ext2_touch: no free inode\n");
+		return EXT2_TOUCH_ERROR;
 	}
 
-	// inode representing the new directory
-	struct inode_t dir;
-	memset(&dir, 0, sizeof(dir));
+	// inode representing the new file
+	struct inode_t file;
+	memset(&file, 0, sizeof(file));
 
-	dir.mode |= INODE_MODE_DIR;
-	dir.block_ptr[0] = block_idx;
-	dir.links_count  = 1;
-	dir.size         = 1024;
+	file.mode |= INODE_MODE_REG;
+	file.links_count  = 1;
+	file.size         = 0;
 
-	// r/w/x permissions for user, group, others for now
-	dir.mode |= INODE_MODE_RUSR;
-	dir.mode |= INODE_MODE_WUSR;
-	dir.mode |= INODE_MODE_XUSR;
-	dir.mode |= INODE_MODE_RGRP;
-	dir.mode |= INODE_MODE_WGRP;
-	dir.mode |= INODE_MODE_XGRP;
-	dir.mode |= INODE_MODE_ROTH;
-	dir.mode |= INODE_MODE_WOTH;
-	dir.mode |= INODE_MODE_XOTH;
-	write_inode(&dir, inode_idx);
+	write_inode(&file, inode_idx);
 
-	struct inode_t root = read_inode(ROOT_INODE);
+	// get the inode of the parent (the inode we are placing our new file in)
+    int parent_idx = parent_inode_from_path(path);
+    struct inode_t parent = read_inode(parent_idx);
 
-	// buffer to hold block
+	// buffer to parent's dir entries
 	u8 buff[BLOCK_SIZE];
-	read_block(buff, root.block_ptr[0], 1);
+	read_block(buff, parent.block_ptr[0], 1);
+
+    // insert file into its parent's entries
+
+    // create entry for new directory
+    char *filename = strrchr(path, '/') + 1; // relative path from parent's perspective
+    struct ext2_dir_entry new_dir_entry = {
+        .inode    = inode_idx,
+        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(filename), 4),
+        .name_len = strlen(filename),
+        .type     = DIR_TYPE_DIR,
+    };
+
+    // TODO - handle when directory entries are larger than a single block
+    if (parent.size > BLOCK_SIZE)
+    {
+        kprintf("ext2_touch: parent size is %d\n bytes", parent.size);
+        return EXT2_TOUCH_ERROR;
+    }
 
 	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-	uint bytes_read              = 0;
+	uint bytes_read = 0;
+
 	while (1)
 	{
-		char *ptr = (char *) entry;
-
+        // entry now points to the final entry in the block
 		if (bytes_read + entry->rec_len == BLOCK_SIZE)
 		{
 			// adjust previously last entry's length
-			entry->rec_len = round(sizeof(entry->inode) + sizeof(entry->rec_len) + sizeof(entry->name_len) +
-			                           sizeof(entry->type) + entry->name_len,
-			                       4);
+			entry->rec_len = round(EXT2_DIRENT_NAME_OFFSET + entry->name_len, 4);
 
-			// create entry for new directory
-			struct ext2_dir_entry new_dir_entry;
-			size_t name_len        = strlen(path);
-			new_dir_entry.inode    = inode_idx;
-			new_dir_entry.name_len = name_len;
-			new_dir_entry.type     = DIR_TYPE_DIR;
-			new_dir_entry.rec_len =
-			    round(sizeof(new_dir_entry.inode) + sizeof(new_dir_entry.rec_len) + sizeof(new_dir_entry.name_len) +
-			              sizeof(new_dir_entry.type) + new_dir_entry.name_len,
-			          4);
+            // new entry can fit in this block
+            if (bytes_read + entry->rec_len + new_dir_entry.rec_len <= BLOCK_SIZE)
+            {
+                // adjust new entry's length so it fills up entire block
+                new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
 
-			// create . and .. entries for new directory
-			char dotbuff[BLOCK_SIZE];
-			struct ext2_dir_entry dot = {
-				.inode    = ROOT_INODE,
-				.rec_len  = 12,
-				.name_len = 1,
-				.type     = DIR_TYPE_DIR,
-			};
-			struct ext2_dir_entry dotdot = {
-				.inode    = ROOT_INODE,
-				.rec_len  = 1024 - 12,
-				.name_len = 2,
-				.type     = DIR_TYPE_DIR,
-			};
-			memcpy(&dotbuff[0], &dot, sizeof(dot));
-			memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
-			strcpy(&dotbuff[0 + 8], ".");
-			strcpy(&dotbuff[12 + 8], "..");
-			write_block(dotbuff, block_idx, 1);
+                // copy our updated records to buffer
+                memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
+                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], filename);
+                break;
+            }
 
-			new_dir_entry.rec_len = BLOCK_SIZE - bytes_read - entry->rec_len;
-			memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-			strcpy(&buff[bytes_read + entry->rec_len + 8], path);
-			break;
+            // TODO - handle the case when we'd need to put our new entry in a different block
+            else
+            {
+                kprintf("ext2_touch: %s needs to go into another parent block\n", filename);
+                return EXT2_TOUCH_ERROR;
+            }
 		}
 
 		bytes_read += entry->rec_len;
-		ptr += entry->rec_len;
-		entry = (struct ext2_dir_entry *) ptr;
+		entry = (struct ext2_dir_entry *) ((u8 *) entry + entry->rec_len);
 	}
 
-	write_block(buff, root.block_ptr[0], 1);
+    // write parent's new entries to disk
+	write_block(buff, parent.block_ptr[0], 1);
+
+    return inode_idx;
 }
 
 /**
