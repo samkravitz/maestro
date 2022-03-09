@@ -11,7 +11,7 @@
 
 #include <ata.h>
 #include <kmalloc.h>
-#include <kout.h>
+#include <kprintf.h>
 
 #include "string.h"
 

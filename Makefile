@@ -15,7 +15,7 @@ C = \
 	kbd.c \
 	kmain.c \
 	kmalloc.c \
-	kout.c \
+	kprintf.c \
 	mm.c \
 	pq.c \
 	proc.c \

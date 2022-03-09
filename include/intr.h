@@ -10,7 +10,7 @@
 #ifndef INTR_H
 #define INTR_H
 
-#include <kout.h>
+#include <kprintf.h>
 #include <state.h>
 
 #define NUM_INTERRUPTS 256

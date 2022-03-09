@@ -1,8 +1,6 @@
 #include "stdlib.h"
 #include "string.h"
 
-static void rev(char *, int);
-
 // converts a string into a number
 int atoi(const char *str)
 {
@@ -61,9 +59,7 @@ char *itoa(u32 n, char *buff, int base)
 	if (neg)
 		buff[i++] = '-';
 
-	rev(buff, i);
-
-	return buff;
+	return strrev(buff);
 }
 
 // pads str with c to be a minimum of width bytes
@@ -81,19 +77,4 @@ void pad(char *str, int width, char c)
 
 	// pad beginning with 0
 	memset(str, c, pad);
-}
-
-// reverses a string of a given length
-static void rev(char *str, int len)
-{
-	if (len <= 0)
-		return;
-
-	char temp[len];
-
-	for (int i = 0; i < len; ++i)
-		temp[i] = str[len - i - 1];
-
-	for (int i = 0; i < len; ++i)
-		str[i] = temp[i];
 }

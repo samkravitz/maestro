@@ -10,7 +10,7 @@
 #include <init.h>
 #include <intr.h>
 #include <kmalloc.h>
-#include <kout.h>
+#include <kprintf.h>
 #include <proc.h>
 
 #include "string.h"
@@ -20,7 +20,7 @@ extern struct proc nullproc;
 
 void kmain()
 {
-	kout("Welcome to maestro!\n");
+	kputs("Welcome to maestro!\n");
 	init();
 
 	curr = &nullproc;

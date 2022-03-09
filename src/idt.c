@@ -12,7 +12,7 @@
 #include "string.h"
 #include <intr.h>
 #include <io.h>
-#include <kout.h>
+#include <kprintf.h>
 
 struct idt_entry idt[NUM_INTERRUPTS];
 

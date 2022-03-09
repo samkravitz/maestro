@@ -3,20 +3,24 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: kout.c
+ * FILE: kprintf.c
  * DATE: July 30, 2021
  * DESCRIPTION: kernel logging utilies
  */
-#include <kout.h>
+#include <kprintf.h>
 
-#include <intr.h>
 #include <tty.h>
 
 #include "stdlib.h"
 #include "string.h"
 
+void kputc(char c)
+{
+    putc(c);
+}
+
 // general logging function
-void kout(const char *msg)
+void kputs(const char *msg)
 {
 	puts(msg);
 }
@@ -27,7 +31,6 @@ int kprintf(const char *fmt, ...)
 	va_start(args, fmt);
 
 	int x, i = 0;
-	char buff[256] = { 0 };    // note - kprintf can print a max length of 256
 	char c;
 
 	char fmtbuf[32];
@@ -41,8 +44,9 @@ int kprintf(const char *fmt, ...)
 			memset(fmtbuf, 0, sizeof(fmtbuf));
 
 			// min width of format
-			int width = 0;
-
+			size_t width = 0;
+            
+            // width specifier: e.x. %5d
 			if (is_numeric(*(fmt + 1)))
 			{
 				width = atoi(fmt + 1);
@@ -54,28 +58,24 @@ int kprintf(const char *fmt, ...)
 			{
 				// character
 				case 'c':
-					x       = va_arg(args, int);
-					buff[i] = (char) x;
+					x = va_arg(args, int);
+                    kputc((char) x);
 					i++;
 					fmt += 2;
 					break;
 
 				// base 10 integer
-				case 'd':;
+				case 'd':
 					x = va_arg(args, int);
 					itoa(x, fmtbuf, 10);
-					pad(fmtbuf, width, '0');
-					strcat(buff, fmtbuf);
 					i += strlen(fmtbuf);
 					fmt += 2;
 					break;
 
 				// base 16 integer
-				case 'x':;
-					u32 px = va_arg(args, u32);
-					itoa(px, fmtbuf, 16);
-					pad(fmtbuf, width, '0');
-					strcat(buff, fmtbuf);
+				case 'x':
+					x = va_arg(args, u32);
+					itoa(x, fmtbuf, 16);
 					i += strlen(fmtbuf);
 					fmt += 2;
 					break;
@@ -83,28 +83,43 @@ int kprintf(const char *fmt, ...)
 				// string
 				case 's':;
 					char *str = va_arg(args, char *);
-					strcat(buff, str);
+					kputs(str);
 					i += strlen(str);
 					fmt += 2;
 					break;
 
 				// actual '%' character
 				default:
-					buff[i] = '%';
+                    kputc('%');
 					i++;
 					fmt++;
 			}
+
+            // the format string did not reach its minimum width, so pad it
+            if (strlen(fmtbuf) < width)
+            {
+                // number of bytes we neet to pad
+                size_t diff = width - strlen(fmtbuf);
+                memmove(fmtbuf + diff, fmtbuf, strlen(fmtbuf));
+
+                // TODO - for numbers, the default is to pad with '0',
+                // for strings, the default is to pad with ' '
+                while (diff-- != 0)
+                    fmtbuf[diff] = '0';
+            }
+
+            kputs(fmtbuf);
 		}
 
 		// non-format character
 		else
 		{
-			buff[i++] = c;
+            kputc(c);
+            i++;
 			fmt++;
 		}
 	}
 
 	va_end(args);
-	kout(buff);
 	return i;
 }

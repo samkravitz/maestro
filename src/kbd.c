@@ -11,7 +11,7 @@
 
 #include <intr.h>
 #include <io.h>
-#include <kout.h>
+#include <kprintf.h>
 
 #include "stdlib.h"
 

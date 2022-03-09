@@ -3,17 +3,18 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: kout.h
+ * FILE: kprintf.h
  * DATE: July 30, 2021
  * DESCRIPTION: kernel logging utilies
  */
-#ifndef KOUT_H
-#define KOUT_H
+#ifndef KPRINTF_H
+#define KPRINTF_H
 
 #include <maestro.h>
 #include <stdarg.h>
 
-void kout(const char *);
+void kputc(char c);
+void kputs(const char *);
 int kprintf(const char *, ...);
 
-#endif    // KOUT_H
+#endif    // KPRINTF_H

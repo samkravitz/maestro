@@ -9,7 +9,7 @@
  */
 #include <proc.h>
 #include <kmalloc.h>
-#include <kout.h>
+#include <kprintf.h>
 
 // #include "malloc.h"
 #include "string.h"

@@ -12,7 +12,7 @@
 #include "string.h"
 #include <intr.h>
 #include <kmalloc.h>
-#include <kout.h>
+#include <kprintf.h>
 
 // macros to manipulate bitmap
 #define MMAP_SET(bit)   (meminfo.mmap[bit / 8] = (1 << (bit % 8)))

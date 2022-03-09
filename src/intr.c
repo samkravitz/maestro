@@ -10,7 +10,7 @@
 #include <intr.h>
 
 #include <io.h>
-#include <kout.h>
+#include <kprintf.h>
 
 // holds registered interrupt handlers
 void (*intr_handlers[NUM_INTERRUPTS])(void) = { 0 };
