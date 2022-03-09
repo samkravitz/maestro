@@ -3,11 +3,11 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: mm.c
- * DATE: August 8th, 2021
- * DESCRIPTION: memory management for maestro
+ * FILE: pmm.c
+ * DATE: March 9th, 2022
+ * DESCRIPTION: physical memory manager
  */
-#include <mm.h>
+#include <pmm.h>
 
 #include "string.h"
 #include <intr.h>
@@ -80,7 +80,7 @@ void bfree(void *block)
 	meminfo.used_blocks--;
 }
 
-void mminit()
+void pmminit()
 {
 	// register page fault exception handler
 	svect(14, pfault);

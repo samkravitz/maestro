@@ -15,7 +15,7 @@
 #include <idt.h>
 #include <intr.h>
 #include <kbd.h>
-#include <mm.h>
+#include <pmm.h>
 
 // initializes IDT, interrupts, and the clock
 void init()
@@ -23,7 +23,7 @@ void init()
 	idtinit();
 	intrinit();
 	clkinit();
-	mminit();
+	pmminit();
 
 	mount();
 

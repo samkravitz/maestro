@@ -16,7 +16,7 @@ C = \
 	kmain.c \
 	kmalloc.c \
 	kprintf.c \
-	mm.c \
+	pmm.c \
 	pq.c \
 	proc.c \
 	sched.c \

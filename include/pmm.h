@@ -3,12 +3,12 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: mm.h
- * DATE: August 8th, 2021
- * DESCRIPTION: memory management for maestro
+ * FILE: pmm.h
+ * DATE: March 9th, 2022
+ * DESCRIPTION: physical memory manager
  */
-#ifndef MM_H
-#define MM_H
+#ifndef PMM_H
+#define PMM_H
 
 #include <maestro.h>
 
@@ -56,10 +56,10 @@ void *balloc();
 // deallocate a block
 void bfree(void *);
 
-void mminit();
+void pmminit();
 void pfault();
 
 // defined in pdsw.s
 extern void pdsw(u32 *pd);
 
-#endif    // MM_H
+#endif    // PMM_H
