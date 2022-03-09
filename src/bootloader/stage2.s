@@ -44,6 +44,8 @@ jmp $
 
 .done:
 
+mov [es:di],     dword 0xcafebabe  ; magic number so the kernel knows where the memory map ends
+
 ; next we will verify that a20 line is enabled before jumping to protected mode
 call check_a20
 cmp ax, 1                      ; ax = 1 if a20 is enabled
@@ -161,4 +163,5 @@ a20_not_enabled: db 'a20 is not enabled!', 0
 welcome_pmode: db 'welcome to protected mode!', 0
 
 ; constants
+MMAP_ADDR   equ  4000h ; address of memory map
 KERNEL_ADDR equ 10000h ; address of kernel
