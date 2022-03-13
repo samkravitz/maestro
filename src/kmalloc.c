@@ -3,8 +3,8 @@
 #include "string.h"
 
 // start of heap begins at end of maestro image
-extern u32 end;
-uptr heap        = (uptr) &end;
+extern uptr heap;
+
 void *block_head = NULL;
 
 void *brk(int amt)

@@ -4,6 +4,8 @@ SECTIONS
 {
 	. = 0x10000;
 
+    _start = .;
+
     .entry :
     {
         *(.entry)
