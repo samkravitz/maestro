@@ -183,6 +183,19 @@ int strncmp(const char *a, const char *b, size_t n)
     return n == 0 ? 0 : *s1 - *s2;
 }
 
+char *strdup(const char *str)
+{
+    return strndup(str, strlen(str));
+}
+
+char *strndup(const char *str, size_t n)
+{
+    char *dup = (char *) kmalloc(n + 1);
+    memcpy(dup, str, n);
+    dup[n] = '\0';
+    return dup;
+}
+
 // compute the length of a null-terminated string
 size_t strlen(const char *str)
 {
