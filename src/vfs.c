@@ -16,6 +16,9 @@
 #include "string.h"
 
 static void build_tree(struct vfs_node *);
+static struct vfs_node *find(char *);
+static struct vfs_node *find_parent(char *);
+static struct vfs_node *find_helper(const struct vfs_node *, char *);
 static void print_tree(struct vfs_node *, int);
 
 static struct vfs_node *root = NULL;
@@ -37,6 +40,72 @@ void vfs_init()
 	build_tree(root);
 
 	(void) print_tree;
+}
+
+/**
+ * @brief finds the vfs_node associated with a given path
+ * @param path absolute path of file to find
+ * @return ptr to vfs_node to the file or NULL if it doesn't exist
+ */
+static struct vfs_node *find(char *path)
+{
+	// tokenize path into its segments
+	// e.x. given the path "/home/user/bin/a.out"
+	// segment will eventually be "home", "user", "bin", "a.out"
+	char *segment = strtok(path, "/");
+
+	if (!segment)
+		return NULL;
+
+	struct vfs_node *node = root;
+
+	do
+	{
+		node = find_helper(node, segment);
+		if (!node)
+			return NULL;
+	} while ((segment = strtok(NULL, "/")) != NULL);
+
+	return node;
+}
+
+/**
+ * @brief gets the vfs_node of the parent of a given file
+ * @param path absolute path of the file to get the parent of
+ * @return ptr to vfs_node of the file's parent or NULL if it doesn't exist
+ * 
+ * e.x. find_parent("/path/to/a/nested/file");
+ * will return the vfs_node of the directory "/path/to/a/nested"
+ */
+static struct vfs_node *find_parent(char *path)
+{
+	// pointer to final occurrance of / in path
+	char *last_slash = strrchr(path, '/');
+
+	// if the final occurance of / is also the first, the parent is the root directory
+	if (last_slash == path)
+		return root;
+
+	// temporarily null terminate path after the parent we are looking for
+	*last_slash          = '\0';
+	struct vfs_node *ret = find(path);
+	*last_slash          = '/';
+
+	return ret;
+}
+
+static struct vfs_node *find_helper(const struct vfs_node *node, char *name)
+{
+	struct vfs_node *child = node->leftmost_child;
+	while (child)
+	{
+		if (strcmp(child->name, name) == 0)
+			return child;
+
+		child = child->right_sibling;
+	}
+
+	return NULL;
 }
 
 /**
