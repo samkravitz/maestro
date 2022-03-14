@@ -11,6 +11,17 @@
 #define VFS_H
 
 #include <maestro.h>
+
+struct vfs_node
+{
+	u32 inode;
+	u8 type;
+	char *name;
+	size_t num_children;
+	struct vfs_node *leftmost_child;
+	struct vfs_node *right_sibling;
+};
+
 void vfs_init();
 
 #endif    // VFS_H
