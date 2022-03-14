@@ -7,7 +7,6 @@ C = \
 	ata.c \
 	clk.c \
 	ext2.c \
-	fs.c \
 	idt.c \
 	init.c \
 	intr.c \
@@ -20,7 +19,8 @@ C = \
 	pq.c \
 	proc.c \
 	sched.c \
-	tty.c
+	tty.c \
+	vfs.c
 
 # asm sources
 ASM = \
