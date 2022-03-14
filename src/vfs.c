@@ -15,13 +15,29 @@
 
 #include "string.h"
 
+static struct vfs_node *root = NULL;
+
 static void build_tree(struct vfs_node *);
 static struct vfs_node *find(char *);
 static struct vfs_node *find_parent(char *);
 static struct vfs_node *find_helper(const struct vfs_node *, char *);
 static void print_tree(struct vfs_node *, int);
 
-static struct vfs_node *root = NULL;
+static inline void insert_child(struct vfs_node *parent, struct vfs_node *child)
+{
+	if (!parent->leftmost_child)
+	{
+		parent->leftmost_child = child;
+		return;
+	}
+
+	struct vfs_node *tmp = parent->leftmost_child;
+
+	while (tmp->right_sibling)
+		tmp = tmp->right_sibling;
+
+	tmp->right_sibling = child;
+}
 
 /**
  * @brief builds the node graph structure of the filesystem
@@ -40,6 +56,91 @@ void vfs_init()
 	build_tree(root);
 
 	(void) print_tree;
+}
+
+/**
+ * @brief creates a new, empty filesystem directory
+ * 
+ * this function calls the ext2 driver to write the created
+ * directory to disk
+ * 
+ * @param path absolute path of the directory to create
+ * @return inode id of created directory, or -1 on error
+ */
+struct vfs_node *vfs_mkdir(char *path)
+{
+	struct vfs_node *parent = find_parent(path);
+	if (!parent)
+	{
+		kprintf("[%s]: parent does not exist!\n", __FUNCTION__);
+		return NULL;
+	}
+
+	// relative name of the directory
+	char *name = strrchr(path, '/') + 1;
+
+	int inode = ext2_mkdir(parent->inode, name);
+	if (inode < 0)
+	{
+		kprintf("Error in ext2_mkdir!\n");
+		return NULL;
+	}
+
+	// allocate memory for the new directory in the tree
+	struct vfs_node *node = (struct vfs_node *) kmalloc(sizeof(struct vfs_node));
+	node->inode           = inode;
+	node->type            = DIR_TYPE_DIR;
+	node->num_children    = 0;
+	node->name            = strdup(name);
+	node->leftmost_child  = NULL;
+	node->right_sibling   = NULL;
+
+	insert_child(parent, node);
+
+	// call this to add . and .. entries to the tree
+	build_tree(node);
+	return node;
+}
+
+/**
+ * @brief creates a new, empty filesystem file
+ * 
+ * this function calls the ext2 driver to write the created
+ * file to disk
+ * 
+ * @param path absolute path of the file to create
+ * @return inode id of created file, or -1 on error
+ */
+struct vfs_node *vfs_touch(char *path)
+{
+	struct vfs_node *parent = find_parent(path);
+	if (!parent)
+	{
+		kprintf("[%s]: parent does not exist!\n", __FUNCTION__);
+		return NULL;
+	}
+
+	// relative name of the file
+	char *name = strrchr(path, '/') + 1;
+
+	int inode = ext2_touch(parent->inode, name);
+	if (inode < 0)
+	{
+		kprintf("Error in ext2_touch!\n");
+		return NULL;
+	}
+
+	// allocate memory for the new file in the tree
+	struct vfs_node *node = (struct vfs_node *) kmalloc(sizeof(struct vfs_node));
+	node->inode           = inode;
+	node->type            = DIR_TYPE_REG;
+	node->num_children    = 0;
+	node->name            = strdup(name);
+	node->leftmost_child  = NULL;
+	node->right_sibling   = NULL;
+
+	insert_child(parent, node);
+	return node;
 }
 
 /**
@@ -84,7 +185,10 @@ static struct vfs_node *find_parent(char *path)
 
 	// if the final occurance of / is also the first, the parent is the root directory
 	if (last_slash == path)
+	{
+		kprintf("parent is root %s\n", path);
 		return root;
+	}
 
 	// temporarily null terminate path after the parent we are looking for
 	*last_slash          = '\0';

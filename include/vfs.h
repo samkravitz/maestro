@@ -23,5 +23,7 @@ struct vfs_node
 };
 
 void vfs_init();
+struct vfs_node *vfs_mkdir(char *);
+struct vfs_node *vfs_touch(char *);
 
 #endif    // VFS_H
