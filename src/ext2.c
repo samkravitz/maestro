@@ -33,13 +33,6 @@ static int inode_from_path(char *);
 static int parent_inode_from_path(char *);
 
 /**
- * macro to get the name from a dir entry
- * param entry struct ext2_dir_entry *
- * return char *
- */
-#define DIRENT_NAME(entry) ((char *) ((u8 *) entry + EXT2_DIRENT_NAME_OFFSET))
-
-/**
  * macros to manipulate block/inode bitmaps
  * pass in buffer to bitmap and index to be worked with
  */
@@ -604,6 +597,17 @@ static int parent_inode_from_path(char *path)
     *last_slash = '/';
 
     return ino;
+}
+
+/**
+ * @brief reads directory entries of a directory into buff
+ * @param buff buffer to read into
+ * @param ino inode index of directory to read from
+ */
+void ext2_readdir(u8 *buff, u32 ino)
+{
+    struct inode_t inode = read_inode(ino);
+	read_block(buff, inode.block_ptr[0], 1);
 }
 
 static void print_superblock()

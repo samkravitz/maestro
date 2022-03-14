@@ -41,6 +41,13 @@
 #define EXT2_TOUCH_ERROR       -2
 #define EXT2_INODE_NOTFOUND    -1
 
+/**
+ * macro to get the name from a dir entry
+ * param entry struct ext2_dir_entry *
+ * return char *
+ */
+#define DIRENT_NAME(entry) ((char *) ((u8 *) entry + EXT2_DIRENT_NAME_OFFSET))
+
 // rounds an integer x up to the nearest multiple of to
 #define round(x, to)           ((x + to - 1) & (-to))
 
@@ -195,5 +202,6 @@ struct ext2_dir_entry
 void ext2_init();
 int ext2_mkdir(const char *);
 int ext2_touch(const char *);
+void ext2_readdir(u8 *, u32);
 
 #endif    // EXT2_H
