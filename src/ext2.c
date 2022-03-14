@@ -25,20 +25,72 @@ static int block_groups;
 
 static int alloc_inode();
 static int alloc_block();
-static void print_inode(u32);
-static void print_superblock();
 static struct inode_t read_inode(u32);
 static void write_inode(struct inode_t *, u32);
-static int inode_from_path(char *);
-static int parent_inode_from_path(char *);
+static void print_inode(u32);
+static void print_superblock();
+
+static bool insert_dirent(struct inode_t *, struct ext2_dir_entry *, char *);
+
+#define BITMAP_SET(bitmap, bit)   (bitmap[bit / 8] |=  (1 << (bit % 8)))
+#define BITMAP_CLEAR(bitmap, bit) (bitmap[bit / 8] &= ~(1 << (bit % 8)))
+
+static int BITMAP_TEST(u8 *bitmap, int bit)
+{
+	return bitmap[bit / 8] & (1 << (bit % 8)) ? 1 : 0;
+}
 
 /**
- * macros to manipulate block/inode bitmaps
- * pass in buffer to bitmap and index to be worked with
+ * @brief finds the first set bit of a bitmap
+ * @param bitmap a pointer to the bitmap
+ * @param max_bits the maximum bit index this bitmap keeps track of
+ * @return index of first set bit or -1 if all are clear
  */
-#define BMAP_SET(map, bit)   (map[bit / 8] |= (1 << (bit % 8)))
-#define BMAP_CLEAR(map, bit) (map[bit / 8] &= ~(1 << (bit % 8)))
-#define BMAP_TEST(map, bit)  (map[bit / 8] & (1 << (bit % 8)))
+static inline int BITMAP_FIRST_SET(u8 *bitmap, int max_bits)
+{
+	for (int i = 0; i < max_bits / 8; ++i)
+	{
+		// quickly check if all 8 bits of this u8 are clear to save some work
+		if (bitmap[i] == 0)
+			continue;
+
+		// at least one of the bits in this u8 are set so find it
+		for (int j = 0; j < 8; ++j)
+		{
+			int bit = i * 8 + j;
+			if (BITMAP_TEST(bitmap, bit))
+				return bit;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * @brief finds the first clear bit of a bitmap
+ * @param bitmap a pointer to the bitmap
+ * @param max_bits the maximum bit index this bitmap keeps track of
+ * @return index of first clear bit or -1 if all are set
+ */
+static inline int BITMAP_FIRST_CLEAR(u8 *bitmap, int max_bits)
+{
+	for (int i = 0; i < max_bits / 8; ++i)
+	{
+		// quickly check if all 8 bits of this u8 are set to save us some work
+		if (bitmap[i] == 0xff)
+			continue;
+
+		// at least one of the bits in this u8 are clear so find it
+		for (int j = 0; j < 8; ++j)
+		{
+			int bit = i * 8 + j;
+			if (!BITMAP_TEST(bitmap, bit))
+				return bit;
+		}
+	}
+
+	return -1;
+}
 
 /**
  * reads ext2 filesystem block(s) from disk
@@ -65,7 +117,7 @@ static inline void write_block(void *buff, uint blk, int n)
 /**
  * writes the block group descriptor table to disk
  */
-static inline void flush_block_group_descriptor_table()
+static inline void write_bgdt()
 {
 	write_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(block_groups * sizeof(struct block_group_desc)));
 }
@@ -73,7 +125,7 @@ static inline void flush_block_group_descriptor_table()
 /**
  * writes the superblock to disk
  */
-static inline void flush_superblock()
+static inline void write_superblock()
 {
 	write_block(&superblock, EXT2_SUPERBLOCK, get_num_blocks(sizeof(superblock)));
 }
@@ -85,6 +137,10 @@ void ext2_init()
 	int inodes     = superblock.inode_count;
 	int blocks     = superblock.block_count;
 	int block_size = 1024 << superblock.log_block_size;
+
+	// make sure block_size in the superblock is what we expect it to be
+	if (block_size != EXT2_BLOCK_SIZE)
+		kprintf("ext2_init: block size doesn't match superblock\n");
 
 	/*
     *   determine number of block groups
@@ -100,15 +156,16 @@ void ext2_init()
 
 	// set global block groups to calculates number of block groups
 	// this could be block_groups_inode or block_groups_block, they are equivalent
-	block_groups           = block_groups_inode;
+	block_groups = block_groups_inode;
 
 	// allocate space for block group descriptor table
 	bgdt = kmalloc(sizeof(struct block_group_desc) * block_groups);
 
-    // read block group descriptor table into memory
-    read_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
+	// read block group descriptor table into memory
+	read_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
 
-	// print_inode(ROOT_INODE);
+	(void) print_inode;
+	(void) print_superblock;
 }
 
 /**
@@ -130,24 +187,20 @@ void print_inode(u32 ino)
 		uint bytes_read = 0;
 		do
 		{
-			char *ptr  = (char *) entry;
-			char *name = ptr + 8;
+			char *name = strndup(DIRENT_NAME(entry), entry->name_len);
 			kprintf("{ .inode: %d, .rec_len: %d, .name_len: %d, .name: %s }\n",
 			        entry->inode,
 			        entry->rec_len,
 			        entry->name_len,
 			        name);
 			bytes_read += entry->rec_len;
-			ptr += entry->rec_len;
-			entry = (struct ext2_dir_entry *) ptr;
+			entry = (struct ext2_dir_entry *) (buff + bytes_read);
 		} while (bytes_read < EXT2_BLOCK_SIZE);    // directory entries must fit in size of 1 block
 	}
 
-	// inode is a regular file
-	else if (inode.mode & INODE_MODE_REG)
-	{
+	// inode is not a directory
+	else
 		kprintf("Reading inode of regular file %d\n", inode.size);
-	}
 }
 
 /**
@@ -156,7 +209,7 @@ void print_inode(u32 ino)
  */
 static int alloc_inode()
 {
-	if (superblock.free_block_count == 0)
+	if (superblock.free_inode_count == 0)
 		return EXT2_ALLOC_ERROR;
 
 	for (int i = 0; i < block_groups; ++i)
@@ -171,27 +224,25 @@ static int alloc_inode()
 		u8 buff[EXT2_BLOCK_SIZE];
 		read_block(buff, bgd->inode_bitmap, 1);
 
-		for (int n = 0; n < superblock.inodes_per_group / 8; ++n)
-		{
-			if (!BMAP_TEST(buff, n))
-			{
-				// inode indeces start at 1, this is why we add 1 to the free bit we found
-				u32 index = i * superblock.inodes_per_group + n + 1;
-				bgd->free_inode_count--;
-				superblock.free_inode_count--;
-				BMAP_SET(buff, n);
-				write_block(buff, bgd->inode_bitmap, 1);
-				flush_block_group_descriptor_table();
-				flush_superblock();
-				return index;
-			}
-		}
+		int index = BITMAP_FIRST_CLEAR(buff, superblock.inodes_per_group);
 
-		// should never get here
-		kprintf("EXT2 alloc_inode: something has gone terribly wrong!\n");
+		// no free inode could be found
+		if (index == -1)
+			return EXT2_ALLOC_ERROR;
+
+		bgd->free_inode_count--;
+		superblock.free_inode_count--;
+		BITMAP_SET(buff, index);
+		write_block(buff, bgd->inode_bitmap, 1);
+		write_bgdt();
+		write_superblock();
+
+		// inode indeces start at 1, so add 1 bc bitmaps start at 0
+		return index + 1;
 	}
 
-	// no free inode could be found
+	// should never get here
+	kprintf("EXT2 alloc_inode: something has gone terribly wrong!\n");
 	return EXT2_ALLOC_ERROR;
 }
 
@@ -208,34 +259,32 @@ static int alloc_block()
 	{
 		struct block_group_desc *bgd = &bgdt[i];
 
-		// no free inodes in this block group
+		// no free blocks in this block group
 		if (bgd->free_block_count <= 0)
 			continue;
 
-		// get this group's inode bitmap
+		// get this group's block bitmap
 		u8 buff[EXT2_BLOCK_SIZE];
 		read_block(buff, bgd->block_bitmap, 1);
 
-		for (int n = 0; n < superblock.blocks_per_group / 8; ++n)
-		{
-			if (!BMAP_TEST(buff, n))
-			{
-				u32 index = i * superblock.blocks_per_group + n;
-				bgd->free_block_count--;
-				superblock.free_block_count--;
-				BMAP_SET(buff, n);
-				write_block(buff, bgd->block_bitmap, 1);
-				flush_block_group_descriptor_table();
-				flush_superblock();
-				return index;
-			}
-		}
+		int index = BITMAP_FIRST_CLEAR(buff, superblock.blocks_per_group);
 
-		// should never get here
-		kprintf("EXT2 alloc_block_id: something has gone terribly wrong!\n");
+		// no free inode could be found
+		if (index == -1)
+			return EXT2_ALLOC_ERROR;
+
+		bgd->free_block_count--;
+		superblock.free_block_count--;
+		BITMAP_SET(buff, index);
+		write_block(buff, bgd->block_bitmap, 1);
+		write_bgdt();
+		write_superblock();
+
+		return index;
 	}
 
-	// no free block could be found
+	// should never get here
+	kprintf("EXT2 alloc_block: something has gone terribly wrong!\n");
 	return EXT2_ALLOC_ERROR;
 }
 
@@ -247,41 +296,40 @@ static int alloc_block()
 static struct inode_t read_inode(u32 idx)
 {
 	// find which block group the inode belongs to
-	int bg                      = (idx - 1) / superblock.inodes_per_group;
+	int bg = (idx - 1) / superblock.inodes_per_group;
 
 	// block group descriptor corresponding to the group the inodes belongs to
 	struct block_group_desc bgd = bgdt[bg];
 
 	// index of inode in inode table (NOTE - inode index starts at 1)
-	int index                   = (idx - 1) % superblock.inodes_per_group;
-	int offset_within_block     = index % (EXT2_BLOCK_SIZE / sizeof(struct inode_t));
+	int index = (idx - 1) % superblock.inodes_per_group;
+	int offset_within_block = index % (EXT2_BLOCK_SIZE / sizeof(struct inode_t));
 
 	// read block in inode table for this block group into memory
 	u8 buff[EXT2_BLOCK_SIZE];
 	read_block(buff, bgd.inode_table + (index * sizeof(struct inode_t) / EXT2_BLOCK_SIZE), 1);
 
-    struct inode_t inode;
+	struct inode_t inode;
 	memcpy(&inode, &buff[offset_within_block * sizeof(struct inode_t)], sizeof(inode));
 	return inode;
 }
 
-
 /**
- * @brief flushes an inode to disk
+ * @brief writes an inode to disk
  * @param inode pointer to inode to write
  * @param idx index of the inode to write
  */
 static void write_inode(struct inode_t *inode, u32 idx)
 {
 	// find which block group the inode belongs to
-	int bg                      = (idx - 1) / superblock.inodes_per_group;
+	int bg = (idx - 1) / superblock.inodes_per_group;
 
 	// block group descriptor corresponding to the group the inodes belongs to
 	struct block_group_desc bgd = bgdt[bg];
 
 	// index of inode in inode table (NOTE - inode index starts at 1)
-	int index                   = (idx - 1) % superblock.inodes_per_group;
-	int offset_within_block     = index % (EXT2_BLOCK_SIZE / sizeof(struct inode_t));
+	int index = (idx - 1) % superblock.inodes_per_group;
+	int offset_within_block = index % (EXT2_BLOCK_SIZE / sizeof(struct inode_t));
 
 	// read block in inode table for this block group into memory
 	u8 buff[EXT2_BLOCK_SIZE];
@@ -325,95 +373,51 @@ int ext2_mkdir(u32 pino, char *name)
 
 	write_inode(&dir, inode_idx);
 
-    struct inode_t parent = read_inode(pino);
+	struct inode_t parent = read_inode(pino);
 
-	// buffer to parent's dir entries
-	u8 buff[EXT2_BLOCK_SIZE];
-	read_block(buff, parent.block_ptr[0], 1);
+	// create . and .. entries for new directory
+	char dotbuff[EXT2_BLOCK_SIZE];
+	struct ext2_dir_entry dot = {
+		.inode    = inode_idx,
+		.rec_len  = 12,
+		.name_len = 1,
+		.type     = DIR_TYPE_DIR,
+	};
 
-    // create . and .. entries for new directory
-    char dotbuff[EXT2_BLOCK_SIZE];
-    struct ext2_dir_entry dot = {
-        .inode    = inode_idx,
-        .rec_len  = 12,
-        .name_len = 1,
-        .type     = DIR_TYPE_DIR,
-    };
+	struct ext2_dir_entry dotdot = {
+		.inode    = pino,
+		.rec_len  = 1024 - 12,
+		.name_len = 2,
+		.type     = DIR_TYPE_DIR,
+	};
 
-    struct ext2_dir_entry dotdot = {
-        .inode    = pino,
-        .rec_len  = 1024 - 12,
-        .name_len = 2,
-        .type     = DIR_TYPE_DIR,
-    };
-    
-    // copy . and .. entries to buffer
-    memcpy(&dotbuff[0], &dot, sizeof(dot));
-    memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
+	// copy . and .. entries to buffer
+	memcpy(&dotbuff[0], &dot, sizeof(dot));
+	memcpy(&dotbuff[12], &dotdot, sizeof(dotdot));
 
-    // copy . and .. names to buffer
-    strcpy((char*)  &dotbuff[0  + EXT2_DIRENT_NAME_OFFSET], ".");
-    strcpy((char *) &dotbuff[12 + EXT2_DIRENT_NAME_OFFSET], "..");
+	// copy . and .. names to buffer
+	strcpy((char *) &dotbuff[0 + EXT2_DIRENT_NAME_OFFSET], ".");
+	strcpy((char *) &dotbuff[12 + EXT2_DIRENT_NAME_OFFSET], "..");
 
-    // write . and .. entries to disk
-    write_block(dotbuff, block_idx, 1);
+	// write . and .. entries to disk
+	write_block(dotbuff, block_idx, 1);
 
-    // insert dir into its parent's entries
+	// create entry for new directory
+	struct ext2_dir_entry new_dir_entry = {
+		.inode    = inode_idx,
+		.rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(name), 4),
+		.name_len = strlen(name),
+		.type     = DIR_TYPE_DIR,
+	};
 
-    // create entry for new directory
-    struct ext2_dir_entry new_dir_entry = {
-        .inode    = inode_idx,
-        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(name), 4),
-        .name_len = strlen(name),
-        .type     = DIR_TYPE_DIR,
-    };
-
-    // TODO - handle when directory entries are larger than a single block
-    if (parent.size > EXT2_BLOCK_SIZE)
-    {
-        kprintf("ext2_mkdir: parent size is %d\n bytes", parent.size);
-        return EXT2_MKDIR_ERROR;
-    }
-
-	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-	uint bytes_read = 0;
-
-	while (1)
+	// insert entry into its parent's entries
+	if (!insert_dirent(&parent, &new_dir_entry, name))
 	{
-        // entry now points to the final entry in the block
-		if (bytes_read + entry->rec_len == EXT2_BLOCK_SIZE)
-		{
-			// adjust previously last entry's length
-			entry->rec_len = round(EXT2_DIRENT_NAME_OFFSET + entry->name_len, 4);
-
-            // new entry can fit in this block
-            if (bytes_read + entry->rec_len + new_dir_entry.rec_len <= EXT2_BLOCK_SIZE)
-            {
-                // adjust new entry's length so it fills up entire block
-                new_dir_entry.rec_len = EXT2_BLOCK_SIZE - bytes_read - entry->rec_len;
-
-                // copy our updated records to buffer
-                memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], name);
-                break;
-            }
-
-            // TODO - handle the case when we'd need to put our new entry in a different block
-            else
-            {
-                kprintf("ext2_mkdir: %s needs to go into another parent block\n", name);
-                return EXT2_MKDIR_ERROR;
-            }
-		}
-
-		bytes_read += entry->rec_len;
-		entry = (struct ext2_dir_entry *) ((u8 *) entry + entry->rec_len);
+		kprintf("Error in insert_dirent\n");
+		return EXT2_MKDIR_ERROR;
 	}
 
-    // write parent's new entries to disk
-	write_block(buff, parent.block_ptr[0], 1);
-
-    return inode_idx;
+	return inode_idx;
 }
 
 /**
@@ -443,156 +447,29 @@ int ext2_touch(u32 pino, char *name)
 	memset(&file, 0, sizeof(file));
 
 	file.mode |= INODE_MODE_REG;
-	file.links_count  = 1;
-	file.size         = 0;
+	file.links_count = 1;
+	file.size        = 0;
 
 	write_inode(&file, inode_idx);
 
     struct inode_t parent = read_inode(pino);
 
-	// buffer to parent's dir entries
-	u8 buff[EXT2_BLOCK_SIZE];
-	read_block(buff, parent.block_ptr[0], 1);
+	// create entry for new directory
+	struct ext2_dir_entry new_dir_entry = {
+		.inode    = inode_idx,
+		.rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(name), 4),
+		.name_len = strlen(name),
+		.type     = DIR_TYPE_DIR,
+	};
 
-    // insert file into its parent's entries
-
-    // create entry for new directory
-    struct ext2_dir_entry new_dir_entry = {
-        .inode    = inode_idx,
-        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(name), 4),
-        .name_len = strlen(name),
-        .type     = DIR_TYPE_DIR,
-    };
-
-    // TODO - handle when directory entries are larger than a single block
-    if (parent.size > EXT2_BLOCK_SIZE)
-    {
-        kprintf("ext2_touch: parent size is %d\n bytes", parent.size);
-        return EXT2_TOUCH_ERROR;
-    }
-
-	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-	uint bytes_read = 0;
-
-	while (1)
+	// insert file into its parent's entries
+	if (!insert_dirent(&parent, &new_dir_entry, name))
 	{
-        // entry now points to the final entry in the block
-		if (bytes_read + entry->rec_len == EXT2_BLOCK_SIZE)
-		{
-			// adjust previously last entry's length
-			entry->rec_len = round(EXT2_DIRENT_NAME_OFFSET + entry->name_len, 4);
-
-            // new entry can fit in this block
-            if (bytes_read + entry->rec_len + new_dir_entry.rec_len <= EXT2_BLOCK_SIZE)
-            {
-                // adjust new entry's length so it fills up entire block
-                new_dir_entry.rec_len = EXT2_BLOCK_SIZE - bytes_read - entry->rec_len;
-
-                // copy our updated records to buffer
-                memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], name);
-                break;
-            }
-
-            // TODO - handle the case when we'd need to put our new entry in a different block
-            else
-            {
-                kprintf("ext2_touch: %s needs to go into another parent block\n", name);
-                return EXT2_TOUCH_ERROR;
-            }
-		}
-
-		bytes_read += entry->rec_len;
-		entry = (struct ext2_dir_entry *) ((u8 *) entry + entry->rec_len);
+		kprintf("Error in insert_dirent\n");
+		return EXT2_TOUCH_ERROR;
 	}
 
-    // write parent's new entries to disk
-	write_block(buff, parent.block_ptr[0], 1);
-
-    return inode_idx;
-}
-
-/**
- * @brief finds the inode number associated with a given path
- * @param path absolute path of file to find
- * @return inode index of the file or error if it doesn't exist
- */
-static int inode_from_path(char *path)
-{
-    // tokenize path into its segments
-    // e.x. given the path "/home/user/bin/a.out"
-    // segment will eventually be "home", "user", "bin", "a.out"
-    char *segment = strtok(path, "/");
-    int ino;
-
-    // current directory we're looking in
-    struct inode_t dir = read_inode(ROOT_INODE);
-
-    // block to hold directory entries
-    u8 buff[EXT2_BLOCK_SIZE];
-
-    do
-    {
-        // read entries of current directory
-        read_block(buff, dir.block_ptr[0], 1);
-
-        // search for tok within directory entries
-        uint bytes_read = 0;
-        struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
-
-        do
-        {
-            if (strcmp(segment, DIRENT_NAME(entry)) == 0)
-            {
-                ino = entry->inode;
-                
-                // when the segment was found, skip to label 
-                // so we know we have found each segment
-                goto found_segment;
-            }
-
-            bytes_read += entry->rec_len;
-
-            // offset to next entry
-            entry = (struct ext2_dir_entry *) (buff + bytes_read);
-        } while (bytes_read < EXT2_BLOCK_SIZE);
-
-        // if the loop breaks normally, that means we didn't find the 
-        // segment we were looking for. so, short circuit
-        return EXT2_INODE_NOTFOUND;
-
-        found_segment:
-        // load the entries of the next segment
-        dir = read_inode(ino);
-
-    } while ((segment = strtok(NULL, "/")) != NULL);
-    
-    return ino;
-}
-
-/**
- * @brief gets the inode of the parent of a given file
- * @param path absolute path of the file to get the parent of
- * @return inode index of the file's parent
- * 
- * e.x. parent_inode_from_path("/path/to/a/nested/file");
- * will return the inode index of the directory "nested"
- */
-static int parent_inode_from_path(char *path)
-{
-    // pointer to final occurrance of / in path
-    char *last_slash = strrchr(path, '/');
-
-    // if the final occurance of / is also the first, the parent is the root directory
-    if (last_slash == path)
-        return ROOT_INODE;
-
-    // temporarily null terminate path after the parent we are looking for
-    *last_slash = '\0';
-    int ino = inode_from_path(path);
-    *last_slash = '/';
-
-    return ino;
+	return inode_idx;
 }
 
 /**
@@ -602,8 +479,67 @@ static int parent_inode_from_path(char *path)
  */
 void ext2_readdir(u8 *buff, u32 ino)
 {
-    struct inode_t inode = read_inode(ino);
+	struct inode_t inode = read_inode(ino);
 	read_block(buff, inode.block_ptr[0], 1);
+}
+
+/**
+ * @brief utility function to insert a new entry into a directory
+ * @param parent ptr to inode of the directory we are adding an entry to
+ * @param new_ent ptr to new entry to add
+ * @param name new_ent's name
+ */
+static bool insert_dirent(struct inode_t *parent, struct ext2_dir_entry *new_ent, char *name)
+{
+	// buffer to parent's dir entries
+	u8 buff[EXT2_BLOCK_SIZE];
+	read_block(buff, parent->block_ptr[0], 1);
+
+	// TODO - handle when directory entries are larger than a single block
+	if (parent->size > EXT2_BLOCK_SIZE)
+	{
+		kprintf("insert_dirent: parent size is %d\n bytes", parent->size);
+		return false;
+	}
+
+	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) buff;
+	uint bytes_read = 0;
+
+	while (1)
+	{
+		// entry now points to the final entry in the block
+		if (bytes_read + entry->rec_len == EXT2_BLOCK_SIZE)
+		{
+			// adjust previously last entry's length
+			entry->rec_len = round(EXT2_DIRENT_NAME_OFFSET + entry->name_len, 4);
+
+			// new entry can fit in this block
+			if (bytes_read + entry->rec_len + new_ent->rec_len <= EXT2_BLOCK_SIZE)
+			{
+				// adjust new entry's length so it fills up entire block
+				new_ent->rec_len = EXT2_BLOCK_SIZE - bytes_read - entry->rec_len;
+
+				// copy our updated records to buffer
+				memcpy(&buff[bytes_read + entry->rec_len], new_ent, sizeof(*new_ent));
+				strncpy((char *) &buff[bytes_read + entry->rec_len + EXT2_DIRENT_NAME_OFFSET], name, new_ent->name_len);
+				break;
+			}
+
+			// TODO - handle the case when we'd need to put our new entry in a different block
+			else
+			{
+				kprintf("insert_dirent: %s needs to go into another parent block\n", name);
+				return false;
+			}
+		}
+
+		bytes_read += entry->rec_len;
+		entry = (struct ext2_dir_entry *) (buff + bytes_read);
+	}
+
+	// write parent's new entries to disk
+	write_block(buff, parent->block_ptr[0], 1);
+	return true;
 }
 
 static void print_superblock()
