@@ -159,5 +159,5 @@ void pmminit()
 	}
 
 	kprintf("\nInstalled memory: %d bytes (%d blocks)\n", max_blocks * BLOCK_SIZE, max_blocks);
-	kprintf("Free memory: %d bytes (%d blocks)", free_blocks * BLOCK_SIZE, free_blocks);
+	kprintf("Free memory: %d bytes (%d blocks)\n", free_blocks * BLOCK_SIZE, free_blocks);
 }
