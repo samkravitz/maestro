@@ -298,10 +298,11 @@ static void write_inode(struct inode_t *inode, u32 idx)
  * it is the caller's responsibility to ensure the directory to
  * make is a valid one.
  * 
- * @param path absolute path of directory to create
+ * @param pino inode of new directory's parent
+ * @param name name of new directory
  * @return inode id of the created directory, or error
  */
-int ext2_mkdir(const char *path)
+int ext2_mkdir(u32 pino, char *name)
 {
 	int inode_idx = alloc_inode();
 	int block_idx = alloc_block();
@@ -324,9 +325,7 @@ int ext2_mkdir(const char *path)
 
 	write_inode(&dir, inode_idx);
 
-	// get the inode of the parent (the inode we are placing our new directory in)
-    int parent_idx = parent_inode_from_path(path);
-    struct inode_t parent = read_inode(parent_idx);
+    struct inode_t parent = read_inode(pino);
 
 	// buffer to parent's dir entries
 	u8 buff[EXT2_BLOCK_SIZE];
@@ -342,7 +341,7 @@ int ext2_mkdir(const char *path)
     };
 
     struct ext2_dir_entry dotdot = {
-        .inode    = parent_idx,
+        .inode    = pino,
         .rec_len  = 1024 - 12,
         .name_len = 2,
         .type     = DIR_TYPE_DIR,
@@ -362,11 +361,10 @@ int ext2_mkdir(const char *path)
     // insert dir into its parent's entries
 
     // create entry for new directory
-    char *dirname = strrchr(path, '/') + 1; // relative path from parent's perspective
     struct ext2_dir_entry new_dir_entry = {
         .inode    = inode_idx,
-        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(dirname), 4),
-        .name_len = strlen(dirname),
+        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(name), 4),
+        .name_len = strlen(name),
         .type     = DIR_TYPE_DIR,
     };
 
@@ -396,14 +394,14 @@ int ext2_mkdir(const char *path)
 
                 // copy our updated records to buffer
                 memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], dirname);
+                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], name);
                 break;
             }
 
             // TODO - handle the case when we'd need to put our new entry in a different block
             else
             {
-                kprintf("ext2_mkdir: %s needs to go into another parent block\n", dirname);
+                kprintf("ext2_mkdir: %s needs to go into another parent block\n", name);
                 return EXT2_MKDIR_ERROR;
             }
 		}
@@ -425,10 +423,11 @@ int ext2_mkdir(const char *path)
  * it is the caller's responsibility to ensure the file to
  * create is a valid one.
  * 
- * @param path absolute path of file to create
+ * @param pino inode of new file's parent
+ * @param name name of new file
  * @return inode id of the created file, or error
  */
-int ext2_touch(const char *path)
+int ext2_touch(u32 pino, char *name)
 {
 	int inode_idx = alloc_inode();
 
@@ -449,9 +448,7 @@ int ext2_touch(const char *path)
 
 	write_inode(&file, inode_idx);
 
-	// get the inode of the parent (the inode we are placing our new file in)
-    int parent_idx = parent_inode_from_path(path);
-    struct inode_t parent = read_inode(parent_idx);
+    struct inode_t parent = read_inode(pino);
 
 	// buffer to parent's dir entries
 	u8 buff[EXT2_BLOCK_SIZE];
@@ -460,11 +457,10 @@ int ext2_touch(const char *path)
     // insert file into its parent's entries
 
     // create entry for new directory
-    char *filename = strrchr(path, '/') + 1; // relative path from parent's perspective
     struct ext2_dir_entry new_dir_entry = {
         .inode    = inode_idx,
-        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(filename), 4),
-        .name_len = strlen(filename),
+        .rec_len  = round(EXT2_DIRENT_NAME_OFFSET + strlen(name), 4),
+        .name_len = strlen(name),
         .type     = DIR_TYPE_DIR,
     };
 
@@ -494,14 +490,14 @@ int ext2_touch(const char *path)
 
                 // copy our updated records to buffer
                 memcpy(&buff[bytes_read + entry->rec_len], &new_dir_entry, sizeof(new_dir_entry));
-                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], filename);
+                strcpy((char *) &buff[bytes_read + entry->rec_len + 8], name);
                 break;
             }
 
             // TODO - handle the case when we'd need to put our new entry in a different block
             else
             {
-                kprintf("ext2_touch: %s needs to go into another parent block\n", filename);
+                kprintf("ext2_touch: %s needs to go into another parent block\n", name);
                 return EXT2_TOUCH_ERROR;
             }
 		}

@@ -200,8 +200,8 @@ struct ext2_dir_entry
 } __attribute__((packed));
 
 void ext2_init();
-int ext2_mkdir(const char *);
-int ext2_touch(const char *);
+int ext2_mkdir(u32, char *);
+int ext2_touch(u32, char *);
 void ext2_readdir(u8 *, u32);
 
 #endif    // EXT2_H
