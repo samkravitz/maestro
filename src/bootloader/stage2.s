@@ -6,6 +6,13 @@
 ; FILE: stage2.s
 ; DATE: March 3rd, 2022
 ; DESCRIPTION: stage 2 bootloader
+;
+;     MEMORY MAP
+; 0x5000 : 0x5200  - stage2 bootloader
+; 0x8000 : 0x9000  - page directory
+; 0x9000 : 0xA000  - identity page table
+; 
+; 0x100000 : ?     - kernel
 
 [bits 16]
 org 5000h                      ; we are expecting stage1 to load us to memory address 5000h
@@ -74,6 +81,42 @@ mov esi, KERNEL_LOAD_BASE
 mov edi, KERNEL_NEW_BASE
 mov ecx, 400000h                ; move 4M of memory
 rep movsb
+
+; identity map first 1M of memory
+
+; zero out page directory / page table area
+mov al, 0
+mov ecx, 0x2000                ; size in bytes of page directory + page table
+lea edi, [PAGE_DIR_BASE]
+rep stosb
+
+; set up directory entry for first 1M of memory
+lea ebx, [PAGE_TABLE_BASE]
+or ebx, 3                      ; present, rw, kernel memory
+mov [PAGE_DIR_BASE], ebx
+
+mov esi, 0                     ; i = 0
+mov ecx, PAGE_SIZE             ; ecx = 4096
+
+; loop while i < 256 because 256 * PAGE_SIZE = 1M
+fill_page_table:
+cmp esi, 256                  ; while (i < 256)
+je .done
+mov eax, esi                   ; eax = i
+mul ecx                        ; eax = i * 4096 (addr of current frame)
+or eax, 3                      ; present, rw, kernel memory
+mov [PAGE_TABLE_BASE + 4 * esi], eax
+
+inc esi                        ; i++
+jmp fill_page_table
+.done:
+
+; enable paging
+lea eax, [PAGE_DIR_BASE]
+mov cr3, eax
+mov eax, cr0
+or eax, 80000000h
+mov cr0, eax
 
 jmp KERNEL_NEW_BASE
 
@@ -174,6 +217,19 @@ a20_not_enabled: db 'a20 is not enabled!', 0
 welcome_pmode: db 'welcome to protected mode!', 0
 
 ; constants
-MMAP_ADDR        equ  4000h  ; address of memory map
-KERNEL_LOAD_BASE equ 10000h  ; address where kernel was loaded by stage1
-KERNEL_NEW_BASE  equ 100000h ; address where linker expects kernel to be loaded by stage2 (1M)
+MMAP_ADDR       equ  4000h    ; address of memory map
+PAGE_DIR_BASE   equ  8000h    ; address of page directory
+PAGE_TABLE_BASE equ  9000h    ; address of page table
+KERNEL_LOAD_BASE equ 10000h   ; address where kernel was loaded by stage1
+KERNEL_NEW_BASE  equ 100000h  ; address where linker expects kernel to be loaded by stage2 (1M)
+
+PAGE_SIZE       equ  1000h    ; size of page in bytes
+
+; stage1 only loads 1 block (1024 bytes) of stage2 into memory.
+; if stage2 grows larger than that, it's no big deal, but stage1
+; will need to be modified to load more blocks of stage2.
+; this will make it so stage2 won't compile if it's larger than 1024 bytes
+; just in case stage2 sneakily grows to that point and not all of it gets loaded
+
+times 1022 - ($ - $$) db 0    ; pad remaining bytes with zeroes
+dw 0xcafe                     ; make sure stage 2 doesn't surpass 1024 bytes
