@@ -64,7 +64,18 @@ jmp 8h:pmode                   ; jump to protected mode!
 pmode:
 [bits 32]
 
-jmp KERNEL_ADDR
+; the first thing to do in protected mode is to
+; move kernel from where it was loaded by stage1 (10000h)
+; to where it is expected by the linker to be (100000h)
+; 
+; this moves 4M for the kernel which is plenty, but if the
+; kernel ever takes up more than 4M, this will need to be updated
+mov esi, KERNEL_LOAD_BASE
+mov edi, KERNEL_NEW_BASE
+mov ecx, 400000h                ; move 4M of memory
+rep movsb
+
+jmp KERNEL_NEW_BASE
 
 ; tell nasm remainder of this file is 16 bit mode
 [bits 16]
@@ -163,5 +174,6 @@ a20_not_enabled: db 'a20 is not enabled!', 0
 welcome_pmode: db 'welcome to protected mode!', 0
 
 ; constants
-MMAP_ADDR   equ  4000h ; address of memory map
-KERNEL_ADDR equ 10000h ; address of kernel
+MMAP_ADDR        equ  4000h  ; address of memory map
+KERNEL_LOAD_BASE equ 10000h  ; address where kernel was loaded by stage1
+KERNEL_NEW_BASE  equ 100000h ; address where linker expects kernel to be loaded by stage2 (1M)
