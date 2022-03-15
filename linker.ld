@@ -1,11 +1,11 @@
-ENTRY(start)
+ENTRY(entry)
 OUTPUT_FORMAT("binary")
 SECTIONS
 {
 	. = 0xc0000000;
 
-    _start = .;
-	_start_phys = 1M;
+    start = .;
+	start_phys = 1M;
 
     .entry :
     {
@@ -35,5 +35,7 @@ SECTIONS
 
 	. = ALIGN(4096);
 	end = .;
-	end_phys = _start_phys + (end - _start);
+	end_phys = start_phys + (end - start);
+
+	size = end - start;
 }

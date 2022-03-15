@@ -11,12 +11,12 @@
 [bits 32]
 
 section .entry
-global start
-start:
-jmp main
+global entry
+entry:
+jmp .start
 
 section .text
-main:
+.start:
 lgdt [gdt_descriptor]      ; load gdt into gdtr
 mov ax, 10h                ; 10h is the offset in the gdt to data segment
 mov ds, ax                 ; reload remainder of data segment registers
@@ -63,10 +63,6 @@ gdt_end:
 gdt_descriptor:
 dw gdt_end - gdt - 1    ; size of gdt minus 1
 dd gdt                  ; starting address of GDT
-
-global mboot_info:
-mboot_info:
-	dd 0
 
 ; initialize kernel stack
 section .bss

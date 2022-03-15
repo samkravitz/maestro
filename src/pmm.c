@@ -15,7 +15,7 @@
 #include "string.h"
 
 // symbols placed at kernel image start and end, respectively
-extern u32 _start, end;
+extern u32 start, end;
 
 // total size of physical memory in bytes (both available and reserved)
 static u32 mem_size = 0;
@@ -132,9 +132,9 @@ void pmminit()
 
 	// after this, the kernel's blocks will be marked as clear, so we have to re-reserve them
 	// calculate kernel size in blocks
-	u32 kernel_blocks = ((uptr) &end - (uptr) &_start) / BLOCK_SIZE;
+	u32 kernel_blocks = ((uptr) &end - (uptr) &start) / BLOCK_SIZE;
 	for (size_t i = 0; i < kernel_blocks; ++i)
-		BITMAP_SET(mmap, PHYS_TO_MMAP_IDX((uptr) &_start + BLOCK_SIZE * i));
+		BITMAP_SET(mmap, PHYS_TO_MMAP_IDX((uptr) &start + BLOCK_SIZE * i));
 	
 	// same with mmap
 	// mmap size in blocks
