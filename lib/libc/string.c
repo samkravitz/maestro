@@ -128,9 +128,12 @@ char *strncat(char *dest, const char *src, size_t n)
 
 char *strcpy(char *dest, const char *src)
 {
-	size_t len = strlen(src);
-	memcpy(dest, src, len);
-	dest[len] = '\0';
+    return strncpy(dest, src, strlen(src) + 1);
+}
+
+char *strncpy(char *dest, const char *src, size_t n)
+{
+	memcpy(dest, src, n);
 	return dest;
 }
 
