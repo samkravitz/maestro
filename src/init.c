@@ -23,7 +23,7 @@ void init()
 	idtinit();
 	intrinit();
 	clkinit();
-	// pmminit();
+	pmminit();
 
 	ext2_init();
     vfs_init();

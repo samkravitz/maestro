@@ -10,12 +10,19 @@
 #include <pmm.h>
 
 #include <bitmap.h>
+#include <kmalloc.h>
 #include <kprintf.h>
 
 #include "string.h"
 
 // symbols placed at kernel image start and end, respectively
 extern u32 start, end;
+
+// physical address of kernel start and end
+extern u32 start_phys, end_phys;
+
+// size of kernel image in bytes
+extern u32 size;
 
 // total size of physical memory in bytes (both available and reserved)
 static u32 mem_size = 0;
@@ -29,13 +36,15 @@ static u32 max_blocks;
 
 // bitmap of block allocation status
 // a set bit denotes the block is used
-// place the bitmap immediately after the kernel image in memory so we don't have to call kmalloc() to dynamically allocate it
-// and after we figure out the size of the bitmap the kernel heap is placed right after it
+// the bitmap is placed immediately after the kernel image in memory so we don't have to call kmalloc() to dynamically allocate it
+// the kernel heap will be placed right after the bitmap
 // it's like a free call to kmalloc :)
 static u32 *mmap = &end;
 
-// physical address of base of kernel heap
-uptr heap;
+// block the kernel starts/ends on
+// i.e. start_block * BLOCK_SIZE = start_phys
+// and    end_block * BLOCK_SIZE = end_phys
+static u32 start_block, end_block;
 
 void pmminit()
 {
@@ -107,6 +116,9 @@ void pmminit()
 		kprintf("&end was not block-aligned!\n");
 	}
 
+	start_block = (u32) &start_phys / BLOCK_SIZE;
+	end_block   = (u32) &end_phys   / BLOCK_SIZE;
+
 	// the number of bytes mmap bitmap takes up is conveniently exactly equal to max_blocks
 	max_blocks = mem_size / BLOCK_SIZE;
 
@@ -132,21 +144,23 @@ void pmminit()
 
 	// after this, the kernel's blocks will be marked as clear, so we have to re-reserve them
 	// calculate kernel size in blocks
-	u32 kernel_blocks = ((uptr) &end - (uptr) &start) / BLOCK_SIZE;
+	u32 kernel_blocks = (u32) &size / BLOCK_SIZE;
 	for (size_t i = 0; i < kernel_blocks; ++i)
-		BITMAP_SET(mmap, PHYS_TO_MMAP_IDX((uptr) &start + BLOCK_SIZE * i));
+		BITMAP_SET(mmap, start_block + i);
 	
 	// same with mmap
-	// mmap size in blocks
+	for (size_t i = 0; i < max_blocks; ++i)
+		BITMAP_SET(mmap, end_block + i);
+	
+	// how many blocks the mmap itself takes up
 	u32 mmap_blocks = BLOCK_ALIGN(max_blocks) / BLOCK_SIZE;
-	for (size_t i = 0; i < mmap_blocks; ++i)
-		BITMAP_SET(mmap, PHYS_TO_MMAP_IDX((uptr) &end + BLOCK_SIZE * i));
 	
 	// last, we are reserving 1 block for the kernel heap initially, so mark that as reserved too
-	BITMAP_SET(mmap, PHYS_TO_MMAP_IDX((uptr) &end + BLOCK_ALIGN(max_blocks)));
+	BITMAP_SET(mmap, end_block + mmap_blocks + 1);
 
-	// kernel heap can begin immediately after (on a block-aligned boundary)
-	heap = (uptr) &end + BLOCK_ALIGN(max_blocks) + BLOCK_SIZE;
+	// kernel heap can begin immediately after mmap (on a block-aligned boundary)
+	void *heap = (void *) ((u8 *) mmap + mmap_blocks * BLOCK_SIZE);
+	kmalloc_init(heap, BLOCK_SIZE);
 
 	// finally, print out calculated memory stats
 	int free_blocks = 0;

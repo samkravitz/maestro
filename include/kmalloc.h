@@ -15,6 +15,8 @@ struct mem_block
 	int debug;    // delete me
 };
 
+void kmalloc_init(void *, size_t);
+
 void *brk(int);
 void kfree(void *);
 void *kmalloc(size_t);

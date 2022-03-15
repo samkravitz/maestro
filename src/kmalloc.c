@@ -2,16 +2,25 @@
 
 #include "string.h"
 
-// start of heap begins at end of maestro image
-extern uptr heap;
+// pointers to the base of the heap, and current top
+void *base, *heap;
+
+// length of heap in bytes
+static size_t len;
 
 void *block_head = NULL;
 
+void kmalloc_init(void *p, size_t s)
+{
+	base = heap = p;
+	len = s;
+}
+
 void *brk(int amt)
 {
-	uptr ptr = heap;
+	void *p = heap;
 	heap += amt;
-	return (void *) ptr;
+	return p;
 }
 
 /**
