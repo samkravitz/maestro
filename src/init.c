@@ -16,6 +16,7 @@
 #include <kbd.h>
 #include <pmm.h>
 #include <vfs.h>
+#include <vmm.h>
 
 // initializes IDT, interrupts, and the clock
 void init()
@@ -24,6 +25,7 @@ void init()
 	intrinit();
 	clkinit();
 	pmminit();
+	vmm_init();
 
 	ext2_init();
     vfs_init();

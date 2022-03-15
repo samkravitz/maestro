@@ -20,7 +20,8 @@ C = \
 	proc.c \
 	sched.c \
 	tty.c \
-	vfs.c
+	vfs.c \
+	vmm.c 
 
 # asm sources
 ASM = \
