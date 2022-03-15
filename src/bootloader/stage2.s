@@ -6,11 +6,17 @@
 ; FILE: stage2.s
 ; DATE: March 3rd, 2022
 ; DESCRIPTION: stage 2 bootloader
+;    detects the physical memory map,
+;    moves the kernel to 1M physical,
+;    maps the kernel to 0xc0000000 virtual,
+;    enables paging,
+;    & jumps to the kernel
 ;
 ;     MEMORY MAP
 ; 0x5000 : 0x5200  - stage2 bootloader
 ; 0x8000 : 0x9000  - page directory
 ; 0x9000 : 0xA000  - identity page table
+; 0xA000 : 0xB000  - kernel page table
 ; 
 ; 0x100000 : ?     - kernel
 
@@ -79,36 +85,67 @@ pmode:
 ; kernel ever takes up more than 4M, this will need to be updated
 mov esi, KERNEL_LOAD_BASE
 mov edi, KERNEL_NEW_BASE
-mov ecx, 400000h                ; move 4M of memory
+mov ecx, 400000h                               ; move 4M of memory
 rep movsb
 
 ; identity map first 1M of memory
 
 ; zero out page directory / page table area
 mov al, 0
-mov ecx, 0x2000                ; size in bytes of page directory + page table
+mov ecx, KERNEL_PAGE_TABLE_BASE - PAGE_DIR_BASE     ; number of bytes to clear
 lea edi, [PAGE_DIR_BASE]
 rep stosb
 
 ; set up directory entry for first 1M of memory
-lea ebx, [PAGE_TABLE_BASE]
-or ebx, 3                      ; present, rw, kernel memory
+lea ebx, [IDENT_PAGE_TABLE_BASE]
+or ebx, 3                                      ; present, rw, kernel memory
 mov [PAGE_DIR_BASE], ebx
 
-mov esi, 0                     ; i = 0
-mov ecx, PAGE_SIZE             ; ecx = 4096
+mov esi, 0                                     ; i = 0
+mov ecx, PAGE_SIZE                             ; ecx = 4096
 
 ; loop while i < 256 because 256 * PAGE_SIZE = 1M
-fill_page_table:
-cmp esi, 256                  ; while (i < 256)
+fill_ident_page_table:
+cmp esi, 256                                   ; while (i < 256)
 je .done
-mov eax, esi                   ; eax = i
-mul ecx                        ; eax = i * 4096 (addr of current frame)
-or eax, 3                      ; present, rw, kernel memory
-mov [PAGE_TABLE_BASE + 4 * esi], eax
+mov eax, esi                                   ; eax = i
+mul ecx                                        ; eax = i * 4096 (addr of current frame)
+or eax, 3                                      ; present, rw, kernel memory
+mov [IDENT_PAGE_TABLE_BASE + 4 * esi], eax     ; ident_page_table[i] = eax
 
-inc esi                        ; i++
-jmp fill_page_table
+inc esi                                        ; i++
+jmp fill_ident_page_table
+.done:
+
+; map 4M of kernel to its virtual address 0xc0000000
+; maps virtual addresses 0xc0000000 - 0xc0400000
+; to physical addresses  0x00100000 - 0x00500000
+;
+; again, if kernel grows larger than 4M this will need to be looked at
+
+; point page directory entry which controls our kernel's virtual address to the page table we set up for it
+lea ebx, [KERNEL_PAGE_TABLE_BASE]              ; ebx = addr of kernel page table that will map these 4M 
+or ebx, 3                                      ; present, rw, kernel memory
+mov eax, KERNEL_VIRT_BASE / 400000h            ; eax = index into page directory which controls the page table for kernel's virtual base
+mov [PAGE_DIR_BASE + 4 * eax], ebx             ; page_directory[kernel] = ebx
+
+; fill the kernel page table
+
+mov esi, 0                                     ; i = 0
+mov ecx, PAGE_SIZE                             ; ecx = 4096
+
+; loop while i < 1024 because 1024 * PAGE_SIZE = 4M
+fill_kernel_page_table:
+cmp esi, 1024                                  ; while (i < 1024)
+je .done
+mov eax, esi                                   ; eax = i
+mul ecx                                        ; eax = i * 4096 (addr of current frame)
+add eax, KERNEL_NEW_BASE                       ; add kernel's physical base to eax
+or eax, 3                                      ; present, rw, kernel memory
+mov [KERNEL_PAGE_TABLE_BASE + 4 * esi], eax    ; kernel_page_table[i] = eax
+
+inc esi                                        ; i++
+jmp fill_kernel_page_table
 .done:
 
 ; enable paging
@@ -118,7 +155,17 @@ mov eax, cr0
 or eax, 80000000h
 mov cr0, eax
 
-jmp KERNEL_NEW_BASE
+; when jumping to kernel, the memory mapping is as follows:
+;
+; 0x00000000 - 0x00100000 (virtual) is mapped to
+; 0x00000000 - 0x00100000 (physical)
+;
+; 0xc0000000 - 0xc0400000 (virtual) is mapped to
+; 0x00100000 - 0x00500000 (physical)
+;
+; all other addresses are unmapped, and accessing them will cause a page fault.
+
+jmp KERNEL_VIRT_BASE
 
 ; tell nasm remainder of this file is 16 bit mode
 [bits 16]
@@ -211,19 +258,19 @@ a20_disabled_error:
 
 %include 'puts.inc'
 
-hello: db 'hello from stage2!', 0
 memory_map_error: db 'error detecting memory map', 0
 a20_not_enabled: db 'a20 is not enabled!', 0
-welcome_pmode: db 'welcome to protected mode!', 0
 
 ; constants
-MMAP_ADDR       equ  4000h    ; address of memory map
-PAGE_DIR_BASE   equ  8000h    ; address of page directory
-PAGE_TABLE_BASE equ  9000h    ; address of page table
-KERNEL_LOAD_BASE equ 10000h   ; address where kernel was loaded by stage1
-KERNEL_NEW_BASE  equ 100000h  ; address where linker expects kernel to be loaded by stage2 (1M)
+MMAP_ADDR              equ  4000h            ; address of memory map
+PAGE_DIR_BASE          equ  8000h            ; address of page directory
+IDENT_PAGE_TABLE_BASE  equ  9000h            ; address of identity page table
+KERNEL_PAGE_TABLE_BASE equ 0a000h            ; address of kernel's page table
+KERNEL_LOAD_BASE       equ 10000h            ; address where kernel was loaded by stage1
+KERNEL_NEW_BASE        equ 100000h           ; address where linker expects kernel to be loaded by stage2 (1M)
 
-PAGE_SIZE       equ  1000h    ; size of page in bytes
+KERNEL_VIRT_BASE       equ 0xc0000000        ; virtual address of start of kernel
+PAGE_SIZE              equ  1000h            ; size of page in bytes
 
 ; stage1 only loads 1 block (1024 bytes) of stage2 into memory.
 ; if stage2 grows larger than that, it's no big deal, but stage1
