@@ -10,19 +10,7 @@
 
 #include "string.h"
 
-/**
- * returns first index of c in str or -1 if c does not appear
- */
-int indexOf(const char *str, char c)
-{
-	for (int i = 0; i < strlen(str); ++i)
-	{
-		if (str[i] == c)
-			return i;
-	}
-
-	return -1;
-}
+#include <kmalloc.h>
 
 // compares n bytes of s1 with s2
 // returns:
@@ -63,26 +51,26 @@ void *memcpy(void *dest, const void *src, size_t n)
 // copy memory area
 void *memmove(void *dest, const void *src, size_t n)
 {
-    char *d = (char *) dest;
-    const char *s = (const char *) src;
+	char *d       = (char *) dest;
+	const char *s = (const char *) src;
 
-    // copy from end so the buffer's don't overwrite one another
-    if ((uintptr_t) src < (uintptr_t) dest)
-    {
-        d += n - 1;
-        s += n - 1;
-        while (n--)
-            *d-- = *s--;
-    }
+	// copy from end so the buffer's don't overwrite one another
+	if ((uintptr_t) src < (uintptr_t) dest)
+	{
+		d += n - 1;
+		s += n - 1;
+		while (n--)
+			*d-- = *s--;
+	}
 
-    // copy from beginning (basically just memcpy)
-    else
-    {
-        while (n--)
-	    	*d++ = *s++;
-    }
+	// copy from beginning (basically just memcpy)
+	else
+	{
+		while (n--)
+			*d++ = *s++;
+	}
 
-    return dest;
+	return dest;
 }
 
 // sets n bytes of ptr to c
@@ -128,7 +116,7 @@ char *strncat(char *dest, const char *src, size_t n)
 
 char *strcpy(char *dest, const char *src)
 {
-    return strncpy(dest, src, strlen(src) + 1);
+	return strncpy(dest, src, strlen(src) + 1);
 }
 
 char *strncpy(char *dest, const char *src, size_t n)
@@ -142,13 +130,13 @@ char *strncpy(char *dest, const char *src, size_t n)
 // the null terminator is considered part of the string
 char *strchr(const char *str, char c)
 {
-    for (size_t i = 0; i < strlen(str) + 1; i++)
-    {
-        if (str[i] == c)
-            return &str[i];
-    }
+	for (size_t i = 0; i < strlen(str) + 1; i++)
+	{
+		if (str[i] == c)
+			return (char *) &str[i];
+	}
 
-    return NULL;
+	return NULL;
 }
 
 // returns a pointer to the last occurrence of c in str,
@@ -156,47 +144,47 @@ char *strchr(const char *str, char c)
 // the null terminator is considered part of the string
 char *strrchr(const char *str, char c)
 {
-    size_t i = strlen(str) + 1;
-    while (i-- != 0)
-    {
-        if (str[i] == c)
-            return &str[i];
-    }
-        
-    return NULL;
+	size_t i = strlen(str) + 1;
+	while (i-- != 0)
+	{
+		if (str[i] == c)
+			return (char *) &str[i];
+	}
+
+	return NULL;
 }
 
 int strcmp(const char *a, const char *b)
 {
-    return strncmp(a, b, strlen(a));
+	return strncmp(a, b, strlen(a));
 }
 
 int strncmp(const char *a, const char *b, size_t n)
 {
-    const u8 *s1 = (const u8 *) a;
-    const u8 *s2 = (const u8 *) b;
+	const u8 *s1 = (const u8 *) a;
+	const u8 *s2 = (const u8 *) b;
 
 	while (n && *s1 && (*s1 == *s2))
-    {
-        s1++;
-        s2++;
-        n--;
-    }
- 
-    return n == 0 ? 0 : *s1 - *s2;
+	{
+		s1++;
+		s2++;
+		n--;
+	}
+
+	return n == 0 ? 0 : *s1 - *s2;
 }
 
 char *strdup(const char *str)
 {
-    return strndup(str, strlen(str));
+	return strndup(str, strlen(str));
 }
 
 char *strndup(const char *str, size_t n)
 {
-    char *dup = (char *) kmalloc(n + 1);
-    memcpy(dup, str, n);
-    dup[n] = '\0';
-    return dup;
+	char *dup = (char *) kmalloc(n + 1);
+	memcpy(dup, str, n);
+	dup[n] = '\0';
+	return dup;
 }
 
 // compute the length of a null-terminated string
@@ -211,53 +199,53 @@ size_t strlen(const char *str)
 
 char *strtok(char *str, const char *delim)
 {
-    // buffer to persist str between calls
-    static char *save;
+	// buffer to persist str between calls
+	static char *save;
 
-    if (!str)
-        str = save;
-    
-    if (!str || strlen(str) == 0)
-        return NULL;
+	if (!str)
+		str = save;
 
-    size_t delim_len = strlen(delim);
+	if (!str || strlen(str) == 0)
+		return NULL;
 
-    // check if str begins with delim
-    if (strncmp(str, delim, delim_len) == 0)
-    {
-        str += delim_len;
-        if (!str)
-            return NULL;
-    }
+	size_t delim_len = strlen(delim);
 
-    char *ret = str;
+	// check if str begins with delim
+	if (strncmp(str, delim, delim_len) == 0)
+	{
+		str += delim_len;
+		if (!str)
+			return NULL;
+	}
 
-    for (; *str; str++)
-    {
-        if (strncmp(str, delim, delim_len) == 0)
-        {
-            *str = '\0';
-            save = str + 1;
-            return ret;
-        }
-    }
+	char *ret = str;
 
-    save = NULL;
-    return ret;
+	for (; *str; str++)
+	{
+		if (strncmp(str, delim, delim_len) == 0)
+		{
+			*str = '\0';
+			save = str + 1;
+			return ret;
+		}
+	}
+
+	save = NULL;
+	return ret;
 }
 
 char *strrev(char *str)
 {
-    char *head = str;
-    char *tail = head + strlen(head) - 1;
+	char *head = str;
+	char *tail = head + strlen(head) - 1;
 
-    for (; tail > head; head++, tail--)
-    {
-        // finally, an excuse to use my favorite algorithm, the in place swap
-        *head ^= *tail;
-        *tail ^= *head;
-        *head ^= *tail;
-    }
+	for (; tail > head; head++, tail--)
+	{
+		// finally, an excuse to use my favorite algorithm, the in place swap
+		*head ^= *tail;
+		*tail ^= *head;
+		*head ^= *tail;
+	}
 
-    return str;
+	return str;
 }
