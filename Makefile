@@ -29,7 +29,6 @@ ASM = \
 	disable.s \
 	irq.s \
 	isr.s \
-	pdsw.s \
 	start.s
 
 OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))
