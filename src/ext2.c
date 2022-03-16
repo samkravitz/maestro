@@ -30,6 +30,8 @@ static void write_inode(struct inode_t *, u32);
 static void print_inode(u32);
 static void print_superblock();
 
+static u32 *get_data_blocks(struct inode_t *, u32, u32);
+
 static bool insert_dirent(struct inode_t *, struct ext2_dir_entry *, char *);
 
 #define BITMAP_SET(bitmap, bit)   (bitmap[bit / 8] |=  (1 << (bit % 8)))
@@ -481,6 +483,87 @@ void ext2_readdir(u8 *buff, u32 ino)
 {
 	struct inode_t inode = read_inode(ino);
 	read_block(buff, inode.block_ptr[0], 1);
+}
+
+/**
+ * @brief calculates the indeces of data blocks of a file
+ * 
+ * this is a non trivial calculation because of the
+ * singly, doubly, and triply indirect block pointers
+ * 
+ * @param in pointer to inode to get data blocks of
+ * @param start nth data block of file to start from
+ * @param count number of data blocks to get
+ * @return dynamically allocated array where each element n is the start+nth data block of in
+ */
+static u32 *get_data_blocks(struct inode_t *in, u32 start, u32 count)
+{
+	u32 *blocks = kmalloc(sizeof(u32) * count);
+
+	// buffers to hold the indirect block pointers, if necessary
+	u32 singly[EXT2_BLOCK_SIZE / sizeof(u32)];
+	u32 doubly[EXT2_BLOCK_SIZE / sizeof(u32)];
+	// u32 triply[EXT2_BLOCK_SIZE / sizeof(u32)];
+
+	// number of blocks the direct, singly, doubly, and triply block pointers manage, respectively
+	#define DIRECT_BLOCKS                12
+	#define INDIRECT_BLOCKS             256
+	#define DOUBLY_INDIRECT_BLOCKS    65536
+	#define TRIPLY_INDIRECT_BLOCKS 16777216
+
+	// number of pointers each level (singly, doubly, triply) contains
+	#define BLOCKS_IN_INDIRECT_BLOCK (EXT2_BLOCK_SIZE / sizeof(u32))
+
+	for (u32 i = 0; i < count; i++)
+	{
+		u32 block = start + i;
+
+		// block is in a direct block
+		if (block < DIRECT_BLOCKS)
+		{
+			blocks[i] = in->block_ptr[block];
+		}
+
+		// block is in the singly indrect block
+		else if (block < DIRECT_BLOCKS + INDIRECT_BLOCKS)
+		{
+			// read singly blocks into buffer
+			read_block(singly, in->singly_block_ptr, 1);
+
+			// get offset into data block
+			u32 data_offset = (block - DIRECT_BLOCKS) % block;
+			blocks[i] = singly[data_offset];
+		}
+
+		// block is in the doubly indirect block
+		else if (block < DIRECT_BLOCKS + INDIRECT_BLOCKS + DOUBLY_INDIRECT_BLOCKS)
+		{
+			// read doubly blocks into buffer
+			read_block(doubly, in->double_block_ptr, 1);
+
+			// what index in the doubly block holds the singly block?
+			u32 singly_offset = (block - DIRECT_BLOCKS - INDIRECT_BLOCKS) / BLOCKS_IN_INDIRECT_BLOCK;
+			
+			// read singly blocks into buffer
+			read_block(singly, doubly[singly_offset], 1);
+
+			// get index into data block
+			u32 data_offset = (block - DIRECT_BLOCKS - INDIRECT_BLOCKS) % BLOCKS_IN_INDIRECT_BLOCK;
+			blocks[i] = singly[data_offset];
+		}
+
+		// block is in the triply indirect block
+		else
+		{
+			// TODO - implement triply indirect block
+			kprintf("get_data_blocks: in a triply indirect block!\n");
+
+			while (1)
+				;
+		}
+	}
+
+	return blocks;
 }
 
 /**
