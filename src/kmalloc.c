@@ -1,4 +1,5 @@
 #include <kmalloc.h>
+#include <kprintf.h>
 
 #include "string.h"
 
@@ -20,6 +21,15 @@ void *brk(int amt)
 {
 	void *p = heap;
 	heap += amt;
+
+	// we need to request more memory from vmm instead of just expanding heap
+	if (heap > base + len)
+	{
+		kprintf("Error: need to expand heap!\n");
+		while (1)
+			;
+	}
+
 	return p;
 }
 

@@ -23,6 +23,9 @@ extern struct pde ident_page_table[NUM_TABLE_ENTRIES];
 
 extern u32 start_phys, start;
 
+// pointer to heap, defined in kmalloc.c
+extern void *heap;
+
 // converts virtual address addr to a physical address
 #define VIRT_TO_PHYS(addr) ((u32) &start_phys + (u32) addr - (u32) &start)
 
@@ -47,6 +50,19 @@ void vmm_init()
 	int i = (u32) &start / 0x400000; // index into kernel page directory that maps the kernel page table
 	kpage_dir[i].addr = VIRT_TO_PHYS(kpage_table) >> 12;
 	kpage_dir[0].addr = VIRT_TO_PHYS(ident_page_table) >> 12;
+
+	// when mapping the kernel to 0xc0000000, the bootloader mapped 4M of memory.
+	// However, not all of that is used. So we will mark the unused pages as not present.
+	// the used pages are the pages used by the kernel, the pages used by the physical memory bitmap,
+	// and the single page initialled allocated for the kernel heap. So starting at the end of the kernel heap,
+	// mark the remainder of pages in the page table as not present
+
+	// index into page table that maps heap's page
+	i = ((u32) heap - (u32) &start) / PAGE_SIZE;
+
+	// start at i + 1 because we want to keep the heap's page present
+	for (int j = i + 1; j < NUM_TABLE_ENTRIES; j++)
+		kpage_table[j].present = 0;
 
 	// mark physical addresses 0x0000-0x1000 as not present
 	// this will make all null pointer dereferences page fault
