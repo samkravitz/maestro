@@ -11,6 +11,10 @@
 [bits 32]
 
 global entry
+global kpage_dir
+global kpage_table
+global ident_page_table
+
 extern clear
 extern kmain
 
@@ -70,3 +74,18 @@ align 16
 kstack_bottom:
 resb 16384				   ; reserve 16K for kernel stack
 kstack_top:
+
+; kernel page directory
+align 0x1000               ; must be page aligned
+kpage_dir:
+resb 1024 * 4              ; page directory is 1024 4 byte entries
+
+; page table that maps first 4M of kernel
+align 0x1000               ; must be page aligned
+kpage_table:
+resb 1024 * 4              ; page table is 1024 4 byte entries
+
+; page table that identity maps first 1M of physical memory
+align 0x1000               ; must be page aligned
+ident_page_table:
+resb 1024 * 4              ; page table is 1024 4 byte entries
