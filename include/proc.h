@@ -11,10 +11,13 @@
 #define PROC_H
 
 #include <maestro.h>
-#include <state.h>
+#include <vfs.h>
 
 // max number of processes (for now),
-#define NPROC 100
+#define NPROC  100
+
+// max number of files a process can open
+#define NOFILE 8
 
 enum prstate
 {
@@ -27,8 +30,9 @@ struct proc
 {
 	uptr stkptr;
 	u32 stack[1024];
-	char name[32];
 	int pid;
+	struct file *ofile[NOFILE];    // open file table
+	char name[32];
 };
 
 struct proc *create(void (*func)(void), const char *);
