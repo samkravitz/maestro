@@ -34,5 +34,10 @@ struct file
 void vfs_init();
 struct vfs_node *vfs_mkdir(char *);
 struct vfs_node *vfs_touch(char *);
+int vfs_open(char *);
+int vfs_close(int);
+int vfs_seek(int, int);
+int vfs_read(int, void *, size_t);
+int vfs_read(int, void *, size_t);
 
 #endif    // VFS_H

@@ -12,6 +12,7 @@
 #include <ext2.h>
 #include <kmalloc.h>
 #include <kprintf.h>
+#include <proc.h>
 
 #include "string.h"
 
@@ -22,6 +23,13 @@ static struct vfs_node *find(char *);
 static struct vfs_node *find_parent(char *);
 static struct vfs_node *find_helper(const struct vfs_node *, char *);
 static void print_tree(struct vfs_node *, int);
+
+extern struct proc *curr;
+
+static inline bool is_open(int fd)
+{
+	return curr->ofile[fd] != NULL;
+}
 
 static inline void insert_child(struct vfs_node *parent, struct vfs_node *child)
 {
@@ -142,6 +150,128 @@ struct vfs_node *vfs_touch(char *path)
 	insert_child(parent, node);
 	return node;
 }
+
+/**
+ * @brief opens a file in the context of the running process
+ * @param path absolute path of the file to open
+ * @return fd of opened file or -1 on error
+ */
+int vfs_open(char *path)
+{
+	struct vfs_node *node = find(path);
+
+	if (!node)
+	{
+		kprintf("vfs_open: %s does not exist\n", path);
+		return -1;
+	}
+
+	// loop through process's open file table to see if it is able to open more files
+	int fd = -1;
+
+	// start at 3 because 0, 1, and 2 are resevered for stdin, stdout, and stderr
+	for (int i = 3; i < NOFILE; i++)
+	{
+		// an entry of NULL means there is a spot for a new open file
+		if (!curr->ofile[i])
+		{
+			fd = i;
+			break;
+		}
+	}
+
+	if (fd == -1)
+	{
+		kprintf("%s has a full file table!\n", curr->name);
+		return -1;
+	}
+
+	struct file *f = kmalloc(sizeof(struct file));
+	
+	f->size = ext2_filesize(node->inode);
+	f->pos = 0;
+	f->n = node;
+
+	curr->ofile[fd] = f;
+	return fd;
+}
+
+int vfs_close(int fd)
+{
+	if (!is_open(fd))
+	{
+		kprintf("vfs_close: fd %d is not open!\n", fd);
+		return -1;
+	}
+
+	kfree(curr->ofile[fd]);
+	curr->ofile[fd] = NULL;
+	return 0;
+}
+
+int vfs_seek(int fd, int amt)
+{
+	if (!is_open(fd))
+	{
+		kprintf("vfs_seek: fd %d is not open!\n", fd);
+		return -1;
+	}
+
+	struct file *f = curr->ofile[fd];
+
+	int newpos = (int) f->pos + amt;
+
+	// NOTE - this doesn't handle unsized underflow
+	// won't be an issue until pos + amt >= 0x80000000 (2G)
+
+	if (newpos < 0 || newpos > (int) f->size)
+	{
+		kprintf("vfs_seek: invalid seek amount: pos: %d size: %d amt: %d\n", f->pos, f->size, amt);
+		return -1;
+	}
+
+	f->pos = newpos;
+	return 0;
+}
+
+int vfs_read(int fd, void *buff, size_t count)
+{
+	if (!is_open(fd))
+	{
+		kprintf("vfs_read: fd %d is not open!\n", fd);
+		return -1;
+	}
+
+	struct file *f = curr->ofile[fd];
+
+	// TODO - delegate ext2 specific work to a generic fs driver to keep
+	// vfs isolated from ext2, in case support for other filesystems is added
+	ext2_read_data(buff, f->n->inode, f->pos, count);
+
+	f->pos += count;
+
+	return 0;
+}
+
+int vfs_write(int fd, void *buff, size_t count)
+{
+	if (!is_open(fd))
+	{
+		kprintf("vfs_write: fd %d is not open!\n", fd);
+		return -1;
+	}
+
+	struct file *f = curr->ofile[fd];
+
+	// TODO - delegate ext2 specific work to a generic fs driver to keep
+	// vfs isolated from ext2, in case support for other filesystems is added
+	ext2_write_data(buff, f->n->inode, f->pos, count);
+
+	f->pos += count;
+
+	return 0;
+}
+
 
 /**
  * @brief finds the vfs_node associated with a given path
