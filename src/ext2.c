@@ -486,6 +486,96 @@ void ext2_readdir(u8 *buff, u32 ino)
 }
 
 /**
+ * @brief get a file's size
+ * @param inum inode number
+ * @return file size in bytes
+ */
+size_t ext2_filesize(u32 inum)
+{
+	struct inode_t inode = read_inode(inum);
+	return inode.size;
+}
+
+/**
+ * @brief read from a file's data blocks
+ * @param buff buffer to read data into
+ * @param inum inode number to read from
+ * @param off  byte offset in file to begin reading
+ * @param count number of bytes to read
+ * @return number of bytes 
+ */
+int ext2_read_data(void *buff, u32 inum, size_t off, size_t count)
+{
+	struct inode_t inode = read_inode(inum);
+
+	// inode's starting data block to read from
+	u32 start_block = off / EXT2_BLOCK_SIZE;
+
+	// offset within that starting block
+	u32 start_offset = off % EXT2_BLOCK_SIZE;
+
+	// number of data blocks to read in total
+	u32 num_blocks = (count / EXT2_BLOCK_SIZE) + 1; // always want to read at least 1 block
+
+	// remaining bytes to read
+	u32 remaining = count;
+
+	// if not starting at offset 0, we need to take into account that we must read an entire block
+	if (start_offset != 0)
+		num_blocks++;
+
+	// list of data blocks to read
+	u32 *data_blocks = get_data_blocks(&inode, start_block, num_blocks);
+
+	// temporary buffer if reading from a non block-aligned offset
+	u8 tmp[EXT2_BLOCK_SIZE];
+
+	// handle case where we're not reading from a block aligned offset
+	if (start_offset != 0)
+	{
+		read_block(tmp, *data_blocks, 1);
+		u32 start_count = EXT2_BLOCK_SIZE - start_offset;
+
+		if (start_count > count)
+			start_count = count;
+		memcpy(buff, tmp + start_offset, start_count);
+		data_blocks++;
+		buff += start_count;
+		remaining -= start_count;
+	}
+
+	// read all intermediate, block aligned data blocks
+	while (remaining > EXT2_BLOCK_SIZE)
+	{
+		read_block(buff, *data_blocks, 1);
+		remaining -= EXT2_BLOCK_SIZE;
+		data_blocks++;
+		buff += EXT2_BLOCK_SIZE;
+	}
+
+	// finish case where we're not reading from a block aligned offset	
+	if (remaining != 0)
+	{
+		read_block(tmp, *data_blocks, 1);
+		memcpy(buff, tmp, remaining);
+	}
+	
+	return count;
+}
+/**
+ * @brief write into a file's data blocks
+ * @param buff buffer to write data into
+ * @param inum inode number to write from
+ * @param off  byte offset in file to begin writing
+ * @param count number of bytes to write
+ * @return number of bytes 
+ */
+int ext2_write_data(void *buff, u32 inum, size_t off, size_t count)
+{
+	return 1;
+}
+
+/**
  * @brief calculates the indeces of data blocks of a file
  * 
  * this is a non trivial calculation because of the
