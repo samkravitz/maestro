@@ -22,6 +22,15 @@ struct vfs_node
 	struct vfs_node *right_sibling;
 };
 
+// structure representing an open file from a process's point of view
+struct file
+{
+	size_t size;           // size in bytes
+	size_t pos;            // seek offset
+
+	struct vfs_node *n;    // reference to vfs node this open file represents
+};
+
 void vfs_init();
 struct vfs_node *vfs_mkdir(char *);
 struct vfs_node *vfs_touch(char *);
