@@ -4,6 +4,7 @@ INCLUDE = -I ../../include
 LIB = libc.a
 
 SOURCES = \
+	stdio.c \
 	stdlib.c \
 	string.c \
 

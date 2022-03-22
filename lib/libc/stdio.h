@@ -4,15 +4,15 @@
  * Author: Sam Kravitz
  *
  * FILE: libc/stdio.h
- * DATE: August 30, 2021
+ * DATE: March 22nd, 2022
  * DESCRIPTION: standard input/output utilities 
  */
 #ifndef STDIO_H
 #define STDIO_H
 
 #include <maestro.h>
+#include <stdarg.h>
 
-// ugh, I hate typedef...
 typedef struct
 {
 	char name[32];
@@ -21,5 +21,13 @@ typedef struct
 	u32 position;
 	int fd;
 } FILE;
+
+int printf(const char *, ...);
+int fprintf(FILE *, const char *, ...);
+int sprintf(char *, const char *, ...);
+
+int vprintf(const char *, va_list);
+int vfprintf(FILE *, const char *, va_list);
+int vsprintf(char *, const char *, va_list);
 
 #endif    // STDIO_H
