@@ -49,7 +49,7 @@ static u32 start_block, end_block;
 void pmminit()
 {
 	// print out the physical memory map
-	kprintf("\n    MEMORY MAP\n");
+	kprintf("\tMEMORY MAP\n");
 	kprintf("Region                 | Length     | Type\n");
 
 	/*
@@ -109,6 +109,8 @@ void pmminit()
 		kprintf("0x%8x-0x%8x: | 0x%8x | %s (%d)\n", base, base + len - 1, len, typestr, ent->type);
 		ent++;
 	}
+
+	kprintf("\n");
 
 	// the linker should block align &end but it would be trouble if it's not
 	if ((uptr) &end % BLOCK_SIZE != 0)
@@ -172,6 +174,6 @@ void pmminit()
             used_blocks++;
 	}
 
-	kprintf("\nInstalled memory: %d bytes (%d blocks)\n", max_blocks * BLOCK_SIZE, max_blocks);
+	kprintf("Installed memory: %d bytes (%d blocks)\n", max_blocks * BLOCK_SIZE, max_blocks);
 	kprintf("Free memory: %d bytes (%d blocks)\n", free_blocks * BLOCK_SIZE, free_blocks);
 }

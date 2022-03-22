@@ -13,6 +13,7 @@
 #include <kprintf.h>
 #include <proc.h>
 
+#include "stdio.h"
 #include "string.h"
 
 extern struct proc *curr;
@@ -20,7 +21,7 @@ extern struct proc nullproc;
 
 void kmain()
 {
-	kputs("Welcome to maestro!\n");
+	printf("Welcome to maestro!\n");
 	init();
 
 	curr = &nullproc;

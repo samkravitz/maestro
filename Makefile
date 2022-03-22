@@ -72,7 +72,10 @@ test:
 
 .PHONY: start
 start:
-	qemu-system-i386 -m 16M -drive file=disk.img,format=raw,index=0,media=disk
+	qemu-system-i386 \
+		-m 16M \
+		-serial stdio \
+		-drive file=disk.img,format=raw,index=0,media=disk
 
 .PHONY: clean
 clean:

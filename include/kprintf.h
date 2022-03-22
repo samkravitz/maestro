@@ -13,8 +13,24 @@
 #include <maestro.h>
 #include <stdarg.h>
 
+#include "string.h"
+
 void kputc(char c);
 void kputs(const char *);
-int kprintf(const char *, ...);
+int vkprintf(const char *, ...);
+
+/* writes a formatted message to the serial console
+ * uses the __FILE__ macro to indicated what file printed the message
+ * if this line appeared in the file kmain.c:
+ * kprintf("Welcome to %s\n", "maestro!");
+ *
+ * the serial console would print:
+ * [kmain.c]: Welcome to maestro!
+ */
+#define kprintf(fmt, ...)                           \
+{                                                   \
+	vkprintf("[%s]: ", strrchr(__FILE__, '/') + 1); \
+	vkprintf(fmt, ##__VA_ARGS__);                   \
+}
 
 #endif    // KPRINTF_H
