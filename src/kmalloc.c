@@ -19,6 +19,8 @@ void *base, *heap;
 // rounds an number x up to the nearest multiple of 8
 #define round8(x) ((x + 7) & ~0x7);
 
+static void insert_into_freelist(struct header *);
+
 void kmalloc_init(void *p, size_t s)
 {
     base = p;
@@ -128,7 +130,113 @@ void *kmalloc(size_t size)
  */
 void kfree(void *p)
 {
-	(void) p;
+	// freeing a null pointer is a no-op
+	if (!p)
+	{
+		kprintf("NULL free\n");
+		return;
+	}
+
+	// header corresponding to the freeing address
+	struct header *h = (struct header *) (p - ALLOC_HEADER_SIZE);
+
+	// check for double free
+	if (get_block_state(h) != ALLOCATED)
+	{
+		kprintf("Double free detected!\n");
+		return;
+	}
+
+	// insert header into freelist
+	insert_into_freelist(h);
+
+	// get left and right headers to check their allocation status
+	struct header *left = (struct header *) get_left_header(h);
+	struct header *right = (struct header *) get_right_header(h);
+	set_block_state(h, UNALLOCATED);
+
+	// attempt to coalesce free blocks
+
+	// case 1 - neither the right nor the left blocks are unallocated
+	if (get_block_state(left) != UNALLOCATED && get_block_state(right) != UNALLOCATED)
+	{
+		// do nothing
+	}
+
+	// case 2 - Only the right block is unallocated
+	// coalece right block and h together
+	else if (get_block_state(left) != UNALLOCATED && get_block_state(right) == UNALLOCATED)
+	{
+		set_block_size(h, get_block_size(h) + get_block_size(right));
+
+		// adjust next and prev ptrs of right header
+		right->prev->next = h;
+		right->next->prev = h;
+
+		// set left_size of block after h
+		struct header *right_header = get_right_header(h);
+		right_header->left_size = get_block_size(h);
+	}
+
+	// case 3 - Only the left block is unallocated
+	// coalece left block and h together
+	else if (get_block_state(left) == UNALLOCATED && get_block_state(right) != UNALLOCATED)
+	{
+		set_block_size(left, get_block_size(left) + get_block_size(h));
+
+		// adjust next and prev ptrs of left header
+		h->next->prev = left;
+		h->prev->next = left;
+
+		// set left_size of block after left
+		struct header *right_header = get_right_header(left);
+		right_header->left_size = get_block_size(left);
+	}
+
+	// case 4 - both left and right blocks are unallocated
+	// coalesce left, h, and right together
+	else if (get_block_state(left) == UNALLOCATED && get_block_state(right) == UNALLOCATED)
+	{
+		set_block_size(left, get_block_size(left) + get_block_size(h) + get_block_size(right));
+
+		// adjust next and prev ptrs
+		h->next->prev = left;
+		h->prev->next = left;
+		right->prev->next = h;
+		right->next->prev = h;
+	}
+
+	// case 5 - something has gone wrong
+	else
+	{
+		kprintf("kfree: case 5 reached\n");
+		return;
+	}
+}
+
+/**
+ * @brief inserts a header in the front of a freelist
+ * @param h header to insert
+ */
+static void insert_into_freelist(struct header *h)
+{
+	// freelist is empty
+	if (sentinal->next == sentinal)
+	{
+		sentinal->prev = h;
+		sentinal->next = h;
+		h->prev = sentinal;
+		h->next = sentinal;
+	}
+
+	// freelist is not empty
+	else
+	{
+		h->next = sentinal->next;
+		h->prev = sentinal;
+		sentinal->next->prev = h;
+		sentinal->next = h;
+	}
 }
 
 static const char *state_strings[] = {
