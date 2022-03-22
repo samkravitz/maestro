@@ -11,7 +11,6 @@
 #define INTR_H
 
 #include <kprintf.h>
-#include <state.h>
 
 #define NUM_INTERRUPTS 256
 
@@ -38,8 +37,8 @@ extern void (*intr_handlers[NUM_INTERRUPTS])(void);
 void eoi(int);
 void intrinit();
 void irq(int);
-void isr(struct state);
-void panic(struct state);
+void isr();
+void panic();
 
 void svect(int, void (*)(void));
 

@@ -54,31 +54,15 @@ void irq(int x)
 	handler();
 }
 
-void isr(struct state s)
+void isr()
 {
-	panic(s);
+	panic();
 }
 
-void panic(struct state s)
+void panic()
 {
-	kprintf("\nMAESTRO PANIC!!!\n");
-
-	if (s.inum < NMSG)
-		kprintf("Exception %d: %s\n", s.inum, excmsg[s.inum]);
-
-	kprintf("registers: \n");
-	kprintf("eax: %x\n", s.eax);
-	kprintf("ebx: %x\n", s.ebx);
-	kprintf("ecx: %x\n", s.ecx);
-	kprintf("edx: %x\n", s.edx);
-	kprintf("esi: %x\n", s.esi);
-	kprintf("edi: %x\n", s.edi);
-	kprintf("ebp: %x\n", s.ebp);
-	kprintf("esp: %x\n", s.esp);
-
-	if (s.errcode)
-		kprintf("Error code: %d\n", s.errcode);
-
+	kprintf("\n");
+	kprintf("MAESTRO PANIC!!!\n");
 	kprintf("Panic complete...\n");
 
 	while (1)
