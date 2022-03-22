@@ -34,6 +34,8 @@ int kprintf(const char *fmt, ...)
 	char c;
 
 	char fmtbuf[32];
+	char buff[1024];
+	memset(buff, 0, sizeof(buff));
 
 	while ((c = *fmt) != '\0')
 	{
@@ -59,8 +61,7 @@ int kprintf(const char *fmt, ...)
 				// character
 				case 'c':
 					x = va_arg(args, int);
-                    kputc((char) x);
-					i++;
+					buff[i++] = (char) x;
 					fmt += 2;
 					break;
 
@@ -68,7 +69,6 @@ int kprintf(const char *fmt, ...)
 				case 'd':
 					x = va_arg(args, int);
 					itoa(x, fmtbuf, 10);
-					i += strlen(fmtbuf);
 					fmt += 2;
 					break;
 
@@ -76,22 +76,20 @@ int kprintf(const char *fmt, ...)
 				case 'x':
 					x = va_arg(args, u32);
 					itoa(x, fmtbuf, 16);
-					i += strlen(fmtbuf);
 					fmt += 2;
 					break;
 
 				// string
-				case 's':;
+				case 's':
 					char *str = va_arg(args, char *);
-					kputs(str);
+					strcat(&buff[i], str);
 					i += strlen(str);
 					fmt += 2;
 					break;
 
 				// actual '%' character
 				default:
-                    kputc('%');
-					i++;
+                    buff[i++] = '%';
 					fmt++;
 			}
 
@@ -104,22 +102,24 @@ int kprintf(const char *fmt, ...)
 
                 // TODO - for numbers, the default is to pad with '0',
                 // for strings, the default is to pad with ' '
-                while (diff-- != 0)
-                    fmtbuf[diff] = '0';
+				size_t s = diff;
+                while (s-- != 0)
+                    fmtbuf[s] = '0';				
             }
-
-            kputs(fmtbuf);
+			
+			strcat(&buff[i], fmtbuf);
+			i += strlen(fmtbuf);
 		}
 
 		// non-format character
 		else
 		{
-            kputc(c);
-            i++;
+            buff[i++] = c;
 			fmt++;
 		}
 	}
 
 	va_end(args);
+	kputs(buff);
 	return i;
 }
