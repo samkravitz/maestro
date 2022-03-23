@@ -37,4 +37,6 @@
 
 void pmminit();
 
+uintptr_t pmm_alloc();
+
 #endif    // PMM_H

@@ -177,3 +177,23 @@ void pmminit()
 	kprintf("Installed memory: %d bytes (%d blocks)\n", max_blocks * BLOCK_SIZE, max_blocks);
 	kprintf("Free memory: %d bytes (%d blocks)\n", free_blocks * BLOCK_SIZE, free_blocks);
 }
+
+/**
+ * @brief allocate a block of physical memory
+ * @return physical address of allocated block
+ */
+uintptr_t pmm_alloc()
+{
+	int idx = BITMAP_FIRST_CLEAR(mmap, max_blocks);
+
+	if (idx < 0)
+	{
+		kprintf("pmm_alloc: out of physical memory!\n");
+		return (uintptr_t) -1;
+	}
+
+	kprintf("allocating block %d (0x%x phys) \n", idx, idx * BLOCK_SIZE);
+
+	BITMAP_SET(mmap, idx);
+	return idx * BLOCK_SIZE;
+}

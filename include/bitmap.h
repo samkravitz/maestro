@@ -23,7 +23,7 @@
  * @param max_bits the maximum bit index this bitmap keeps track of
  * @return index of first set bit or -1 if all are clear
  */
-inline int BITMAP_FIRST_SET(u32 *bitmap, int max_bits)
+int BITMAP_FIRST_SET(u32 *bitmap, int max_bits)
 {
 	for (int i = 0; i < max_bits / 32; ++i)
 	{
@@ -49,7 +49,7 @@ inline int BITMAP_FIRST_SET(u32 *bitmap, int max_bits)
  * @param max_bits the maximum bit index this bitmap keeps track of
  * @return index of first clear bit or -1 if all are set
  */
-inline int BITMAP_FIRST_CLEAR(u32 *bitmap, int max_bits)
+int BITMAP_FIRST_CLEAR(u32 *bitmap, int max_bits)
 {
 	for (int i = 0; i < max_bits / 32; ++i)
 	{
