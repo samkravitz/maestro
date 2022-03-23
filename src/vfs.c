@@ -16,13 +16,13 @@
 
 #include "string.h"
 
-static struct vfs_node *root = NULL;
+static struct vnode *root = NULL;
 
-static void build_tree(struct vfs_node *);
-static struct vfs_node *find(char *);
-static struct vfs_node *find_parent(char *);
-static struct vfs_node *find_helper(const struct vfs_node *, char *);
-static void print_tree(struct vfs_node *, int);
+static void build_tree(struct vnode *);
+static struct vnode *find(char *);
+static struct vnode *find_parent(char *);
+static struct vnode *find_helper(const struct vnode *, char *);
+static void print_tree(struct vnode *, int);
 
 extern struct proc *curr;
 
@@ -31,7 +31,7 @@ static inline bool is_open(int fd)
 	return curr->ofile[fd] != NULL;
 }
 
-static inline void insert_child(struct vfs_node *parent, struct vfs_node *child)
+static inline void insert_child(struct vnode *parent, struct vnode *child)
 {
 	if (!parent->leftmost_child)
 	{
@@ -39,7 +39,7 @@ static inline void insert_child(struct vfs_node *parent, struct vfs_node *child)
 		return;
 	}
 
-	struct vfs_node *tmp = parent->leftmost_child;
+	struct vnode *tmp = parent->leftmost_child;
 
 	while (tmp->right_sibling)
 		tmp = tmp->right_sibling;
@@ -53,7 +53,7 @@ static inline void insert_child(struct vfs_node *parent, struct vfs_node *child)
 void vfs_init()
 {
 	// allocate root node
-	root                 = (struct vfs_node *) kmalloc(sizeof(struct vfs_node));
+	root                 = (struct vnode *) kmalloc(sizeof(struct vnode));
 	root->inode          = ROOT_INODE;
 	root->type           = DIR_TYPE_DIR;
 	root->num_children   = 0;
@@ -75,9 +75,9 @@ void vfs_init()
  * @param path absolute path of the directory to create
  * @return inode id of created directory, or -1 on error
  */
-struct vfs_node *vfs_mkdir(char *path)
+struct vnode *vfs_mkdir(char *path)
 {
-	struct vfs_node *parent = find_parent(path);
+	struct vnode *parent = find_parent(path);
 	if (!parent)
 	{
 		kprintf("[%s]: parent does not exist!\n", __FUNCTION__);
@@ -95,7 +95,7 @@ struct vfs_node *vfs_mkdir(char *path)
 	}
 
 	// allocate memory for the new directory in the tree
-	struct vfs_node *node = (struct vfs_node *) kmalloc(sizeof(struct vfs_node));
+	struct vnode *node = (struct vnode *) kmalloc(sizeof(struct vnode));
 	node->inode           = inode;
 	node->type            = DIR_TYPE_DIR;
 	node->num_children    = 0;
@@ -119,9 +119,9 @@ struct vfs_node *vfs_mkdir(char *path)
  * @param path absolute path of the file to create
  * @return inode id of created file, or -1 on error
  */
-struct vfs_node *vfs_touch(char *path)
+struct vnode *vfs_touch(char *path)
 {
-	struct vfs_node *parent = find_parent(path);
+	struct vnode *parent = find_parent(path);
 	if (!parent)
 	{
 		kprintf("[%s]: parent does not exist!\n", __FUNCTION__);
@@ -139,7 +139,7 @@ struct vfs_node *vfs_touch(char *path)
 	}
 
 	// allocate memory for the new file in the tree
-	struct vfs_node *node = (struct vfs_node *) kmalloc(sizeof(struct vfs_node));
+	struct vnode *node = (struct vnode *) kmalloc(sizeof(struct vnode));
 	node->inode           = inode;
 	node->type            = DIR_TYPE_REG;
 	node->num_children    = 0;
@@ -158,7 +158,7 @@ struct vfs_node *vfs_touch(char *path)
  */
 int vfs_open(char *path)
 {
-	struct vfs_node *node = find(path);
+	struct vnode *node = find(path);
 
 	if (!node)
 	{
@@ -278,7 +278,7 @@ int vfs_write(int fd, void *buff, size_t count)
  * @param path absolute path of file to find
  * @return ptr to vfs_node to the file or NULL if it doesn't exist
  */
-static struct vfs_node *find(char *path)
+static struct vnode *find(char *path)
 {
 	// tokenize path into its segments
 	// e.x. given the path "/home/user/bin/a.out"
@@ -288,7 +288,7 @@ static struct vfs_node *find(char *path)
 	if (!segment)
 		return NULL;
 
-	struct vfs_node *node = root;
+	struct vnode *node = root;
 
 	do
 	{
@@ -308,7 +308,7 @@ static struct vfs_node *find(char *path)
  * e.x. find_parent("/path/to/a/nested/file");
  * will return the vfs_node of the directory "/path/to/a/nested"
  */
-static struct vfs_node *find_parent(char *path)
+static struct vnode *find_parent(char *path)
 {
 	// pointer to final occurrance of / in path
 	char *last_slash = strrchr(path, '/');
@@ -322,15 +322,15 @@ static struct vfs_node *find_parent(char *path)
 
 	// temporarily null terminate path after the parent we are looking for
 	*last_slash          = '\0';
-	struct vfs_node *ret = find(path);
+	struct vnode *ret = find(path);
 	*last_slash          = '/';
 
 	return ret;
 }
 
-static struct vfs_node *find_helper(const struct vfs_node *node, char *name)
+static struct vnode *find_helper(const struct vnode *node, char *name)
 {
-	struct vfs_node *child = node->leftmost_child;
+	struct vnode *child = node->leftmost_child;
 	while (child)
 	{
 		if (strcmp(child->name, name) == 0)
@@ -346,7 +346,7 @@ static struct vfs_node *find_helper(const struct vfs_node *node, char *name)
  * @brief recursively build the vfs tree from the filesystem
  * @param node node in the tree to start on
  */
-static void build_tree(struct vfs_node *node)
+static void build_tree(struct vnode *node)
 {
 	// only continue to build if this node is a directory
 	if (node->type != DIR_TYPE_DIR)
@@ -365,7 +365,7 @@ static void build_tree(struct vfs_node *node)
 	while (bytes_read < EXT2_BLOCK_SIZE)
 	{
 		// allocate memory for this node
-		struct vfs_node *child = (struct vfs_node *) kmalloc(sizeof(struct vfs_node));
+		struct vnode *child = (struct vnode *) kmalloc(sizeof(struct vnode));
 		child->inode           = entry->inode;
 		child->type            = entry->type;
 		child->num_children    = 0;
@@ -384,7 +384,7 @@ static void build_tree(struct vfs_node *node)
 
 		else
 		{
-			struct vfs_node *tmp = node->leftmost_child;
+			struct vnode *tmp = node->leftmost_child;
 
 			while (tmp->right_sibling)
 				tmp = tmp->right_sibling;
@@ -393,7 +393,7 @@ static void build_tree(struct vfs_node *node)
 		}
 	}
 
-	struct vfs_node *child = node->leftmost_child;
+	struct vnode *child = node->leftmost_child;
 	while (child)
 	{
 		build_tree(child);
@@ -401,14 +401,14 @@ static void build_tree(struct vfs_node *node)
 	}
 }
 
-static void print_tree(struct vfs_node *node, int depth)
+static void print_tree(struct vnode *node, int depth)
 {
 	for (int i = 0; i < depth * 4; i++)
 		kprintf(" ");
 
 	kprintf("%s %d %d %d\n", node->name, node->inode, node->num_children, node->type);
 
-	struct vfs_node *tmp = node->leftmost_child;
+	struct vnode *tmp = node->leftmost_child;
 	while (tmp)
 	{
 		print_tree(tmp, depth + 1);
