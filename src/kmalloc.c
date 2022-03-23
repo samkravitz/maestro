@@ -8,7 +8,9 @@
  * DESCRIPTION: Implentation of a kernel heap
  */
 #include <kmalloc.h>
+
 #include <kprintf.h>
+#include <vmm.h>
 
 // freelist sentinal - denotes the head of the doubly-linked freelist
 static struct header *sentinal;
@@ -121,7 +123,36 @@ void *kmalloc(size_t size)
 	// so we have to expand the heap
 	kprintf("Time to expand the heap!\n");
 
-	return NULL;
+	// figure out how many pages need to be allocated to accomodate request
+	int pages = total_size / PAGE_SIZE;
+	if (total_size % PAGE_SIZE != 0)
+		pages++;
+	
+	void *old_heap = heap;
+	
+	vmm_alloc((uintptr_t) heap, pages);
+	heap += pages * PAGE_SIZE;
+
+	// add unallocated header at beginning of recieved memory
+	struct header *h = (struct header *) old_heap;
+
+	set_block_size(h, pages * PAGE_SIZE);
+	set_block_state(h, UNALLOCATED);
+
+	// get left_size of new header
+	// TODO - not make this O(N)
+	struct header *tmp = (struct header *) base;
+	while (tmp != old_heap)
+	{
+		h->left_size = get_block_size(tmp);
+		tmp = get_right_header(tmp);
+	}
+
+	// insert our new header into the freelist
+	insert_into_freelist(h);
+
+	// try the allocation again, this time with (hopefully) enough memory
+	return kmalloc(size);
 }
 
 /**
