@@ -63,4 +63,6 @@ struct pte
 
 void vmm_init();
 
+void *vmm_alloc(uintptr_t, size_t);
+
 #endif // VMM_H

@@ -10,6 +10,8 @@
 
 #include <vmm.h>
 
+#include <pmm.h>
+
 #include "string.h"
 
 // kernel page directory
@@ -70,4 +72,33 @@ void vmm_init()
 
 	// move physical address of kernel page directory to cr3
 	asm("mov %0, %%cr3" :: "r"(VIRT_TO_PHYS(kpage_dir)));
+}
+
+/**
+ * @brief allocate virtual memory
+ * @param virt page aligned virtual address to start mapping from
+ * @param count number of pages to allocate
+ * @return beginning of mapped memory
+ * 
+ * @note the granularity of this allocator is the size of a page
+ */
+void *vmm_alloc(uintptr_t virt, size_t count)
+{
+	uintptr_t v = virt;
+	for (size_t i = 0; i < count; i++)
+	{
+		// allocate physical memory for this page
+		uintptr_t phys = pmm_alloc();
+
+		// figure out which index in the kernel page table the page corresponds to
+		int idx = (v - (u32) &start) / PAGE_SIZE;
+
+		struct pte *page = &kpage_table[idx];
+
+		page->present = 1;
+		page->addr = phys >> 12;
+		virt += PAGE_SIZE;
+	}
+
+	return (void *) virt;
 }
