@@ -10,8 +10,10 @@
 
 #include <vmm.h>
 
+#include <intr.h>
 #include <pmm.h>
 
+#include "stdio.h"
 #include "string.h"
 
 // kernel page directory
@@ -31,6 +33,8 @@ extern void *heap;
 // converts virtual address addr to a physical address
 #define VIRT_TO_PHYS(addr) ((u32) &start_phys + (u32) addr - (u32) &start)
 
+static void page_fault();
+
 /**
  * the bootloader kept data structures for initializing paging in the first ~10K of memory.
  * once our pmm is initialized, that region of memory will be marked as available
@@ -43,6 +47,8 @@ extern void *heap;
  */
 void vmm_init()
 {
+	set_vect(14, page_fault);
+
 	// copy tables from where bootloader placed them to safe kernel memory
 	memcpy(kpage_dir,        KPAGE_DIR_BASE,   PAGE_DIR_SIZE);
 	memcpy(kpage_table,      KPAGE_TABLE_BASE, PAGE_DIR_SIZE);
@@ -101,4 +107,13 @@ void *vmm_alloc(uintptr_t virt, size_t count)
 	}
 
 	return (void *) virt;
+}
+
+/**
+ * @brief page fault handler
+ */
+static void page_fault()
+{
+	printf("Page fault detected!\n");
+	while (1) ;
 }

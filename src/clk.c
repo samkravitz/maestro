@@ -31,9 +31,9 @@ static void clkhandler()
 }
 
 // init clk
-void clkinit()
+void clk_init()
 {
-	svect(IRQ0, clkhandler);
+	set_vect(IRQ0, clkhandler);
 
 	// we want our clock interrupt to trigger at a rate of 1000Hz,
 	// or once every 1ms. Hence we divide by 1000.

@@ -9,36 +9,37 @@
  */
 #include <idt.h>
 
-#include "string.h"
 #include <intr.h>
 #include <io.h>
-#include <kprintf.h>
 
-struct idt_entry idt[NUM_INTERRUPTS];
+#include "string.h"
+
+struct idt_entry idt[256];
 
 static void set_idt(int, u32, u16, u8);
 static void lidt();
 
+struct idtr
+{
+	u16 limit;
+	u32 base;
+} __attribute__((packed)) idtr;
+
+// defined in intr.s
+extern void *ivect[];
+
 // init idt
-void idtinit()
+void idt_init()
 {
 	memset(idt, 0, sizeof(idt));
 
+	// set exception entries in idt
 	for (int i = 0; i < 32; ++i)
-		set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
+		set_idt(i, (u32) ivect[i], 0x8, 0x8e);
 
+	// set irq entries in idt
 	for (int i = 32; i < 48; ++i)
-		set_idt(i, (u32) isrtab[i], 0x8, 0x8E);
-
-	// remap the PIC
-	outb(0x20, 0x11);
-	outb(0xA0, 0x11);
-	outb(0x21, 0x20);
-	outb(0xA1, 0x28);
-	outb(0x21, 0x04);
-	outb(0xA1, 0x02);
-	outb(0x21, 0x01);
-	outb(0xA1, 0x01);
+		set_idt(i, (u32) ivect[i], 0x8, 0x8e);
 
 	lidt();
 }
@@ -46,12 +47,6 @@ void idtinit()
 // stores idt structure in idtr
 static void lidt()
 {
-	struct idtr
-	{
-		u16 limit;
-		u32 base;
-	} __attribute__((packed)) idtr;
-
 	idtr.limit = sizeof(idt) - 1;
 	idtr.base  = (u32) &idt;
 

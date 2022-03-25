@@ -9,7 +9,6 @@ C = \
 	ext2.c \
 	idt.c \
 	init.c \
-	intr.c \
 	io.c \
 	kbd.c \
 	kmain.c \
@@ -27,8 +26,7 @@ C = \
 ASM = \
 	ctxsw.s \
 	disable.s \
-	irq.s \
-	isr.s \
+	intr.s \
 	start.s
 
 OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))

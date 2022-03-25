@@ -12,6 +12,6 @@
 
 #include <maestro.h>
 
-void clkinit();
+void clk_init();
 
 #endif    // CLK_H

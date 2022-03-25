@@ -21,9 +21,9 @@
 // initializes IDT, interrupts, and the clock
 void init()
 {
-	idtinit();
-	intrinit();
-	clkinit();
+	intr_init();
+	idt_init();
+	clk_init();
 	pmminit();
 	vmm_init();
 
@@ -31,5 +31,5 @@ void init()
     vfs_init();
 
 	// set keyboard interrupt handler
-	svect(IRQ1, kbdhandler);
+	set_vect(IRQ1, kbdhandler);
 }

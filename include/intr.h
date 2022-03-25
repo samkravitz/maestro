@@ -5,14 +5,12 @@
  *
  * FILE: intr.h
  * DATE: August 2nd, 2021
- * DESCRIPTION: Combined dispatchers for isr and irq
+ * DESCRIPTION: declarations for common interrupt related functions
  */
 #ifndef INTR_H
 #define INTR_H
 
-#include <kprintf.h>
-
-#define NUM_INTERRUPTS 256
+#include <maestro.h>
 
 #define IRQ0           32    // Programmable Interrupt Timer Interrupt
 #define IRQ1           33    // Keyboard Interrupt
@@ -31,23 +29,16 @@
 #define IRQ14          46    // Primary ATA Hard Disk
 #define IRQ15          47    // Secondary ATA Hard Disk
 
-// holds registered interrupt handlers
-extern void (*intr_handlers[NUM_INTERRUPTS])(void);
+// defined in intr.s
+void intr_init();
+extern void set_vect(u8, void (*)(void));
 
-void eoi(int);
-void intrinit();
-void irq(int);
-void isr();
-void panic();
-
-void svect(int, void (*)(void));
-
-// disable / enable interrupts
+// defined in disable.s
 extern int disable();
 extern void restore(int);
 
 // exception messages
-static const char *excmsg[] = {
+static const char *xint_msg[] = {
 	"divide error",
 	"debug exception",
 	"nmi interrupt",
@@ -63,14 +54,23 @@ static const char *excmsg[] = {
 	"stack segment fault",
 	"general protection",
 	"page fault",
+	"reserved",
 	"floating point error",
 	"alignment check",
 	"machine check",
 	"floating point exception",
 	"virtualization exception",
+	"control protection exception",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"hypervisor injection exception",
+	"vmm communication exception",
+	"security exception",
+	"reserved",
 };
-
-// num exception messages
-static const u32 NMSG = sizeof(excmsg) / sizeof(char *);
 
 #endif    // INTR_H
