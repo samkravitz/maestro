@@ -36,3 +36,21 @@ u16 inw(u16 port)
 	asm("inw %1, %0" : "=a"(val) : "dN"(port));
 	return val;
 }
+
+/**
+ * @brief waits a short period of time after io operations
+ * on older computers, io devices may be much slower than the cpu,
+ * so after sending data to io, the device may not have updated
+ * this function is an imprecise way to make sure the io device has updated
+ */
+void io_wait()
+{
+	// send dummy operation to unused port
+	outb(0x80, 0);
+
+	asm("nop");
+	asm("nop");
+	asm("nop");
+	asm("nop");
+	asm("nop");
+}
