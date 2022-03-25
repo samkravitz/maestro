@@ -37,40 +37,7 @@ extern void set_vect(u8, void (*)(void));
 extern int disable();
 extern void restore(int);
 
-// exception messages
-static const char *xint_msg[] = {
-	"divide error",
-	"debug exception",
-	"nmi interrupt",
-	"breakpoint",
-	"overflow",
-	"bound range exceeded",
-	"invalid opcode",
-	"device not available",
-	"double fault",
-	"coprocessor segment overrun",
-	"invalid tss",
-	"segment not present",
-	"stack segment fault",
-	"general protection",
-	"page fault",
-	"reserved",
-	"floating point error",
-	"alignment check",
-	"machine check",
-	"floating point exception",
-	"virtualization exception",
-	"control protection exception",
-	"reserved",
-	"reserved",
-	"reserved",
-	"reserved",
-	"reserved",
-	"reserved",
-	"hypervisor injection exception",
-	"vmm communication exception",
-	"security exception",
-	"reserved",
-};
+// defined in isr.c
+void isr(void *);
 
 #endif    // INTR_H

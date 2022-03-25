@@ -10,6 +10,7 @@ C = \
 	idt.c \
 	init.c \
 	io.c \
+	isr.c \
 	kbd.c \
 	kmain.c \
 	kmalloc.c \
