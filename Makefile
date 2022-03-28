@@ -32,8 +32,10 @@ ASM = \
 	intr.s \
 	start.s
 
+
 USER = \
-	user/ls/ls.o
+	user/ls/ls.o \
+	user/msh/msh.o
 
 OBJ = $(addprefix bin/, $(C:.c=.c.o) $(ASM:.s=.s.o))
 
