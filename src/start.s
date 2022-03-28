@@ -32,6 +32,24 @@ mov fs, ax
 mov gs, ax
 mov ss, ax
 
+; set up task segment in gdt like this:
+;	Base = &tss
+;	Limit = sizeof(tss)
+;	Access Byte = 89h
+;	Flags = 0
+mov eax, tss_end - tss     ; eax = sizeof(tss)
+mov word [gdt_ts], ax
+
+mov eax, tss               ; eax = &tss
+mov word [gdt_ts + 2], ax  ; store [&tss & 0xffff] to gdt
+shr eax, 16                ; eax >>= 16
+mov byte [gdt_ts + 4], al  ; store [&tss >> 16 & 0xff] to gdt
+shr eax, 8                 ; eax >>= 8
+mov byte [gdt_ts + 7], al  ; store [&tss >> 24 & 0xff] to gdt
+
+mov ax, 28h                ; 28h is offset into gdt to task segment
+ltr ax                     ; load task segment to task register
+
 mov esp, kstack_top        ; load esp with kernel stack
 
 call clear                 ; clear screen
@@ -80,7 +98,44 @@ gdt_udata:                 ; user mode data segment
 	db 11001111b           ; flags cont., limit (bits 16-19)
 	db 0                   ; base (bits 24-31)
 
+; task segment
+gdt_ts:
+	dw 0                   ; limit (bits 0-15)
+	dw 0                   ; base (bits 0-15)
+	db 0                   ; base (bits 16-23)
+	db 10001001b           ; flags (access byte)
+	db 0                   ; flags cont., limit (bits 16-19)
+	db 0                   ; base (bits 24-31)
 gdt_end:
+
+tss:
+.prev_tss: dd 0            ; selector of previous task's tss
+.esp0:     dd kstack_top   ; ring0 stack pointer
+.ss0:      dd 10h          ; ring0 stack segment
+.esp1:     dd 0            ; ring1 stack pointer
+.ss1:      dd 0            ; ring1 stack segment
+.esp2:     dd 0            ; ring2 stack pointer
+.ss2:      dd 0            ; ring2 stack segment
+.cr3:      dd 0
+.eflags:   dd 0
+.eax:      dd 0
+.ecx:      dd 0
+.edx:      dd 0
+.ebx:      dd 0
+.esp:      dd 0
+.ebp:      dd 0
+.esi:      dd 0
+.edi:      dd 0
+.es:       dd 13h
+.cs:       dd 0xb
+.ss:       dd 13h
+.ds:       dd 13h
+.fs:       dd 13h
+.gs:       dd 13h
+.ldt:      dd 0
+.trap:     dw 0
+.iomap:    dw 0
+tss_end:
 
 ; 6 byte value to be stored in gdtr
 gdt_descriptor:
