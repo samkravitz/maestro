@@ -6,29 +6,29 @@ AR = ar
 
 CFLAGS = \
 	-std=gnu99 \
-	 -march=i686 \
-	 -m32 \
-	 -fno-stack-protector \
-	 -fno-pie \
-	 -ffreestanding \
-	 -nostdlib \
-	 -Wall \
-	 -Wextra \
-	 $(INCLUDE)
+	-march=i686 \
+	-m32 \
+	-fno-stack-protector \
+	-fno-pie \
+	-ffreestanding \
+	-nostdlib \
+	-Wall \
+	-Wextra \
+	$(INCLUDE)
 
 CXXFLAGS = \
 	-std=c++17 \
-	 -m32 \
-	 -fno-pie \
-	 -fno-stack-protector \
-	 -fno-exceptions \
-	 -fno-rtti \
-	 -ffreestanding \
-	 -nostdlib \
-	 -O2 \
-	 -Wall \
-	 -Wextra \
-	 $(INCLUDE)
+	-m32 \
+	-fno-pie \
+	-fno-stack-protector \
+	-fno-exceptions \
+	-fno-rtti \
+	-ffreestanding \
+	-nostdlib \
+	-O2 \
+	-Wall \
+	-Wextra \
+	$(INCLUDE)
 
 LDFLAGS = \
 	-T linker.ld \

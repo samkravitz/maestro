@@ -30,11 +30,14 @@ ASM = \
 	intr.s \
 	start.s
 
+USER = \
+	user/ls/ls.o
+
 OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))
 
-all: libs maestro.bin bootloader img 
+all: libs maestro.bin bootloader img user
 
-maestro.bin: $(OBJ)
+maestro.bin: $(OBJ) $(USER)
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 stage1.bin: stage1.s
@@ -56,6 +59,9 @@ bin/%.o: %.s
 
 libs:
 	$(MAKE) -C lib
+
+user:
+	$(MAKE) -C user
 
 disk:
 	meta/make_disk.sh
@@ -80,4 +86,5 @@ start:
 clean:
 	rm -f bin/* *.bin
 	$(MAKE) -C lib clean
+	$(MAKE) -C user clean
 	$(MAKE) -C test clean
