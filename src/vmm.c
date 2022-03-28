@@ -58,6 +58,7 @@ void vmm_init()
 	int i = (u32) &start / 0x400000; // index into kernel page directory that maps the kernel page table
 	kpage_dir[i].addr = VIRT_TO_PHYS(kpage_table) >> 12;
 	kpage_dir[0].addr = VIRT_TO_PHYS(ident_page_table) >> 12;
+	kpage_dir[i].user = 1;
 
 	// when mapping the kernel to 0xc0000000, the bootloader mapped 4M of memory.
 	// However, not all of that is used. So we will mark the unused pages as not present.
@@ -67,6 +68,9 @@ void vmm_init()
 
 	// index into page table that maps heap's page
 	i = ((u32) heap - (u32) &start) / PAGE_SIZE;
+
+	for (int j = 0; j <= 1024; j++)
+		kpage_table[j].user = 1;
 
 	// start at i + 1 because we want to keep the heap's page present
 	for (int j = i + 1; j < NUM_TABLE_ENTRIES; j++)

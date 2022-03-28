@@ -19,6 +19,8 @@
 extern struct proc *curr;
 extern struct proc nullproc;
 
+extern void enter_usermode();
+
 void kmain()
 {
 	printf("Welcome to maestro!\n");
@@ -28,6 +30,8 @@ void kmain()
 
 	// enable interrupts
 	asm("sti");
+
+	//enter_usermode();
 
 	// become the null process
 	while (1)

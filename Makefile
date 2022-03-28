@@ -28,7 +28,8 @@ ASM = \
 	ctxsw.s \
 	disable.s \
 	intr.s \
-	start.s
+	start.s \
+	enter_usermode.s
 
 USER = \
 	user/ls/ls.o
