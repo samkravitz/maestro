@@ -19,23 +19,27 @@
 // max number of files a process can open
 #define NOFILE 8
 
+#define PR_STACKSIZE 4096
+
 enum prstate
 {
 	PR_READY,
 	PR_RUNNING,
 	PR_WAITING,
+	PR_SLEEPING,
+	PR_SUSPENDED,
 };
 
 struct proc
 {
-	uptr stkptr;
-	u32 stack[1024];
-	int pid;
+	enum prstate state;
+	uintptr_t stkptr;              // current stack pointer
+	u8 stack[PR_STACKSIZE];
+	int pid;                       // process id
+	int mask;                      // interrupt state mask
 	struct file *ofile[NOFILE];    // open file table
 	char name[32];
 };
-
-struct proc *create(void (*func)(void), const char *);
 
 // defined in ctxsw.s
 extern void ctxsw(void *, void *);
@@ -44,5 +48,7 @@ extern void ctxsw(void *, void *);
 void sched();
 
 void proc_init();
+struct proc *create(void (*func)(void), const char *);
+void ready(struct proc *);
 
 #endif    // PROC_H
