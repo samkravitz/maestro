@@ -26,7 +26,6 @@ C = \
 # asm sources
 ASM = \
 	ctxsw.s \
-	disable.s \
 	intr.s \
 	start.s \
 	enter_usermode.s

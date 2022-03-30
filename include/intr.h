@@ -32,8 +32,6 @@
 // defined in intr.s
 void intr_init();
 extern void set_vect(u8, void (*)(void));
-
-// defined in disable.s
 extern int disable();
 extern void restore(int);
 

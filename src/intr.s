@@ -36,6 +36,8 @@
 	global set_vect
 	global ivect
 	global user_handlers
+	global disable
+	global restore
 
 	extern io_wait
 	extern isr
@@ -104,6 +106,33 @@ intr_init:
 	out PIC2_DATA, al
 	call io_wait
 
+	ret
+
+; locally enable / disable interrupts
+
+; cdecl - int disable()
+; returns the current value of IF register in eflags
+disable:
+	pushf						; push flags on stack
+	pop eax						; pop flags from stack into eax
+	cli							; disable interrupts
+	and eax, 202h				; clear all bits except IF flag (200h) and reserved flag (0x2)
+	ret
+
+; cdecl - void restore(int mask)
+; pass the return value of disable() to this function
+; to restore interrupts to the state they were in when disable() was called
+restore:
+	cli                         ; disable interrupts
+	push ebp                    ; set up stack frame
+	mov ebp, esp
+	mov eax, [ebp + 8]          ; eax <- saved flags argument
+	pushf                       ; push eflags on stack
+	pop ecx                     ; pop flags into ecx
+	or eax, ecx                 ; restore bits saved in disable() (200h and 0x2)
+	push eax                    ; push eax (containing restored flags) onto stack
+	popf                        ; pop restored flags
+	pop ebp
 	ret
 
 ; define exceptions (interrupts 0 - 31)
