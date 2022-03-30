@@ -107,7 +107,7 @@ void *vmm_alloc(uintptr_t virt, size_t count)
 
 		page->present = 1;
 		page->addr = phys >> 12;
-		virt += PAGE_SIZE;
+		v += PAGE_SIZE;
 	}
 
 	return (void *) virt;
