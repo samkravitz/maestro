@@ -26,7 +26,7 @@ static void clkhandler()
 	{
 		++sec;
 		ms = 0;
-		// sched();
+		sched();
 	}
 }
 

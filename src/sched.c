@@ -8,32 +8,40 @@
  * DESCRIPTION: pick the next eligible process to run
  */
 #include <kprintf.h>
+#include <intr.h>
 #include <proc.h>
+#include <queue.h>
 
 extern struct proc *proctab[];
 extern struct proc *curr;
 extern struct proc nullproc;
 extern int nproc;
+extern struct queue *readyq;
 
 void sched()
 {
 	struct proc *pold = curr;
 	struct proc *pnew;
 
-	int next_pid;
-	if (curr->pid == -1)
-		next_pid = 0;
-	else
-		next_pid = (curr->pid + 1) % nproc;
-	pnew = proctab[next_pid];
+	// save current interrupt state into current process's mask
+	pold->mask = disable();
 
-	// null process
-	if (nproc == 0)
+	if (is_empty(readyq))
 		pnew = &nullproc;
 
+	else
+	{
+		pnew = (struct proc *) dequeue(readyq);
+		insert(readyq, pnew);
+	}
+
 	if (pnew == pold)
+	{
+		restore(pold->mask);
 		return;
+	}
 
 	curr = pnew;
 	ctxsw(&pold->stkptr, (u8 *) pnew->stkptr);
+	restore(pold->mask);
 }
