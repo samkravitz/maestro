@@ -40,11 +40,9 @@ struct proc *create(void (*func)(void), const char *);
 // defined in ctxsw.s
 extern void ctxsw(void *, void *);
 
-// process ready list
-extern struct pq *readylist;
-
-// static int proccmp(void *a, void *b) { return -1; }
-
+// defined in sched.c
 void sched();
+
+void proc_init();
 
 #endif    // PROC_H

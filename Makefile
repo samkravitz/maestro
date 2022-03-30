@@ -16,8 +16,8 @@ C = \
 	kmalloc.c \
 	kprintf.c \
 	pmm.c \
-	pq.c \
 	proc.c \
+	queue.c \
 	sched.c \
 	tty.c \
 	vfs.c \

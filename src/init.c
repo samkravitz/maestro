@@ -15,6 +15,7 @@
 #include <intr.h>
 #include <kbd.h>
 #include <pmm.h>
+#include <proc.h>
 #include <vfs.h>
 #include <vmm.h>
 
@@ -29,6 +30,8 @@ void init()
 
 	ext2_init();
     vfs_init();
+
+	proc_init();
 
 	// set keyboard interrupt handler
 	set_vect(IRQ1, kbdhandler);

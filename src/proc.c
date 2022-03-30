@@ -10,12 +10,17 @@
 #include <proc.h>
 #include <kmalloc.h>
 #include <kprintf.h>
+#include <queue.h>
 
 // #include "malloc.h"
 #include "string.h"
 
 struct proc *curr;
 struct proc *proctab[NPROC];
+
+// process ready queue
+struct queue *readyq;
+
 const struct proc nullproc = {
 	.stkptr = 0,
 	.name = "null process",
@@ -32,6 +37,11 @@ static void pterm()
 {
 	kprintf("%s returned!\n", curr->name);
 	nproc--;
+}
+
+void proc_init()
+{
+	readyq = newq();
 }
 
 struct proc *create(void (*func)(void), const char *name)
