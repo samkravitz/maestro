@@ -25,7 +25,7 @@ void init()
 	intr_init();
 	idt_init();
 	clk_init();
-	pmminit();
+	pmm_init();
 	vmm_init();
 
 	ext2_init();

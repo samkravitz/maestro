@@ -11,6 +11,7 @@
 #include <vmm.h>
 
 #include <intr.h>
+#include <kmalloc.h>
 #include <pmm.h>
 
 #include "stdio.h"
@@ -61,19 +62,21 @@ void vmm_init()
 	kpage_dir[i].user = 1;
 
 	// when mapping the kernel to 0xc0000000, the bootloader mapped 4M of memory.
-	// However, not all of that is used. So we will mark the unused pages as not present.
-	// the used pages are the pages used by the kernel, the pages used by the physical memory bitmap,
-	// and the single page initialled allocated for the kernel heap. So starting at the end of the kernel heap,
-	// mark the remainder of pages in the page table as not present
+	// However, not all of that is used. The unused pages should be marked as not present.
+	// the used pages are the pages used by the kernel and the page(s) used by the physical memory bitmap.
 
-	// index into page table that maps heap's page
+	// map 1 Mb for the heap
+	uint heap_pages = 1024 * 1024 / PAGE_SIZE;
+	vmm_alloc((uintptr_t) heap, heap_pages);
+
+	// index into page table that maps heap's first page
 	i = ((u32) heap - (u32) &start) / PAGE_SIZE;
 
 	for (int j = 0; j <= 1024; j++)
 		kpage_table[j].user = 1;
 
-	// start at i + 1 because we want to keep the heap's page present
-	for (int j = i + 1; j < NUM_TABLE_ENTRIES; j++)
+	// start at i + heap_pages because we want to keep the heap's page present
+	for (int j = i + heap_pages; j < NUM_TABLE_ENTRIES; j++)
 		kpage_table[j].present = 0;
 
 	// mark physical addresses 0x0000-0x1000 as not present
@@ -82,6 +85,8 @@ void vmm_init()
 
 	// move physical address of kernel page directory to cr3
 	asm("mov %0, %%cr3" :: "r"(VIRT_TO_PHYS(kpage_dir)));
+
+	kmalloc_init(heap, 1024 * 1024);
 }
 
 /**

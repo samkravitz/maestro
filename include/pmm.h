@@ -29,14 +29,7 @@
 // rounds a number up to the nearest block alignment
 #define BLOCK_ALIGN(n) ((n + (BLOCK_SIZE - 1)) & -BLOCK_SIZE)
 
-// given a physical address, returns the index into mmap that contains that address
-#define PHYS_TO_MMAP_IDX(addr) (addr / BLOCK_SIZE)
-
-// size of kernel heap in bytes
-// kernel heap is a fixed size, it can't grow or shrink
-
-void pmminit();
-
+void pmm_init();
 uintptr_t pmm_alloc();
 
 #endif    // PMM_H

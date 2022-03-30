@@ -10,7 +10,6 @@
 #include <pmm.h>
 
 #include <bitmap.h>
-#include <kmalloc.h>
 #include <kprintf.h>
 
 #include "string.h"
@@ -46,7 +45,9 @@ static u32 *mmap = &end;
 // and    end_block * BLOCK_SIZE = end_phys
 static u32 start_block, end_block;
 
-void pmminit()
+extern void *heap;
+
+void pmm_init()
 {
 	// print out the physical memory map
 	kprintf("\tMEMORY MAP\n");
@@ -137,8 +138,9 @@ void pmminit()
 
 		if (ent->type == MMAP_MEMORY_AVAILABLE)
 		{
-			for (size_t i = 0; i < len / BLOCK_SIZE; ++i)
-				BITMAP_CLEAR(mmap, PHYS_TO_MMAP_IDX(base + BLOCK_SIZE * i));
+			u32 block = base / BLOCK_SIZE;
+			for (size_t i = 0; i < len / BLOCK_SIZE; i++)
+				BITMAP_CLEAR(mmap, block + i);
 		}
 
 		ent++;
@@ -147,22 +149,17 @@ void pmminit()
 	// after this, the kernel's blocks will be marked as clear, so we have to re-reserve them
 	// calculate kernel size in blocks
 	u32 kernel_blocks = (u32) &size / BLOCK_SIZE;
-	for (size_t i = 0; i < kernel_blocks; ++i)
+	for (size_t i = 0; i < kernel_blocks; i++)
 		BITMAP_SET(mmap, start_block + i);
 	
 	// same with mmap
-	for (size_t i = 0; i < max_blocks; ++i)
-		BITMAP_SET(mmap, end_block + i);
-	
 	// how many blocks the mmap itself takes up
 	u32 mmap_blocks = BLOCK_ALIGN(max_blocks) / BLOCK_SIZE;
-	
-	// last, we are reserving 1 block for the kernel heap initially, so mark that as reserved too
-	BITMAP_SET(mmap, end_block + mmap_blocks + 1);
+	for (size_t i = 0; i < mmap_blocks; i++)
+		BITMAP_SET(mmap, end_block + i);
 
 	// kernel heap can begin immediately after mmap (on a block-aligned boundary)
-	void *heap = (void *) ((u8 *) mmap + mmap_blocks * BLOCK_SIZE);
-	kmalloc_init(heap, BLOCK_SIZE);
+	heap = (void *) ((u8 *) mmap + mmap_blocks * BLOCK_SIZE);
 
 	// finally, print out calculated memory stats
 	int free_blocks = 0;
@@ -191,8 +188,6 @@ uintptr_t pmm_alloc()
 		kprintf("pmm_alloc: out of physical memory!\n");
 		return (uintptr_t) -1;
 	}
-
-	kprintf("allocating block %d (0x%x phys) \n", idx, idx * BLOCK_SIZE);
 
 	BITMAP_SET(mmap, idx);
 	return idx * BLOCK_SIZE;
