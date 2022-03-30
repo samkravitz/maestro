@@ -13,9 +13,29 @@
 
 #include <maestro.h>
 
-#define BITMAP_SET(bitmap, bit)   (bitmap[bit / 32] |= (1 << (bit % 32)))
-#define BITMAP_CLEAR(bitmap, bit) (bitmap[bit / 32] &= ~(1 << (bit % 32)))
-#define BITMAP_TEST(bitmap, bit)  (bitmap[bit / 32] & (1 << (bit % 32)) & 1)
+void BITMAP_SET(u32 *bitmap, int bit)
+{
+	int i = bit / 32;
+	int pos = bit % 32;
+	u32 flag = 1 << pos;
+	bitmap[i] |= flag;
+}
+
+void BITMAP_CLEAR(u32 *bitmap, int bit)
+{
+	int i = bit / 32;
+	int pos = bit % 32;
+	u32 flag = 1 << pos;
+	bitmap[i] &= ~flag;
+}
+
+bool BITMAP_TEST(u32 *bitmap, int bit)
+{
+	int i = bit / 32;
+	int pos = bit % 32;
+	uint flag = 1 << pos;
+	return (bitmap[i] & flag) != 0;
+}
 
 /**
  * @brief finds the first set bit of a bitmap
