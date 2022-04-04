@@ -13,5 +13,6 @@
 #include <maestro.h>
 
 void clk_init();
+void sleepms(u32);
 
 #endif    // CLK_H

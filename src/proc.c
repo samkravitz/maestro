@@ -10,6 +10,7 @@
 #include <proc.h>
 #include <kmalloc.h>
 #include <kprintf.h>
+#include <pq.h>
 #include <queue.h>
 
 // #include "malloc.h"
@@ -21,11 +22,15 @@ struct proc *proctab[NPROC];
 // process ready queue
 struct queue *readyq;
 
+// process sleep queue
+struct pq *sleepq;
+
 const struct proc nullproc = {
 	.state = PR_RUNNING,
 	.stkptr = 0,
 	.pid = -1,
 	.mask = 0,
+	.wakeup = 0,
 	.name = "null process",
 };
 
@@ -44,6 +49,7 @@ static void pterm()
 void proc_init()
 {
 	readyq = newq();
+	sleepq = newpq();
 }
 
 /**

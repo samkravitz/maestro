@@ -7,8 +7,9 @@
  * DATE: August 9, 2021
  * DESCRIPTION: pick the next eligible process to run
  */
-#include <kprintf.h>
+
 #include <intr.h>
+#include <kprintf.h>
 #include <proc.h>
 #include <queue.h>
 
@@ -27,19 +28,24 @@ void sched()
 	pold->mask = disable();
 
 	if (is_empty(readyq))
-		pnew = &nullproc;
+	{
+		if (curr->state != PR_READY)
+			pnew = &nullproc;
+		else
+			pnew = curr;
+	}
 
 	else
-	{
 		pnew = (struct proc *) dequeue(readyq);
-		insert(readyq, pnew);
-	}
 
 	if (pnew == pold)
 	{
 		restore(pold->mask);
 		return;
 	}
+
+	if (pold != &nullproc && pold->state == PR_READY)
+		insert(readyq, pold);
 
 	curr = pnew;
 	ctxsw(&pold->stkptr, &pnew->stkptr);

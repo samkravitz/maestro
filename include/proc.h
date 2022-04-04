@@ -38,6 +38,7 @@ struct proc
 	int pid;                       // process id
 	int mask;                      // interrupt state mask
 	struct file *ofile[NOFILE];    // open file table
+	u32 wakeup;                    // timestamp to wake up process when sleeping
 	char name[32];
 };
 
