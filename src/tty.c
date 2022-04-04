@@ -12,6 +12,7 @@
 #include "string.h"
 #include <intr.h>
 #include <io.h>
+#include <sem.h>
 
 #define TTY_WIDTH  80
 #define TTY_HEIGHT 25
@@ -31,6 +32,24 @@ u16 *VGA_BASE = (u16 *) 0xb8000;
 
 static void scroll();
 static void setcur();
+
+static u32 read_ptr = 0;
+static u32 write_ptr = 0;
+static u8 buff[1024];
+
+int tty_getc()
+{
+	wait();
+	int c = buff[read_ptr++];
+	return c;
+}
+
+void tty_putc(int c)
+{
+	u8 ch = (u8) c;
+	buff[write_ptr++] = ch;
+	signal();
+}
 
 void putc(char c)
 {

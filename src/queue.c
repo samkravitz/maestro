@@ -55,3 +55,15 @@ bool is_empty(struct queue *q)
 {
 	return q->count == 0;
 }
+
+//void print_queue(struct queue *q)
+//{
+//	struct qnode *tmp = q->front;
+//	while (tmp)
+//	{
+//		struct proc *ptr = (struct proc *) tmp->data;
+//		kprintf("%s->", ptr->name);
+//		tmp = tmp->next;
+//	}
+//	kprintf("\n");
+//}

@@ -29,7 +29,7 @@ void sched()
 
 	if (is_empty(readyq))
 	{
-		if (curr->state != PR_READY)
+		if (pold->state != PR_RUNNING)
 			pnew = &nullproc;
 		else
 			pnew = curr;
@@ -44,10 +44,14 @@ void sched()
 		return;
 	}
 
-	if (pold != &nullproc && pold->state == PR_READY)
+	if (pold != &nullproc && pold->state == PR_RUNNING)
+	{
+		pold->state = PR_READY;
 		insert(readyq, pold);
+	}
 
 	curr = pnew;
+	curr->state = PR_RUNNING;
 	ctxsw(&pold->stkptr, &pnew->stkptr);
 	restore(pold->mask);
 }

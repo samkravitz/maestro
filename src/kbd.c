@@ -10,6 +10,7 @@
 #include <kbd.h>
 
 #include <io.h>
+#include <tty.h>
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -47,6 +48,5 @@ void kbdhandler()
 	if (is_alpha(c) && PRESSED(LSHIFT | RSHIFT))
 		c = to_upper(c);
 
-	// TODO - this should be buffered so it can be read from stdin
-	printf("%c", c);
+	tty_putc(c);
 }

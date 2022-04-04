@@ -30,4 +30,6 @@ int vprintf(const char *, va_list);
 int vfprintf(FILE *, const char *, va_list);
 int vsprintf(char *, const char *, va_list);
 
+int getc();
+
 #endif    // STDIO_H

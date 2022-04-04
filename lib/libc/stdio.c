@@ -152,3 +152,8 @@ int vsprintf(char *str, const char *fmt, va_list args)
 
 	return i;
 }
+
+int getc()
+{
+	return tty_getc();
+}

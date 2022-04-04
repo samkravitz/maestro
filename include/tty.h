@@ -16,4 +16,7 @@ void putc(char);
 void puts(const char *);
 void clear();
 
+int tty_getc();
+void tty_putc(int c);
+
 #endif    // TTY_H
