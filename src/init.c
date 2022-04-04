@@ -16,6 +16,7 @@
 #include <kbd.h>
 #include <pmm.h>
 #include <proc.h>
+#include <sem.h>
 #include <vfs.h>
 #include <vmm.h>
 
@@ -27,6 +28,7 @@ void init()
 	clk_init();
 	pmm_init();
 	vmm_init();
+	sem_init();
 
 	ext2_init();
     vfs_init();

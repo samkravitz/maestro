@@ -20,6 +20,7 @@ C = \
 	pq.c \
 	queue.c \
 	sched.c \
+	sem.c \
 	tty.c \
 	vfs.c \
 	vmm.c 
