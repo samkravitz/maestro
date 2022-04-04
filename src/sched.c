@@ -42,6 +42,6 @@ void sched()
 	}
 
 	curr = pnew;
-	ctxsw(&pold->stkptr, (u8 *) pnew->stkptr);
+	ctxsw(&pold->stkptr, &pnew->stkptr);
 	restore(pold->mask);
 }
