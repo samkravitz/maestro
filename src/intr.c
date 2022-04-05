@@ -3,7 +3,7 @@
  * See LICENSE.txt for full license text
  * Author: Sam Kravitz
  *
- * FILE: isr.c
+ * FILE: intr.c
  * DATE: March 24th, 2022
  * DESCRIPTION: High level interrupt service routine
  *		called after bootstrapping in intr.s
@@ -17,23 +17,6 @@
 #define PIC1 0x20    // pic1 command port
 #define PIC2 0xa0    // pic2 command port
 #define EOI  0x20    // end of interrupt value
-
-// state of the stack when an interrupt is called
-// see isr_common in intr.s
-struct state
-{
-	u32 edi;
-	u32 esi;
-	u32 ebp;
-	u32 esp;    // esp at time of interrupt
-	u32 ebx;
-	u32 edx;
-	u32 ecx;
-	u32 eax;
-	u32 intr_num;
-	u32 error_code;
-	u32 eip;
-};
 
 // user registered interrupt handlers
 // defined in intr.s
@@ -82,10 +65,9 @@ static const char *xint_msg[] = {
  * called any other way. Its parameter is a pointer to the top
  * of the stack after the assembly bootstrap saves its state
  */
-void isr(void *p)
+void isr(struct registers *regs)
 {
-	struct state *state = (struct state *) p;
-	u8 intr = state->intr_num;
+	u8 intr = regs->intr_num;
 
 	// panic on exception
 	if (intr < IRQ0)
@@ -97,17 +79,17 @@ void isr(void *p)
 		kprintf("\n");
 		kprintf("\tMAESTRO PANIC!!!\n");
 		kprintf("Exception %d: %s\n", intr, xint_msg[intr]);
-		kprintf("Error code: %d\n", state->error_code);
+		kprintf("Error code: %d\n", regs->error_code);
 		kprintf("registers: \n");
-		kprintf("eax: 0x%x\n", state->eax);
-		kprintf("ebx: 0x%x\n", state->ebx);
-		kprintf("ecx: 0x%x\n", state->ecx);
-		kprintf("edx: 0x%x\n", state->edx);
-		kprintf("esi: 0x%x\n", state->esi);
-		kprintf("edi: 0x%x\n", state->edi);
-		kprintf("ebp: 0x%x\n", state->ebp);
-		kprintf("esp: 0x%x\n", state->esp);
-		kprintf("eip: 0x%x\n", state->eip);
+		kprintf("eax: 0x%x\n", regs->eax);
+		kprintf("ebx: 0x%x\n", regs->ebx);
+		kprintf("ecx: 0x%x\n", regs->ecx);
+		kprintf("edx: 0x%x\n", regs->edx);
+		kprintf("esi: 0x%x\n", regs->esi);
+		kprintf("edi: 0x%x\n", regs->edi);
+		kprintf("ebp: 0x%x\n", regs->ebp);
+		kprintf("esp: 0x%x\n", regs->esp);
+		kprintf("eip: 0x%x\n", regs->eip);
 
 		while (1)
 			;

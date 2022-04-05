@@ -9,8 +9,8 @@ C = \
 	ext2.c \
 	idt.c \
 	init.c \
+	intr.c \
 	io.c \
-	isr.c \
 	kbd.c \
 	kmain.c \
 	kmalloc.c \
@@ -35,7 +35,7 @@ ASM = \
 USER = \
 	user/ls/ls.o
 
-OBJ = $(addprefix bin/, $(C:.c=.o) $(ASM:.s=.o))
+OBJ = $(addprefix bin/, $(C:.c=.c.o) $(ASM:.s=.s.o))
 
 all: libs maestro.bin bootloader img user
 
@@ -50,13 +50,13 @@ stage2.bin: stage2.s
 	$(AS) -i src/bootloader -f bin $< -o $@
 	e2cp stage2.bin disk.img:/
 
-bin/%.o: %.c
+bin/%.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 	
 bin/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-bin/%.o: %.s
+bin/%.s.o: %.s
 	$(AS) -f elf32 $< -o $@
 
 libs:

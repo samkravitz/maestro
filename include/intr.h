@@ -29,6 +29,23 @@
 #define IRQ14          46    // Primary ATA Hard Disk
 #define IRQ15          47    // Secondary ATA Hard Disk
 
+// state of the registers pushed on the stack when an interrupt occurs 
+// see isr_common in intr.s
+struct registers
+{
+	u32 edi;
+	u32 esi;
+	u32 ebp;
+	u32 esp;    // esp at time of interrupt
+	u32 ebx;
+	u32 edx;
+	u32 ecx;
+	u32 eax;
+	u32 intr_num;
+	u32 error_code;
+	u32 eip;
+};
+
 // defined in intr.s
 void intr_init();
 extern void set_vect(u8, void (*)(void));
@@ -36,6 +53,6 @@ extern int disable();
 extern void restore(int);
 
 // defined in isr.c
-void isr(void *);
+void isr(struct registers *);
 
 #endif    // INTR_H
