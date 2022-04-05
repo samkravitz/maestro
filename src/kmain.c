@@ -19,14 +19,20 @@
 extern struct proc *curr;
 extern struct proc nullproc;
 
+void msh();
+
 void kmain()
 {
 	init();
 	printf("Welcome to maestro!\n");
 	curr = &nullproc;
 
+	ready(create(msh, "msh"));
+
 	// enable interrupts
 	asm("sti");
+
+	sched();
 
 	// become the null process
 	while (1)

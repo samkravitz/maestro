@@ -11,6 +11,8 @@
 #ifndef MSH_H
 #define MSH_H
 
+#include <maestro.h>
+
 int msh();
 
 #endif // LS_H
