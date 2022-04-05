@@ -13,6 +13,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "syscall.h"
 
 #define PRINTF_BUFF_SIZE 1024
 
@@ -157,5 +158,7 @@ int vsprintf(char *str, const char *fmt, va_list args)
 
 int getc()
 {
-	return tty_getc();
+	char c;
+	syscall(SYS_READ, STDIN_FILENO, &c, 1);
+	return c;
 }

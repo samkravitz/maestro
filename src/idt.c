@@ -38,7 +38,7 @@ void idt_init()
 		set_idt(i, (u32) ivect[i], 0x8, 0x8e);
 
 	// set irq entries in idt
-	for (int i = 32; i < 48; ++i)
+	for (int i = 32; i <= 48; ++i)
 		set_idt(i, (u32) ivect[i], 0x8, 0x8e);
 
 	lidt();

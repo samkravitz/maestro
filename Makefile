@@ -21,6 +21,7 @@ C = \
 	queue.c \
 	sched.c \
 	sem.c \
+	syscall.c \
 	tty.c \
 	vfs.c \
 	vmm.c 

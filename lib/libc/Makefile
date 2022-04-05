@@ -3,20 +3,28 @@ include ../../config.mk
 INCLUDE = -I ../../include
 LIB = libc.a
 
-SOURCES = \
+# C sources
+C = \
 	stdio.c \
 	stdlib.c \
 	string.c \
+	syscall.c
 
-OBJ = $(SOURCES:.c=.o)
+# asm sources
+ASM = syscall.s
+
+OBJ = $(C:.c=.c.o) $(ASM:.s=.s.o)
 
 all: $(LIB)
 
 $(LIB): $(OBJ)
 	$(AR) rcs $(LIB) $(OBJ)
 
-%.o: %.c
+%.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+%.s.o: %.s
+	$(AS) -f elf32 $< -o $@
 
 .PHONY: clean
 clean:

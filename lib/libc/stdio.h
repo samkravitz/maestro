@@ -22,6 +22,10 @@ typedef struct
 	int fd;
 } FILE;
 
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+
 int printf(const char *, ...);
 int fprintf(FILE *, const char *, ...);
 int sprintf(char *, const char *, ...);

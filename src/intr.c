@@ -13,6 +13,7 @@
 #include <io.h>
 #include <kprintf.h>
 #include <maestro.h>
+#include <syscall.h>
 
 #define PIC1 0x20    // pic1 command port
 #define PIC2 0xa0    // pic2 command port
@@ -21,6 +22,10 @@
 // user registered interrupt handlers
 // defined in intr.s
 extern void (*user_handlers[])(void);
+
+// system call handlers
+// defined in syscall.c
+extern void (*syscall_handlers[])(struct registers *);
 
 // exception messages
 static const char *xint_msg[] = {
@@ -67,9 +72,10 @@ static const char *xint_msg[] = {
  */
 void isr(struct registers *regs)
 {
-	u8 intr = regs->intr_num;
+	int mask = disable();
+	u8 intr  = regs->intr_num;
 
-	// panic on exception
+	// exception
 	if (intr < IRQ0)
 	{
 		u32 cr2;
@@ -95,13 +101,34 @@ void isr(struct registers *regs)
 			;
 	}
 
-	// call registered handler on irq
-	void (*handler)(void) = user_handlers[intr];
-	handler();
+	// syscall
+	else if (intr == SYSCALL)
+	{
+		u8 sysno = regs->eax;
+		if (isbadsysno(sysno))
+		{
+			kprintf("Bad system call num: %d\n", sysno);
+			while (1)
+				;
+		}
 
-	// acknowledge interrupt with eoi
-	outb(PIC1, EOI);
+		void (*handler)(struct registers *) = syscall_handlers[sysno];
+		handler(regs);
+	}
 
-	if (intr > IRQ8)
-		outb(PIC2, EOI);
+	// irq
+	else
+	{
+		// call registered handler on irq
+		void (*handler)(void) = user_handlers[intr];
+		handler();
+
+		// acknowledge interrupt with eoi
+		outb(PIC1, EOI);
+
+		if (intr > IRQ8)
+			outb(PIC2, EOI);
+	}
+
+	restore(mask);
 }

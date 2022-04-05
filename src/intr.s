@@ -321,6 +321,10 @@ irq15:
 	push 0
 	push 47
 	jmp isr_bootstrap
+sysc:
+	push 0
+	push 48
+	jmp isr_bootstrap
 
 ; bootstrap the C isr handler
 ; before jumping here, an error code (or dummy 0) and interrupt number were just pushed onto the stack
@@ -336,11 +340,12 @@ irq15:
 ;	esi
 ;	edi;
 isr_bootstrap:
-	pusha                              ; save program state
+	pusha                              ; save registers
 	push esp                           ; enable isr to have access to state structure                  
 	call isr                           ; call high level interrupt service routine
-	add esp, 12                        ; restore stack from pushing error code, interrupt number, and state 
-	popa                               ; restore state
+	add esp, 4                         ; restore stack state 
+	popa                               ; restore saved registers
+	add esp, 8                         ; restore stack from pushing error code & interrupt number
 	iret
 
 set_vect:
@@ -400,6 +405,7 @@ ivect:
 	dd irq13
 	dd irq14
 	dd irq15
+	dd sysc
 
 	section .bss
 user_handlers:

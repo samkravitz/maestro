@@ -29,6 +29,8 @@
 #define IRQ14          46    // Primary ATA Hard Disk
 #define IRQ15          47    // Secondary ATA Hard Disk
 
+#define SYSCALL        48    // system call interrupt number
+
 // state of the registers pushed on the stack when an interrupt occurs 
 // see isr_common in intr.s
 struct registers
