@@ -18,10 +18,12 @@
 
 int printf(const char *fmt, ...)
 {
+	int mask = disable();
 	va_list args;
 	va_start(args, fmt);
 	int ret = vprintf(fmt, args);
 	va_end(args);
+	restore(mask);
 	return ret;
 }
 
