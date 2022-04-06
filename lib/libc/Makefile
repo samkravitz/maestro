@@ -1,14 +1,14 @@
-include ../../config.mk
-
-INCLUDE = -I ../../include
 LIB = libc.a
+
+CFLAGS += -I ../../include
 
 # C sources
 C = \
 	stdio.c \
 	stdlib.c \
 	string.c \
-	syscall.c
+	syscall.c \
+	unistd.c
 
 # asm sources
 ASM = syscall.s

@@ -1,27 +1,28 @@
-CC = gcc
-AS = nasm
-LD = ld
-AR = ar
+TARGET = i686-elf
+TOOLCHAIN_PREFIX = $(abspath toolchain)/$(TARGET)/bin/$(TARGET)
+GCC_VERSION = 11.2.0
 
-CFLAGS = \
+export CC = $(TOOLCHAIN_PREFIX)-gcc
+export AS = nasm
+export LD = $(TOOLCHAIN_PREFIX)-ld
+export AR = $(TOOLCHAIN_PREFIX)-ar
+
+export CFLAGS = \
 	-std=gnu99 \
-	-march=i686 \
-	-m32 \
-	-fno-stack-protector \
-	-fno-pie \
 	-ffreestanding \
 	-nostdlib \
 	-Wall \
 	-Wextra \
 	$(INCLUDE)
 
-LDFLAGS = \
+export LDFLAGS = \
 	-T linker.ld \
-	-m elf_i386 \
 	-Map=maestro.map \
 	-L lib/libc \
-	-lc
+	-lc \
+	-L toolchain/$(TARGET)/lib/gcc/$(TARGET)/$(GCC_VERSION) \
+	-lgcc
 
-INCLUDE = \
+export INCLUDE = \
 	-I include \
-	-I lib/libc \
+	-I lib/libc

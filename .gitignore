@@ -30,3 +30,6 @@ bin/
 
 # linker map output
 maestro.map
+
+# maestro specific toolchain
+toolchain/

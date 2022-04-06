@@ -66,6 +66,9 @@ user:
 disk:
 	meta/make_disk.sh
 
+toolchain:
+	meta/make_toolchain.sh
+
 bootloader: stage1.bin stage2.bin
 
 img: maestro.bin
