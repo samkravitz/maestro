@@ -44,10 +44,10 @@ void signal()
 		struct proc *pptr = (struct proc *) dequeue(sem.waitq);
 		if (!pptr)
 		{
-			kprintf("signal() - pptr is NULL");
-			while (1)
-				;
+			restore(mask);
+			return;
 		}
+
 		ready(pptr);
 		sched();
 	}

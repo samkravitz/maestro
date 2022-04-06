@@ -34,6 +34,9 @@ void insert(struct queue *q, void *data)
 
 void *dequeue(struct queue *q)
 {
+	if (is_empty(q))
+		return NULL;
+
 	struct qnode *tmp = q->front;
 	void *data = tmp->data;
 	q->front = q->front->next;
