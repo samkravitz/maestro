@@ -8,5 +8,5 @@
 # DATE: August 31, 2021
 # DESCRIPTION: Creates an ext2 hard drive image
 
-dd if=/dev/zero of=disk.img bs=512 count=1048576
+dd if=/dev/zero of=disk.img bs=1K count=64K
 mkfs.ext2 -I 128 -b 1024 -q disk.img
