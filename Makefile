@@ -53,9 +53,6 @@ stage2.bin: stage2.s
 
 bin/%.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-	
-bin/%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 bin/%.s.o: %.s
 	$(AS) -f elf32 $< -o $@

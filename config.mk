@@ -1,5 +1,4 @@
 CC = gcc
-CXX = g++
 AS = nasm
 LD = ld
 AR = ar
@@ -16,20 +15,6 @@ CFLAGS = \
 	-Wextra \
 	$(INCLUDE)
 
-CXXFLAGS = \
-	-std=c++17 \
-	-m32 \
-	-fno-pie \
-	-fno-stack-protector \
-	-fno-exceptions \
-	-fno-rtti \
-	-ffreestanding \
-	-nostdlib \
-	-O2 \
-	-Wall \
-	-Wextra \
-	$(INCLUDE)
-
 LDFLAGS = \
 	-T linker.ld \
 	-m elf_i386 \
@@ -40,4 +25,3 @@ LDFLAGS = \
 INCLUDE = \
 	-I include \
 	-I lib/libc \
-	-I lib/mxx
