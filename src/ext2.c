@@ -160,11 +160,23 @@ void ext2_init()
 	// this could be block_groups_inode or block_groups_block, they are equivalent
 	block_groups = block_groups_inode;
 
-	// allocate space for block group descriptor table
-	bgdt = kmalloc(sizeof(struct block_group_desc) * block_groups);
-
-	// read block group descriptor table into memory
-	read_block(bgdt, EXT2_BLOCK_DESCRIPTOR, get_num_blocks(sizeof(struct block_group_desc) * block_groups));
+	/*
+     * read the block group descriptor table into memory
+     * the size of the bgdt is not constant, and does not have to be a multiple of BLOCK_SIZE.
+	 * allocate the exact amount of bytes the bgdt requires and then
+	 * keep a sepparate buffer which is the closest multiple of BLOCK_SIZE.
+	 * then, read an entire BLOCK_SIZE multiple into the buffer and copy only
+	 * what is needed to the bgdt
+	 */
+	size_t bgdt_size = sizeof(struct block_group_desc) * block_groups;
+	bgdt = kmalloc(bgdt_size);
+	u8 bgdt_blocks = get_num_blocks(bgdt_size);
+	if (bgdt_size % EXT2_BLOCK_SIZE != 0)
+		bgdt_blocks++;
+	
+	u8 buff[bgdt_blocks * EXT2_BLOCK_SIZE];
+	read_block(buff, EXT2_BLOCK_DESCRIPTOR, bgdt_blocks);
+	memcpy(bgdt, buff, bgdt_size);
 
 	(void) print_inode;
 	(void) print_superblock;

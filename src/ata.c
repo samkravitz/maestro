@@ -42,11 +42,15 @@ void ata_read_sector(u16 *buff, uint lba)
 
 	// send lba to the disk byte by byte
 	outb(ATA_LBA_LOW_PORT, lba >> 0);
+	io_wait();
 	outb(ATA_LBA_MID_PORT, lba >> 8);
+	io_wait();
 	outb(ATA_LBA_HIGH_PORT, lba >> 16);
+	io_wait();
 
 	// send the read command
 	outb(ATA_CMD_PORT, ATA_CMD_READ);
+	io_wait();
 
 	// wait until disk is ready to transfer data
 	ata_wait_bsy();
@@ -63,17 +67,23 @@ void ata_write_sector(u16 *buff, uint lba)
 	ata_wait_bsy();
 
 	outb(ATA_LBA_PORT, 0xe0 | (lba >> 24 & 0xf));
+	io_wait();
 
 	// write just one sector
 	outb(ATA_SECTOR_COUNT_PORT, 1);
+	io_wait();
 
 	// send lba to the disk byte by byte
 	outb(ATA_LBA_LOW_PORT, lba >> 0);
+	io_wait();
 	outb(ATA_LBA_MID_PORT, lba >> 8);
+	io_wait();
 	outb(ATA_LBA_HIGH_PORT, lba >> 16);
+	io_wait();
 
 	// send the write command
 	outb(ATA_CMD_PORT, ATA_CMD_WRITE);
+	io_wait();
 
 	// wait until disk is ready to transfer data
 	ata_wait_bsy();
