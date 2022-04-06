@@ -13,7 +13,8 @@
 
 #include <maestro.h>
 
-#define SYS_READ 0
+#define SYS_READ  0
+#define SYS_WRITE 1
 
 int syscall(int, ...);
 

@@ -48,5 +48,5 @@ void kbdhandler()
 	if (is_alpha(c) && PRESSED(LSHIFT | RSHIFT))
 		c = to_upper(c);
 
-	tty_putc(c);
+	tty_buffer(c);
 }

@@ -24,8 +24,8 @@
 #define GETCOL(c)  (c | ATTRIBUTE)
 
 // coordinate of cursor
-static u8 x   = 0;
-static u8 y   = 0;
+static u8 x = 0;
+static u8 y = 0;
 
 // vga base address
 u16 *VGA_BASE = (u16 *) 0xb8000;
@@ -37,6 +37,28 @@ static u32 read_ptr = 0;
 static u32 write_ptr = 0;
 static u8 buff[1024];
 
+int tty_read(void *buff, size_t count)
+{
+	size_t c = count;
+	char *s = (char *) buff;
+
+	while (c--)
+		*s++ = tty_getc();
+	
+	return count;
+}
+
+int tty_write(void *buff, size_t count)
+{
+	size_t c = count;
+	char *s = (char *) buff;
+
+	while (c--)
+		tty_putc(*s++);
+	
+	return count;
+}
+
 int tty_getc()
 {
 	wait();
@@ -44,14 +66,14 @@ int tty_getc()
 	return c;
 }
 
-void tty_putc(int c)
+void tty_buffer(int c)
 {
 	u8 ch = (u8) c;
 	buff[write_ptr++] = ch;
 	signal();
 }
 
-void putc(char c)
+void tty_putc(char c)
 {
 	// handle special characters
 	switch (c)
@@ -65,7 +87,7 @@ void putc(char c)
 			if (x > 0)
 				x--;
 
-			u16 index       = y * TTY_WIDTH + x;
+			u16 index = y * TTY_WIDTH + x;
 			VGA_BASE[index] = GETCOL(' ');
 			break;
 
@@ -77,7 +99,7 @@ void putc(char c)
 			// is a printable char
 			if (c >= 32)
 			{
-				u16 index       = y * TTY_WIDTH + x;
+				u16 index = y * TTY_WIDTH + x;
 				VGA_BASE[index] = GETCOL(c);
 				x++;
 			}
@@ -93,17 +115,11 @@ void putc(char c)
 	setcur();
 }
 
-void puts(const char *str)
-{
-	while (*str)
-		putc(*str++);
-}
-
 // clear - clears the terminal
 void clear()
 {
 	for (int i = 0; i < TTY_WIDTH * TTY_HEIGHT; ++i)
-		putc(' ');
+		tty_putc(' ');
     
     x = 0;
     y = 0;

@@ -38,8 +38,25 @@ void sys_read(struct registers *regs)
 	regs->eax = vfs_read(fd, buff, count);
 }
 
+/**
+ * @brief syscall 1 - write
+ * @param fd ebx
+ * @param buff ecx
+ * @param count edx
+ * @return count of bytes actually written
+ */
+void sys_write(struct registers *regs)
+{
+	int fd = regs->ebx;
+	void *buff = (void *) regs->ecx;
+	size_t count = regs->edx;
+
+	regs->eax = vfs_write(fd, buff, count);
+}
+
 void (*syscall_handlers[])(struct registers *) = {
 	sys_read,
+	sys_write,
 };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);

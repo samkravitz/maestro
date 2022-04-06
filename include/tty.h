@@ -12,11 +12,12 @@
 
 #include <maestro.h>
 
-void putc(char);
-void puts(const char *);
 void clear();
 
+int tty_read(void *, size_t);
+int tty_write(void *, size_t);
 int tty_getc();
-void tty_putc(int c);
+void tty_putc(char);
+void tty_buffer(int);
 
 #endif    // TTY_H

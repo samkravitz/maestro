@@ -20,6 +20,7 @@ extern const int NUM_SYSCALLS;
 #define isbadsysno(sysno) (sysno >= NUM_SYSCALLS)
 
 void sys_read(struct registers *);
+void sys_write(struct registers *);
 
 extern void (*syscall_handlers[])(struct registers *);
 

@@ -13,7 +13,9 @@
 #include <kmalloc.h>
 #include <kprintf.h>
 #include <proc.h>
+#include <tty.h>
 
+#include "stdio.h"
 #include "string.h"
 
 static struct vnode *root = NULL;
@@ -236,6 +238,12 @@ int vfs_seek(int fd, int amt)
 
 int vfs_read(int fd, void *buff, size_t count)
 {
+	// TODO - better handle stdio
+	if (fd == STDIN_FILENO)
+	{
+		return tty_read(buff, count);
+	}
+
 	if (!is_open(fd))
 	{
 		kprintf("vfs_read: fd %d is not open!\n", fd);
@@ -255,6 +263,12 @@ int vfs_read(int fd, void *buff, size_t count)
 
 int vfs_write(int fd, void *buff, size_t count)
 {
+	// TODO - better handle stdio
+	if (fd == STDOUT_FILENO)
+	{
+		return tty_write(buff, count);
+	}
+
 	if (!is_open(fd))
 	{
 		kprintf("vfs_write: fd %d is not open!\n", fd);

@@ -13,18 +13,16 @@
 
 #include "stdlib.h"
 #include "string.h"
-#include "syscall.h"
+#include "unistd.h"
 
 #define PRINTF_BUFF_SIZE 1024
 
 int printf(const char *fmt, ...)
 {
-	int mask = disable();
 	va_list args;
 	va_start(args, fmt);
 	int ret = vprintf(fmt, args);
 	va_end(args);
-	restore(mask);
 	return ret;
 }
 
@@ -51,7 +49,7 @@ int vprintf(const char *fmt, va_list args)
 	char buff[PRINTF_BUFF_SIZE];
 	memset(buff, 0, PRINTF_BUFF_SIZE);
 	int ret = vsprintf(buff, fmt, args);
-	puts(buff);
+	write(STDOUT_FILENO, buff, ret);
 	return ret;
 }
 
@@ -159,6 +157,6 @@ int vsprintf(char *str, const char *fmt, va_list args)
 int getc()
 {
 	char c;
-	syscall(SYS_READ, STDIN_FILENO, &c, 1);
+	read(STDIN_FILENO, &c, 1);
 	return c;
 }
