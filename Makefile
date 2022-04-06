@@ -74,10 +74,6 @@ bootloader: stage1.bin stage2.bin
 img: maestro.bin
 	e2cp maestro.bin disk.img:/
 
-.PHONY: test
-test:
-	$(MAKE) -C test
-
 .PHONY: start
 start:
 	qemu-system-i386 \
@@ -90,4 +86,3 @@ clean:
 	rm -f bin/* *.bin
 	$(MAKE) -C lib clean
 	$(MAKE) -C user clean
-	$(MAKE) -C test clean
