@@ -15,9 +15,11 @@ global kpage_dir
 global kpage_table
 global ident_page_table
 global set_task
+global stack_trace
 
 extern clear
 extern kmain
+extern vkprintf
 
 section .entry
 entry:
@@ -52,11 +54,44 @@ mov ax, 28h                ; 28h is offset into gdt to task segment
 ltr ax                     ; load task segment to task register
 
 mov esp, kstack_top        ; load esp with kernel stack
+xor ebp, ebp               ; ebp = 0 (to calculate final stack frame)
 
 call clear                 ; clear screen
 call kmain
 
 jmp $                      ; kernel should never return
+
+stack_trace:
+	push ebp
+	mov ebp, esp
+	pusha
+
+	mov ebx, ebp           ; ebx = current ebp
+
+	xor eax, eax           ; eax = 0
+
+	.trace:
+	cmp ebx, 0             ; (if ebx == NULL) return;
+	je .done
+
+	mov edx, [ebx + 4]     ; edx = current stack frame's ip
+	mov ebx, [ebx]         ; ebx = frame->next
+
+	push edx               ; print out current frame's ip
+	push eax
+	push stacktrace_msg
+	call vkprintf
+	add esp, 4
+	pop eax
+	pop edx
+
+	inc eax                ; i++
+	jmp .trace
+
+	.done:
+	popa
+	pop ebp
+	ret
 
 ; sets a new task's kernel stack pointer in the esp0 field in tss
 ; cdecl - void set_task(u32 esp)
@@ -150,6 +185,9 @@ tss_end:
 gdt_descriptor:
 dw gdt_end - gdt - 1       ; size of gdt minus 1
 dd gdt                     ; starting address of GDT
+
+stacktrace_msg:
+	db `callstack[%d]: 0x%x\n`,0
 
 section .bss
 ; kernel stack
