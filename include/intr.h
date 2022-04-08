@@ -35,6 +35,10 @@
 // see isr_common in intr.s
 struct registers
 {
+	u32 gs;
+	u32 fs;
+	u32 es;
+	u32 ds;
 	u32 edi;
 	u32 esi;
 	u32 ebp;

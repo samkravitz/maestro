@@ -38,6 +38,8 @@
 	global user_handlers
 	global disable
 	global restore
+	global isr_end
+
 
 	extern io_wait
 	extern isr
@@ -341,10 +343,24 @@ sysc:
 ;	edi;
 isr_bootstrap:
 	pusha                              ; save registers
-	push esp                           ; enable isr to have access to state structure                  
-	call isr                           ; call high level interrupt service routine
-	add esp, 4                         ; restore stack state 
+
+	push ds                            ; save segment registers
+	push es
+	push fs
+	push gs
+
+	push esp
+	call isr
+
+isr_end:
+	add esp, 4                         ; restore stack state
+
+	pop gs                             ; restore segment registers
+	pop fs
+	pop es
+	pop ds
 	popa                               ; restore saved registers
+
 	add esp, 8                         ; restore stack from pushing error code & interrupt number
 	iret
 
@@ -406,6 +422,9 @@ ivect:
 	dd irq14
 	dd irq15
 	dd sysc
+
+mystr:
+	db 'hello world', 0
 
 	section .bss
 user_handlers:

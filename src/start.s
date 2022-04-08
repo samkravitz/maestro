@@ -14,6 +14,7 @@ global entry
 global kpage_dir
 global kpage_table
 global ident_page_table
+global set_task
 
 extern clear
 extern kmain
@@ -56,6 +57,14 @@ call clear                 ; clear screen
 call kmain
 
 jmp $                      ; kernel should never return
+
+; sets a new task's kernel stack pointer in the esp0 field in tss
+; cdecl - void set_task(u32 esp)
+set_task:
+	mov eax, [esp + 4]
+	mov eax, [eax]
+	mov [tss.esp0], eax
+	ret
 
 ; initialize gdt
 section .data

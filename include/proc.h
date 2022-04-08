@@ -33,8 +33,9 @@ enum prstate
 struct proc
 {
 	enum prstate state;
-	uintptr_t stkptr;              // current stack pointer
-	u8 stack[PR_STACKSIZE];
+	uintptr_t stkptr;              // current kernel stack pointer
+	u8 kstack[PR_STACKSIZE];       // per process kernel stack
+	u8 ustack[PR_STACKSIZE];       // user stack
 	int pid;                       // process id
 	int mask;                      // interrupt state mask
 	struct file *ofile[NOFILE];    // open file table
