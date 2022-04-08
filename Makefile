@@ -30,8 +30,7 @@ C = \
 ASM = \
 	ctxsw.s \
 	intr.s \
-	start.s \
-	enter_usermode.s
+	start.s
 
 USER = \
 	user/ls/ls.o
