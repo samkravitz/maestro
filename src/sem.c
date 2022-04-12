@@ -21,7 +21,7 @@ struct sem sem;
 void sem_init()
 {
 	sem.count = 0;
-	sem.waitq = newq();
+	clearq(sem.waitq);
 }
 
 void wait()
@@ -30,7 +30,7 @@ void wait()
 	if (--sem.count < 0)
 	{
 		curr->state = PR_WAITING;
-		insert(sem.waitq, curr);
+		enqueue(sem.waitq, curr->pid);
 		sched();
 	}
 	restore(mask);
@@ -41,15 +41,14 @@ void signal()
 	int mask = disable();
 	if (++sem.count >= 0)
 	{
-		struct proc *pptr = (struct proc *) dequeue(sem.waitq);
-		if (!pptr)
+		if (!is_empty(sem.waitq))
 		{
+			int pid = dequeue(sem.waitq);
+			ready(pid);
+			sched();
 			restore(mask);
 			return;
 		}
-
-		ready(pptr);
-		sched();
 	}
 	restore(mask);
 }

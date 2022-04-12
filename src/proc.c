@@ -10,7 +10,6 @@
 #include <proc.h>
 #include <kmalloc.h>
 #include <kprintf.h>
-#include <pq.h>
 #include <queue.h>
 
 // #include "malloc.h"
@@ -20,13 +19,10 @@
 extern u32 isr_end;
 
 struct proc *curr;
-struct proc *proctab[NPROC];
+struct proc proctab[NPROC];
 
-// process ready queue
-struct queue *readyq;
-
-// process sleep queue
-struct pq *sleepq;
+// process queues
+queue readyq, sleepq;
 
 const struct proc nullproc = {
 	.state = PR_RUNNING,
@@ -51,28 +47,41 @@ static void pterm()
 
 void proc_init()
 {
-	readyq = newq();
-	sleepq = newpq();
+	for (int i = 0; i < NPROC; i++)
+	{
+		proctab[i].state = PR_EMPTY;
+		proctab[i].stkptr = 0;
+		proctab[i].pid = -1;
+		proctab[i].mask = 0;
+		proctab[i].wakeup = 0;
+	}
+
+	clearq(readyq);
+	clearq(sleepq);
 }
 
 /**
  * @brief adds a process to the ready queue
- * @param pptr process pointer to ready
+ * @param pid pid of process to ready
  */
-void ready(struct proc *pptr)
+void ready(int pid)
 {
-	pptr->state = PR_READY;
-	insert(readyq, pptr);
+	proctab[pid].state = PR_READY;
+	enqueue(readyq, pid);
 }
 
 /**
  * @brief creates a new process in the suspended state 
  * @param f function where the new process will begin execution
  * @param name name of the new process
+ * @return pid of new process
  */
-struct proc *create(void (*f)(void), const char *name)
+int create(void (*f)(void), const char *name)
 {
-	struct proc *pptr = (struct proc *) kmalloc(sizeof(struct proc));
+	int pid = next_pid;
+	struct proc *pptr = &proctab[pid];
+	pptr->pid = pid;
+	next_pid++;
 	strncpy(pptr->name, name, 32);
 	pptr->mask = 0;
 	pptr->state = PR_SUSPENDED;
@@ -146,8 +155,7 @@ struct proc *create(void (*f)(void), const char *name)
 	kstack--; *kstack = 0;               // edi
 
 	pptr->stkptr = (uintptr_t) kstack;
-	pptr->pid = next_pid++;
 
 	nproc++;
-	return pptr;
+	return pid;
 }

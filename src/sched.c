@@ -17,7 +17,7 @@ extern struct proc *proctab[];
 extern struct proc *curr;
 extern struct proc nullproc;
 extern int nproc;
-extern struct queue *readyq;
+extern queue readyq;
 
 void sched()
 {
@@ -36,7 +36,7 @@ void sched()
 	}
 
 	else
-		pnew = (struct proc *) dequeue(readyq);
+		pnew = &proctab[dequeue(readyq)];
 
 	if (pnew == pold)
 	{
@@ -47,7 +47,7 @@ void sched()
 	if (pold != &nullproc && pold->state == PR_RUNNING)
 	{
 		pold->state = PR_READY;
-		insert(readyq, pold);
+		enqueue(readyq, pold->pid);
 	}
 
 	curr = pnew;

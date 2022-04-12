@@ -17,7 +17,6 @@ C = \
 	kprintf.c \
 	pmm.c \
 	proc.c \
-	pq.c \
 	queue.c \
 	sched.c \
 	sem.c \

@@ -28,6 +28,7 @@ enum prstate
 	PR_WAITING,
 	PR_SLEEPING,
 	PR_SUSPENDED,
+	PR_EMPTY,
 };
 
 struct proc
@@ -43,6 +44,8 @@ struct proc
 	char name[32];
 };
 
+#define isbadpid(pid) (pid >= 0 && pid < NPROC)
+
 // defined in ctxsw.s
 extern void ctxsw(void *, void *);
 
@@ -50,7 +53,7 @@ extern void ctxsw(void *, void *);
 void sched();
 
 void proc_init();
-struct proc *create(void (*func)(void), const char *);
-void ready(struct proc *);
+int create(void (*func)(void), const char *);
+void ready(int);
 
 #endif    // PROC_H

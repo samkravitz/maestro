@@ -7,66 +7,74 @@
  * DATE: March 30th, 2022
  * DESCRIPTION: queue data structure
  */
-#include <kmalloc.h>
 #include <queue.h>
+#include <kprintf.h>
 
-void insert(struct queue *q, void *data)
+bool is_empty(queue q)
 {
-	// node to insert
-	struct qnode *node = (struct qnode *) kmalloc(sizeof(struct qnode));
-	node->data = data;
-	node->next = NULL;
+	return first(q) == QTAIL && last(q) == QHEAD;
+}
 
-	if (is_empty(q))
+void enqueue(queue q, int pid)
+{
+	int prev = q[QTAIL].prev;
+
+	q[pid].next = QTAIL;
+	q[pid].prev = prev;
+	q[prev].next = pid;
+	q[QTAIL].prev = pid;
+}
+
+int dequeue(queue q)
+{
+	int pid = q[QHEAD].next;
+	q[QHEAD].next = q[pid].next;
+	q[q[QHEAD].next].prev = QHEAD;
+	return pid;
+}
+
+void insert(queue q, int pid, int key)
+{
+	int n = first(q);
+	while (q[n].key <= key)
+		n = q[n].next;
+	
+	int prev = q[n].prev;
+	q[pid].next = n;
+	q[pid].prev = prev;
+	q[pid].key = key;
+	q[prev].next = pid;
+	q[n].prev = pid;
+}
+
+void clearq(queue q)
+{
+	for (int i = 0; i < NPROC; i++)
 	{
-		q->front = node;
-		q->rear = node;
+		q[i].pid = -1;
+		q[i].next = -1;
+		q[i].prev = -1;
+		q[i].key = -1;
 	}
 
-	else
+	q[QHEAD].pid = QHEAD;
+	q[QHEAD].prev = QTAIL;
+	q[QHEAD].next = QTAIL;
+	q[QHEAD].key = -1;
+
+	q[QTAIL].pid = QTAIL;
+	q[QTAIL].prev = QHEAD;
+	q[QTAIL].next = QHEAD;
+	q[QTAIL].key = 0x7fffffff;
+}
+
+void printq(queue q)
+{
+	int pid = first(q);
+	while (pid != QTAIL)
 	{
-		q->rear->next = node;
-		q->rear = node;
+		kprintf("%d ", pid);
+		pid = q[pid].next;
 	}
-
-	q->count++;
+	kprintf("\n");
 }
-
-void *dequeue(struct queue *q)
-{
-	if (is_empty(q))
-		return NULL;
-
-	struct qnode *tmp = q->front;
-	void *data = tmp->data;
-	q->front = q->front->next;
-	q->count--;
-	kfree(tmp);
-	return data;
-}
-
-struct queue *newq()
-{
-	struct queue *queue = (struct queue *) kmalloc(sizeof(struct queue));
-	queue->count = 0;
-	queue->front = NULL;
-	queue->rear  = NULL;
-	return queue;
-}
-
-bool is_empty(struct queue *q)
-{
-	return q->count == 0;
-}
-
-//void print_queue(struct queue *q)
-//{
-//	struct qnode *tmp = q->front;
-//	while (tmp)
-//	{
-//		struct proc *ptr = (struct proc *) tmp->data;
-//		kprintf("%s->", ptr->name);
-//		tmp = tmp->next;
-//	}
-//	kprintf("\n");
-//}

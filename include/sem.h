@@ -16,7 +16,7 @@
 struct sem
 {
 	int count;
-	struct queue *waitq;
+	queue waitq;
 };
 
 void sem_init();

@@ -13,7 +13,6 @@
 #include <io.h>
 #include <kprintf.h>
 #include <proc.h>
-#include <pq.h>
 #include <queue.h>
 
 // base frequency of the PIT, in Hz
@@ -22,8 +21,7 @@
 static u64 sec = 0;    // seconds since maestro was bootstrapped
 static int ms  = 0;    // ms since sec was last updated
 
-extern struct queue *readyq;
-extern struct pq *sleepq;
+extern queue readyq, sleepq;
 extern struct proc *curr;
 
 /**
@@ -34,24 +32,16 @@ static inline u32 timestamp()
 	return sec * 1000 + ms;
 }
 
-static int sleep_cmp(void *p1, void *p2)
-{
-	struct proc *pptr1 = (struct proc *) p1;
-	struct proc *pptr2 = (struct proc *) p2;
-	return pptr1->wakeup < pptr2->wakeup;
-}
-
 static void clkhandler()
 {
 	// wake up sleeping process if necessary
-	struct proc *pptr = (struct proc *) peek(&sleepq);
-	if (pptr && pptr->wakeup <= timestamp())
-	{
-		pop(&sleepq);
-		pptr->state = PR_READY;
-		pptr->wakeup = 0;
-		insert(readyq, pptr);
-	}
+	//if (pptr && pptr->wakeup <= timestamp())
+	//{
+	//	pop(&sleepq);
+	//	pptr->state = PR_READY;
+	//	pptr->wakeup = 0;
+	//	insert(readyq, pptr);
+	//}
 
 	if (++ms == 1000)
 	{
@@ -87,7 +77,7 @@ void sleepms(uint msec)
 	int mask = disable();
 	u32 wakeup = timestamp() + msec;
 	curr->wakeup = wakeup;
-	push(&sleepq, curr, sleep_cmp);
+	insert(sleepq, curr->pid, curr->wakeup);
 	curr->state = PR_SLEEPING;
 	sched();
 	restore(mask);

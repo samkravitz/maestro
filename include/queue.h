@@ -11,22 +11,30 @@
 #define QUEUE_H
 
 #include <maestro.h>
+#include <proc.h>
 
 struct qnode
 {
-	void *data;
-	struct qnode *next;
-};
-struct queue
-{
-	uint count;
-    struct qnode *front;
-    struct qnode *rear;
+	int pid;
+	int key;
+	int next;
+	int prev;
 };
 
-void insert(struct queue *, void *);
-void *dequeue(struct queue *);
-struct queue *newq();
-bool is_empty(struct queue *);
+typedef struct qnode queue[NPROC + 2];
 
-#endif // QUEUE_H
+#define QHEAD NPROC
+#define QTAIL NPROC + 1
+
+void enqueue(queue, int);
+int dequeue(queue);
+void insert(queue, int, int);
+int peek(queue);
+void clearq(queue);
+bool is_empty(queue);
+
+#define first(q) (q[QHEAD].next)
+#define last(q)  (q[QTAIL].prev)
+#define firstkey(q) (first(q).key)
+
+#endif    // QUEUE_H
