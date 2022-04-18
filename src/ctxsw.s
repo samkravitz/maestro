@@ -12,7 +12,7 @@
 	global ctxsw
 	extern set_task
 
-; cdecl - void ctxsw(void *oldstk, void *newstk)
+; cdecl - void ctxsw(void *pold, void *pnew)
 ctxsw:
 	mov eax, [esp + 4]      ; old process
 	mov ecx, [esp + 8]      ; new process
@@ -29,7 +29,8 @@ ctxsw:
 
 	; set new process's kernel stack in tss so it can be loaded
 	; when the process is preempted
-	push ecx
+	mov edx, [ecx + 4]      ; edx = pnew->stkbtm
+	push edx
 	call set_task
 	add esp, 4
 

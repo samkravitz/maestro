@@ -79,6 +79,7 @@ struct proc *create(void (*f)(void), const char *name)
 	
 	u32 *kstack = (u32 *) (pptr->kstack + PR_STACKSIZE);
 	u32 *ustack = (u32 *) (pptr->ustack + PR_STACKSIZE);
+	pptr->stkbtm = (uintptr_t) kstack;
 
 	--ustack; *ustack = (u32) pterm;
 

@@ -62,7 +62,6 @@ jmp $                      ; kernel should never return
 ; cdecl - void set_task(u32 esp)
 set_task:
 	mov eax, [esp + 4]
-	mov eax, [eax]
 	mov [tss.esp0], eax
 	ret
 

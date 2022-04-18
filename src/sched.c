@@ -52,6 +52,6 @@ void sched()
 
 	curr = pnew;
 	curr->state = PR_RUNNING;
-	ctxsw(&pold->stkptr, &pnew->stkptr);
+	ctxsw(pold, pnew);
 	restore(pold->mask);
 }

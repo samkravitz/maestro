@@ -32,8 +32,9 @@ enum prstate
 
 struct proc
 {
-	enum prstate state;
 	uintptr_t stkptr;              // current kernel stack pointer
+	uintptr_t stkbtm;              // address of bottom of kernel stack
+	enum prstate state;
 	u8 kstack[PR_STACKSIZE];       // per process kernel stack
 	u8 ustack[PR_STACKSIZE];       // user stack
 	int pid;                       // process id
