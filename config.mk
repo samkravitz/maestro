@@ -19,7 +19,7 @@ export LDFLAGS = \
 	-T linker.ld \
 	-Map=maestro.map \
 	-L lib/libc \
-	-lc \
+	-lk \
 	-L toolchain/$(TARGET)/lib/gcc/$(TARGET)/$(GCC_VERSION) \
 	-lgcc
 

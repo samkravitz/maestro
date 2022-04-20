@@ -21,8 +21,8 @@ extern struct proc nullproc;
 
 void kmain()
 {
+	kprintf("Welcome to maestro!\n");
 	init();
-	printf("Welcome to maestro!\n");
 	curr = &nullproc;
 
 	// enable interrupts

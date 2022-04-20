@@ -11,6 +11,7 @@
 #include <vmm.h>
 
 #include <intr.h>
+#include <kprintf.h>
 #include <kmalloc.h>
 #include <pmm.h>
 
@@ -123,6 +124,6 @@ void *vmm_alloc(uintptr_t virt, size_t count)
  */
 static void page_fault()
 {
-	printf("Page fault detected!\n");
+	kprintf("Page fault detected!\n");
 	while (1) ;
 }

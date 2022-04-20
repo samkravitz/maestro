@@ -1,30 +1,43 @@
-LIB = libc.a
+LIB = libc.a libk.a
 
 CFLAGS += -I ../../include
+KFLAGS = $(CFLAGS)
+KFLAGS += -D LIBK
 
-# C sources
-C = \
+# libc sources
+C_SRC = \
 	stdio.c \
 	stdlib.c \
 	string.c \
 	syscall.c \
+	syscall.s \
 	unistd.c
 
-# asm sources
-ASM = syscall.s
+#libk sources
+K_SRC = \
+	stdio.c \
+	stdlib.c \
+	string.c
 
-OBJ = $(C:.c=.c.o) $(ASM:.s=.s.o)
+C_OBJ = $(C_SRC:.c=.c.o) $(C_SRC:.s=.s.o)
+K_OBJ = $(K_SRC:.c=.k.o)
 
 all: $(LIB)
 
-$(LIB): $(OBJ)
-	$(AR) rcs $(LIB) $(OBJ)
+libc.a: $(C_OBJ)
+	$(AR) rcs libc.a $(C_OBJ)
+
+libk.a: $(K_OBJ)
+	$(AR) rcs libk.a $(K_OBJ)
 
 %.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.s.o: %.s
 	$(AS) -f elf32 $< -o $@
+
+%.k.o: %.c
+	$(CC) $(KFLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:

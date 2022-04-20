@@ -17,6 +17,7 @@
 
 #define PRINTF_BUFF_SIZE 1024
 
+#ifndef LIBK
 int printf(const char *fmt, ...)
 {
 	va_list args;
@@ -25,6 +26,7 @@ int printf(const char *fmt, ...)
 	va_end(args);
 	return ret;
 }
+#endif
 
 int fprintf(FILE *stream, const char *fmt, ...)
 {
@@ -44,6 +46,7 @@ int sprintf(char *str, const char *fmt, ...)
 	return ret;
 }
 
+#ifndef LIBK
 int vprintf(const char *fmt, va_list args)
 {
 	char buff[PRINTF_BUFF_SIZE];
@@ -52,6 +55,7 @@ int vprintf(const char *fmt, va_list args)
 	write(STDOUT_FILENO, buff, ret);
 	return ret;
 }
+#endif
 
 int vfprintf(FILE *stream, const char *fmt, va_list args)
 {
@@ -154,9 +158,11 @@ int vsprintf(char *str, const char *fmt, va_list args)
 	return i;
 }
 
+#ifndef LIBK
 int getc()
 {
 	char c;
 	read(STDIN_FILENO, &c, 1);
 	return c;
 }
+#endif
