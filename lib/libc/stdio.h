@@ -26,10 +26,18 @@ typedef struct
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-int printf(const char *, ...);
-int fprintf(FILE *, const char *, ...);
-int sprintf(char *, const char *, ...);
+#define SEEK_SET 0
 
+int fflush(FILE *);
+FILE *fopen(const char *, const char *);
+int fprintf(FILE *, const char *, ...);
+size_t fread(void *, size_t, size_t, FILE *);
+int fseek(FILE *, long, int);
+long ftell(FILE *);
+size_t fwrite(const void *, size_t, size_t, FILE *);
+int printf(const char *, ...);
+void setbuf(FILE *, char *);
+int sprintf(char *, const char *, ...);
 int vprintf(const char *, va_list);
 int vfprintf(FILE *, const char *, va_list);
 int vsprintf(char *, const char *, va_list);

@@ -11,4 +11,10 @@ int atoi(const char *);
 void pad(char *, int, char);
 char *itoa(u32, char *, int);
 
+void abort(void);
+int atexit(void (*)(void));
+void free(void *);
+char *getenv(const char *);
+void *malloc(size_t);
+
 #endif    // STDLIB_H
