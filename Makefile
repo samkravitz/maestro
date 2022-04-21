@@ -1,6 +1,6 @@
 include config.mk
 
-VPATH = src/ src/bootloader
+VPATH = src/ src/bootloader src/w
 
 # C sources
 C = \
@@ -25,7 +25,8 @@ C = \
 	syscall.c \
 	tty.c \
 	vfs.c \
-	vmm.c 
+	vmm.c \
+	w.c
 
 # asm sources
 ASM = \
