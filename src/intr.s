@@ -51,6 +51,14 @@
 ; each icw specicifies certain behavior for the pic
 ; cdecl - void intr_init();
 intr_init:
+	; send reset command to pic1 and pic2
+	mov al, 11h
+	out PIC1_CMD, al
+	call io_wait
+	mov al, 11h
+	out PIC2_CMD, al
+	call io_wait
+
 	; icw1
 	; pic will expect icw4 (bit 0)
 	; initialize the pic (bit 4)
@@ -62,15 +70,15 @@ intr_init:
 	call io_wait
 
 	; icw2 - remaps pic
-	; primary pic controls irq0-irq7, which we want to map to interrupt 20h,
-	; so we send 20h to primary pic
-	; secondary pic controls irq8-irq15, which we want to map to interrupt 28h,
-	; so we send 28h to secondary pic
-	mov al, 0x20
+	; primary pic controls irq0-irq7, which we want to map to interrupt 32,
+	; so we send 32 to primary pic
+	; secondary pic controls irq8-irq15, which we want to map to interrupt 40,
+	; so we send 40 to secondary pic
+	mov al, 32
 	out PIC1_DATA, al
 	call io_wait
 
-	mov al, 0x28
+	mov al, 40
 	out PIC2_DATA, al
 	call io_wait
 
@@ -82,11 +90,9 @@ intr_init:
 	mov al, 4
 	out PIC1_DATA, al
 	call io_wait
-
 	mov al, 2
-	out PIC1_DATA, al
+	out PIC2_DATA, al
 	call io_wait
-	nop
 
 	; icw4
 	; the only bit to set here is bit 0 (80x86 mode)
@@ -94,17 +100,17 @@ intr_init:
 	mov al, 1
 	out PIC1_DATA, al
 	call io_wait
-
+	mov al, 1
 	out PIC2_DATA, al
 	call io_wait
 
-	; mask (disable) all irqs except for irq0 (timer) and irq1 (keyboard)
+	; mask (disable) all irqs except for irq0 (timer), irq1 (keyboard)
+	; and irq12 (mouse)
 	; note - this needs to be changed when wanting to add other irqs
-	mov al, 0xfc
+	mov al, 0xf8
 	out PIC1_DATA, al
 	call io_wait
-	mov al, 0xff
-
+	mov al, 0xef
 	out PIC2_DATA, al
 	call io_wait
 

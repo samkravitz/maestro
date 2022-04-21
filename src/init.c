@@ -14,6 +14,7 @@
 #include <idt.h>
 #include <intr.h>
 #include <kbd.h>
+#include <mouse.h>
 #include <pmm.h>
 #include <proc.h>
 #include <sem.h>
@@ -34,6 +35,7 @@ void init()
     vfs_init();
 
 	proc_init();
+	mouse_init();
 
 	// set keyboard interrupt handler
 	set_vect(IRQ1, kbdhandler);

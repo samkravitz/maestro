@@ -15,6 +15,7 @@ C = \
 	kmain.c \
 	kmalloc.c \
 	kprintf.c \
+	mouse.c \
 	pmm.c \
 	proc.c \
 	pq.c \
