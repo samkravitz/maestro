@@ -56,8 +56,22 @@ call puts
 jmp $
 
 .done:
-
 mov [es:di],     dword 0xcafebabe  ; magic number so the kernel knows where the memory map ends
+
+; set VESA mode 118h
+; 1024x768, 24bpp, 3072 pitch
+; TODO - mode 118h may not always have these properties, and may be unavailable
+video_mode:
+mov ax, 4F02h                   ; set vbe mode
+mov bx, 4118h                   ; vbe mode number
+int 0x10                        ; vbe swi
+mov eax, 1000h                  ; address to store video mode properties
+mov word [eax], 1024            ; width
+mov word [eax + 2], 768         ; height
+mov word [eax + 4], 3072        ; pitch
+mov byte [eax + 6], 24          ; bpp
+mov dword [eax + 7], 0xfd000000 ; physical address of framebuffer
+
 
 ; next we will verify that a20 line is enabled before jumping to protected mode
 call check_a20

@@ -15,6 +15,7 @@ global kpage_dir
 global kpage_table
 global ident_page_table
 global set_task
+global fb_page_table
 
 extern clear
 extern kmain
@@ -171,3 +172,7 @@ resb 1024 * 4              ; page table is 1024 4 byte entries
 align 0x1000               ; must be page aligned
 ident_page_table:
 resb 1024 * 4              ; page table is 1024 4 byte entries
+
+align 0x1000               ; must be page aligned
+fb_page_table:
+resb 1024 * 4              ; page directory is 1024 4 byte entries

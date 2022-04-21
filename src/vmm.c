@@ -30,6 +30,8 @@ extern struct pte kpage_table[NUM_TABLE_ENTRIES];
 // identity page table
 extern struct pde ident_page_table[NUM_TABLE_ENTRIES];
 
+extern struct pte fb_page_table[NUM_TABLE_ENTRIES];
+
 extern u32 start_phys, start;
 
 // pointer to heap, defined in kmalloc.c
@@ -58,6 +60,7 @@ void vmm_init()
 	memcpy(kpage_dir,        KPAGE_DIR_BASE,   PAGE_DIR_SIZE);
 	memcpy(kpage_table,      KPAGE_TABLE_BASE, PAGE_DIR_SIZE);
 	memcpy(ident_page_table, IDENT_TABLE_BASE, PAGE_DIR_SIZE);
+	memset(fb_page_table, 0, PAGE_TABLE_SIZE);
 
 	// set kernel pde for identity page table and kernel page table to new addr
 	int i = (u32) &start / 0x400000; // index into kernel page directory that maps the kernel page table
@@ -86,6 +89,19 @@ void vmm_init()
 	// mark physical addresses 0x0000-0x1000 as not present
 	// this will make all null pointer dereferences page fault
 	ident_page_table[0].present = 0;
+
+	int k = 0xfd000000 / 0x400000;
+	kpage_dir[k].present = 1;
+	kpage_dir[k].rw = 1;
+	kpage_dir[k].size = 0;
+	kpage_dir[k].addr = VIRT_TO_PHYS(fb_page_table) >> 12;
+
+	for (int i = 0; i < 1024; i++)
+	{
+		fb_page_table[i].present = 1;
+		fb_page_table[i].rw = 1;
+		fb_page_table[i].addr = (0xfd000000 + i * PAGE_SIZE) >> 12;
+	}
 
 	// move physical address of kernel page directory to cr3
 	asm("mov %0, %%cr3" :: "r"(VIRT_TO_PHYS(kpage_dir)));

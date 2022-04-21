@@ -20,6 +20,7 @@
 #include <sem.h>
 #include <vfs.h>
 #include <vmm.h>
+#include <w.h>
 
 // initializes IDT, interrupts, and the clock
 void init()
@@ -30,6 +31,7 @@ void init()
 	pmm_init();
 	vmm_init();
 	sem_init();
+	w_init();
 
 	ext2_init();
     vfs_init();
