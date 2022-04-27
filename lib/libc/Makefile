@@ -1,11 +1,10 @@
 LIB = libc.a libk.a
 
-CFLAGS += -I ../../include
-KFLAGS = $(CFLAGS)
-KFLAGS += -D LIBK
+KFLAGS = $(CFLAGS) -I ../../include -D LIBK
 
 # libc sources
 C_SRC = \
+	malloc.c \
 	stdio.c \
 	stdlib.c \
 	string.c \
