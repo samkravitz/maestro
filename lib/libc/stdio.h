@@ -10,15 +10,16 @@
 #ifndef STDIO_H
 #define STDIO_H
 
-#include <maestro.h>
 #include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct
 {
 	char name[32];
 	size_t len;
-	u32 eof;
-	u32 position;
+	uint32_t eof;
+	uint32_t position;
 	int fd;
 } FILE;
 

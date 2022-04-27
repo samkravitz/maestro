@@ -9,8 +9,6 @@
  */
 #include "stdio.h"
 
-#include <tty.h>
-
 #include "stdlib.h"
 #include "string.h"
 #include "unistd.h"
@@ -111,7 +109,7 @@ int vsprintf(char *str, const char *fmt, va_list args)
 
 				// base 16 integer
 				case 'x':
-					x = va_arg(args, u32);
+					x = va_arg(args, uint32_t);
 					itoa(x, fmtbuf, 16);
 					fmt += 2;
 					break;

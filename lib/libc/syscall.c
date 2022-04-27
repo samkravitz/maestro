@@ -24,7 +24,7 @@
  */
 int syscall(int sysno, ...)
 {
-	u32 arg1, arg2, arg3;
+	uint32_t arg1, arg2, arg3;
 	int ret;
 
 	va_list args;
@@ -35,9 +35,9 @@ int syscall(int sysno, ...)
 		// syscalls with 3 arguments
 		case SYS_READ:
 		case SYS_WRITE:
-			arg1 = va_arg(args, u32);
-			arg2 = va_arg(args, u32);
-			arg3 = va_arg(args, u32);
+			arg1 = va_arg(args, uint32_t);
+			arg2 = va_arg(args, uint32_t);
+			arg3 = va_arg(args, uint32_t);
 
 			ret = syscall3(sysno, arg1, arg2, arg3);
 			break;

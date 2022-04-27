@@ -11,7 +11,7 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#include <maestro.h>
+#include <stdint.h>
 
 #define SYS_READ  0
 #define SYS_WRITE 1
@@ -20,8 +20,8 @@ int syscall(int, ...);
 
 // defined in syscall.s
 extern int syscall0(int);
-extern int syscall1(int, u32);
-extern int syscall2(int, u32, u32);
-extern int syscall3(int, u32, u32, u32);
+extern int syscall1(int, uint32_t);
+extern int syscall2(int, uint32_t, uint32_t);
+extern int syscall3(int, uint32_t, uint32_t, uint32_t);
 
 #endif    // SYSCALL_H

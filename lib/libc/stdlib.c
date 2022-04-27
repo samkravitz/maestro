@@ -30,7 +30,7 @@ int atoi(const char *str)
 }
 
 // converts a number into a string
-char *itoa(u32 n, char *buff, int base)
+char *itoa(uint32_t n, char *buff, int base)
 {
 	char c;
 	int mod, i = 0;

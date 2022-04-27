@@ -10,7 +10,14 @@
 
 #include "string.h"
 
+#include <stdint.h>
+#include "stdlib.h"
+
+#ifdef LIBK
 #include <kmalloc.h>
+#undef malloc
+#define malloc kmalloc
+#endif
 
 // compares n bytes of s1 with s2
 // returns:
@@ -161,8 +168,8 @@ int strcmp(const char *a, const char *b)
 
 int strncmp(const char *a, const char *b, size_t n)
 {
-	const u8 *s1 = (const u8 *) a;
-	const u8 *s2 = (const u8 *) b;
+	const uint8_t *s1 = (const uint8_t *) a;
+	const uint8_t *s2 = (const uint8_t *) b;
 
 	while (n && *s1 && (*s1 == *s2))
 	{
@@ -181,7 +188,7 @@ char *strdup(const char *str)
 
 char *strndup(const char *str, size_t n)
 {
-	char *dup = (char *) kmalloc(n + 1);
+	char *dup = (char *) malloc(n + 1);
 	memcpy(dup, str, n);
 	dup[n] = '\0';
 	return dup;

@@ -1,6 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-typedef pid_t int
+typedef int pid_t;
 
 #endif    // TYPES_H
