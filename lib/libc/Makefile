@@ -4,6 +4,7 @@ KFLAGS = $(CFLAGS) -I ../../include -D LIBK
 
 # libc sources
 C_SRC = \
+	crt0.s \
 	malloc.c \
 	stdio.c \
 	stdlib.c \
