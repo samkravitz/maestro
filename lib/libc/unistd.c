@@ -22,3 +22,8 @@ size_t write(int fd, void *buff, size_t count)
 {
 	return syscall(SYS_WRITE, fd, buff, count);
 }
+
+void *sbrk(intptr_t increment)
+{
+	return NULL;
+}
