@@ -33,14 +33,11 @@ ASM = \
 	intr.s \
 	start.s
 
-USER = \
-	user/ls/ls.o
-
 OBJ = $(addprefix bin/, $(C:.c=.c.o) $(ASM:.s=.s.o))
 
 all: libs maestro.bin bootloader img user
 
-maestro.bin: $(OBJ) $(USER)
+maestro.bin: $(OBJ)
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 stage1.bin: stage1.s
@@ -60,9 +57,6 @@ bin/%.s.o: %.s
 libs:
 	$(MAKE) -C lib
 
-user:
-	$(MAKE) -C user
-
 disk:
 	meta/make_disk.sh
 
@@ -74,12 +68,16 @@ bootloader: stage1.bin stage2.bin
 img: maestro.bin
 	e2cp maestro.bin disk.img:/
 
+.PHONY: user
+user:
+	$(MAKE) -C user
+
 .PHONY: start
 start:
 	qemu-system-i386 \
-		-m 16M \
-		-serial stdio \
-		-drive file=disk.img,format=raw,index=0,media=disk
+	-m 16M \
+	-serial stdio \
+	-drive file=disk.img,format=raw,index=0,media=disk
 
 .PHONY: clean
 clean:

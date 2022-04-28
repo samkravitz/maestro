@@ -1,18 +1,17 @@
-include ../../config.mk
-
-INCLUDE = -I ../../include
-PROG = ls.o
-
-SOURCES = \
+SRC = \
 	ls.c
 
-OBJ = $(SOURCES:.c=.o)
+OBJ = $(SRC:.c=.o)
 
-all: $(PROG)
+all: ls
+
+ls: $(OBJ)
+	$(LD) -o $@ $^ $(LDFLAGS)
+	e2cp ls ../../disk.img:/
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:
-	rm -f *.o
+	rm -f ls *.o
