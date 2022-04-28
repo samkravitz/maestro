@@ -6,6 +6,7 @@ VPATH = src/ src/bootloader
 C = \
 	ata.c \
 	clk.c \
+	elf.c \
 	ext2.c \
 	idt.c \
 	init.c \
