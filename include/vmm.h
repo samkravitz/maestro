@@ -64,5 +64,6 @@ struct pte
 void vmm_init();
 
 void *vmm_alloc(uintptr_t, size_t);
+uintptr_t vmm_create_address_space();
 
 #endif // VMM_H

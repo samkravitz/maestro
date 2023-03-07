@@ -13,6 +13,8 @@
 #include <kprintf.h>
 #include <proc.h>
 
+#include <elf.h>
+
 #include "stdio.h"
 #include "string.h"
 
@@ -24,6 +26,13 @@ void kmain()
 	kprintf("Welcome to maestro!\n");
 	init();
 	curr = &nullproc;
+
+	char *const argv[] = {
+		"ls",
+		NULL,
+	};
+
+	execv("/ls", argv);
 
 	// enable interrupts
 	asm("sti");

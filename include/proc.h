@@ -34,6 +34,7 @@ struct proc
 {
 	uintptr_t stkptr;              // current kernel stack pointer
 	uintptr_t stkbtm;              // address of bottom of kernel stack
+	uintptr_t pdir;                // physical address of page directory
 	enum prstate state;
 	u8 kstack[PR_STACKSIZE];       // per process kernel stack
 	u8 ustack[PR_STACKSIZE];       // user stack

@@ -14,9 +14,12 @@
 #include <kprintf.h>
 #include <kmalloc.h>
 #include <pmm.h>
+#include <proc.h>
 
 #include "stdio.h"
 #include "string.h"
+
+extern struct proc nullproc;
 
 // kernel page directory
 extern struct pde kpage_dir[NUM_TABLE_ENTRIES];
@@ -73,8 +76,8 @@ void vmm_init()
 	// index into page table that maps heap's first page
 	i = ((u32) heap - (u32) &start) / PAGE_SIZE;
 
-	for (int j = 0; j <= 1024; j++)
-		kpage_table[j].user = 1;
+	//for (int j = 0; j <= 1024; j++)
+	//	kpage_table[j].user = 1;
 
 	// start at i + heap_pages because we want to keep the heap's page present
 	for (int j = i + heap_pages; j < NUM_TABLE_ENTRIES; j++)
@@ -87,6 +90,7 @@ void vmm_init()
 	// move physical address of kernel page directory to cr3
 	asm("mov %0, %%cr3" :: "r"(VIRT_TO_PHYS(kpage_dir)));
 
+	nullproc.pdir = VIRT_TO_PHYS(kpage_dir);
 	kmalloc_init(heap, 1024 * 1024);
 }
 
@@ -117,6 +121,30 @@ void *vmm_alloc(uintptr_t virt, size_t count)
 	}
 
 	return (void *) virt;
+}
+
+uintptr_t vmm_create_address_space()
+{
+	uintptr_t phys = pmm_alloc();
+	struct pde *dir = NULL;
+
+	for (int i = 0; i < NUM_TABLE_ENTRIES; i++)
+	{
+		if (kpage_table[i].present == 0)
+		{
+			kprintf("%d %x\n",i, kpage_dir[i].addr);
+			kpage_table[i].present = 1;
+			kpage_table[i].addr = phys >> 12;
+			dir = (struct pde *) &kpage_table[i];
+			break;
+		}
+	}
+
+	if (dir == NULL)
+		kprintf("Error creating address space!\n");
+	
+	memcpy(dir, kpage_dir, PAGE_DIR_SIZE);
+	return phys;
 }
 
 /**
