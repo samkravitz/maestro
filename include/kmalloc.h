@@ -116,6 +116,7 @@ inline static struct header *get_left_header(struct header *h)
 void kmalloc_init(void *, size_t);
 
 void *kmalloc(size_t);
+void *kmalloc_a(size_t, size_t);
 void kfree(void *);
 
 void print_heap();
