@@ -12,6 +12,11 @@
 
 #include <maestro.h>
 
+#define ET_NONE 0
+#define ET_REL 1
+#define ET_EXEC 2
+#define ET_CORE 3
+
 struct elf_ehdr
 {
 	u8 e_ident[16];
@@ -43,5 +48,6 @@ struct elf_phdr
 };
 
 int execv(const char *pathname, char *const argv[]);
+void print_elf(struct elf_ehdr *);
 
 #endif    // ELF_H
