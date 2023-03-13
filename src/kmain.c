@@ -27,12 +27,12 @@ void kmain()
 	init();
 	curr = &nullproc;
 
-	char *const argv[] = {
-		"ls",
-		NULL,
-	};
+	//char *const argv[] = {
+	//	"ls",
+	//	NULL,
+	//};
 
-	execv("/ls", argv);
+	//execv("/ls", argv);
 
 	// enable interrupts
 	asm("sti");

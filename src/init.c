@@ -31,13 +31,13 @@ void init()
 	pmm_init();
 	vmm_init();
 	sem_init();
-	w_init();
+	//w_init();
 
 	ext2_init();
     vfs_init();
 
 	proc_init();
-	mouse_init();
+	//mouse_init();
 
 	// set keyboard interrupt handler
 	set_vect(IRQ1, kbdhandler);
