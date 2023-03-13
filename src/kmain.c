@@ -20,7 +20,6 @@
 
 extern struct proc *curr;
 extern struct proc nullproc;
-extern void start_proc();
 
 void kmain()
 {
@@ -28,14 +27,7 @@ void kmain()
 	init();
 	curr = &nullproc;
 
-	//char *const argv[] = {
-	//	"ls",
-	//	NULL,
-	//};
-
-	//execv("/ls", argv);
-
-    struct proc *ls = create(start_proc, "ls");
+    struct proc *ls = create_usermode("ls");
     ready(ls);
 
 	// enable interrupts

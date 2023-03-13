@@ -47,7 +47,7 @@ struct elf_phdr
 	u32 p_align;
 };
 
-int execv(const char *pathname, char *const argv[]);
+void run_elf();
 void print_elf(struct elf_ehdr *);
 
 #endif    // ELF_H

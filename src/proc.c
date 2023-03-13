@@ -19,6 +19,9 @@
 // defined in intr.s
 extern u32 isr_end;
 
+// defined in elf.c
+extern void run_elf();
+
 struct proc *curr;
 struct proc *proctab[NPROC];
 
@@ -63,6 +66,11 @@ void ready(struct proc *pptr)
 {
 	pptr->state = PR_READY;
 	insert(readyq, pptr);
+}
+
+struct proc *create_usermode(const char *path)
+{
+    return create(run_elf, path);
 }
 
 /**

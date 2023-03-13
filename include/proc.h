@@ -53,6 +53,7 @@ void sched();
 
 void proc_init();
 struct proc *create(void (*func)(void), const char *);
+struct proc *create_usermode(const char *);
 void ready(struct proc *);
 
 #endif    // PROC_H

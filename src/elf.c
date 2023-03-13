@@ -20,9 +20,13 @@
 
 extern struct proc *curr;
 
-void start_proc()
+/**
+ * @brief reads, loads, and runs an elf file
+ * this function is not called directly, but the starting point
+ * of processes that will run in user mode.
+ */
+void run_elf()
 {
-    kprintf("new proc\n");
     size_t s = ext2_filesize(14);
 	u8 *buff = kmalloc(s);
 	ext2_read_data(buff, 14, 0, s);
@@ -47,36 +51,13 @@ void start_proc()
         memcpy(phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
 	}
 
+    kfree(buff);
+
     // create user stack and map it
     uintptr_t ustack_phys = pmm_alloc();
     vmm_map_page(ustack_phys, 0xc0000000 - PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
 
     enter_usermode();
-}
-
-int execv(const char *pathname, char *const argv[])
-{
-	size_t s = ext2_filesize(14);
-	u8 *buff = kmalloc(s);
-	ext2_read_data(buff, 14, 0, s);
-    kprintf("curr %s\n", curr->name);
-
-	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
-	print_elf(ehdr);
-	struct elf_phdr *phdr_table = buff + ehdr->e_phoff;
-	struct elf_phdr *phdr;
-    phdr = &phdr_table[0];
-    kprintf("hi\n");
-    void *p = vmm_alloc(phdr->p_vaddr, 2);
-    kprintf("allocated at %x\n", p);
-
-	//for (uint i = 0; i < ehdr->e_phnum; i++)
-	//{
-	//	phdr = &phdr_table[i];
-	//	kprintf("%d %x %x %x\n", phdr->p_type, phdr->p_offset, phdr->p_vaddr, phdr->p_align);
-
-	//}
-	return 0;
 }
 
 void print_elf(struct elf_ehdr *ehdr)
