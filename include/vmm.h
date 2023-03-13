@@ -33,6 +33,14 @@
 // physical address the bootloader placed the kernel page table
 #define KPAGE_TABLE_BASE       (u8 *) 0xa000
 
+// flag bitmasks for pt_entries
+#define PT_PRESENT 1
+#define PT_WRITABLE 2
+#define PT_USER 4
+#define PT_ACCESSED 0x20
+#define PT_DIRTY 0x40
+#define PT_FRAME 0x7ffff000
+
 // page directory entry
 struct pde
 {

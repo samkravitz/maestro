@@ -56,57 +56,29 @@ void vmm_init()
 {
 	set_vect(14, page_fault);
 
-	// copy tables from where bootloader placed them to safe kernel memory
-	memcpy(kpage_dir,        KPAGE_DIR_BASE,   PAGE_DIR_SIZE);
-	memcpy(kpage_table,      KPAGE_TABLE_BASE, PAGE_DIR_SIZE);
-	memcpy(ident_page_table, IDENT_TABLE_BASE, PAGE_DIR_SIZE);
-	memset(fb_page_table, 0, PAGE_TABLE_SIZE);
+    u32 *kpage_table = pmm_alloc();
+    u32 *kpage_dir = pmm_alloc();
+    u32 *ident_page_table = pmm_alloc();
 
-	// set kernel pde for identity page table and kernel page table to new addr
+    for (int i = 0, phys = &start_phys; i < 1024; i++, phys += PAGE_SIZE)
+    {
+        kpage_dir[i] = 0;
+        kpage_table[i] = phys | PT_PRESENT | PT_WRITABLE;
+        ident_page_table[i] = PT_PRESENT | PT_WRITABLE;
+    }
+
+    // set kernel pde for identity page table and kernel page table to new addr
+	kpage_dir[0] = (uintptr_t) ident_page_table | PT_PRESENT | PT_WRITABLE;
 	int i = (u32) &start / 0x400000; // index into kernel page directory that maps the kernel page table
-	kpage_dir[i].addr = VIRT_TO_PHYS(kpage_table) >> 12;
-	kpage_dir[0].addr = VIRT_TO_PHYS(ident_page_table) >> 12;
-	kpage_dir[i].user = 1;
+    kpage_dir[i] = (uintptr_t) kpage_table | PT_PRESENT | PT_WRITABLE;
 
-	// when mapping the kernel to 0xc0000000, the bootloader mapped 4M of memory.
-	// However, not all of that is used. The unused pages should be marked as not present.
-	// the used pages are the pages used by the kernel and the page(s) used by the physical memory bitmap.
-
-	// map 1 Mb for the heap
-	uint heap_pages = 1024 * 1024 / PAGE_SIZE;
-	vmm_alloc((uintptr_t) heap, heap_pages);
-
-	// index into page table that maps heap's first page
-	i = ((u32) heap - (u32) &start) / PAGE_SIZE;
-
-	//for (int j = 0; j <= 1024; j++)
-	//	kpage_table[j].user = 1;
-
-	// start at i + heap_pages because we want to keep the heap's page present
-	for (int j = i + heap_pages; j < NUM_TABLE_ENTRIES; j++)
-		kpage_table[j].present = 0;
-
-	// mark physical addresses 0x0000-0x1000 as not present
-	// this will make all null pointer dereferences page fault
-	ident_page_table[0].present = 0;
-
-	int k = 0xfd000000 / 0x400000;
-	kpage_dir[k].present = 1;
-	kpage_dir[k].rw = 1;
-	kpage_dir[k].size = 0;
-	kpage_dir[k].addr = VIRT_TO_PHYS(fb_page_table) >> 12;
-
-	for (int i = 0; i < 1024; i++)
-	{
-		fb_page_table[i].present = 1;
-		fb_page_table[i].rw = 1;
-		fb_page_table[i].addr = (0xfd000000 + i * PAGE_SIZE) >> 12;
-	}
+    // identity map final entry of kernel page directory
+    kpage_dir[1023] = (uintptr_t) kpage_dir | PT_PRESENT | PT_WRITABLE;
 
 	// move physical address of kernel page directory to cr3
-	asm("mov %0, %%cr3" :: "r"(VIRT_TO_PHYS(kpage_dir)));
+	asm("mov %0, %%cr3" :: "r"((uintptr_t) kpage_dir));
 
-	nullproc.pdir = VIRT_TO_PHYS(kpage_dir);
+	nullproc.pdir = (uintptr_t) kpage_dir;
 	kmalloc_init(heap, 1024 * 1024);
 }
 
