@@ -70,6 +70,9 @@ void vmm_init()
 	// move physical address of kernel page directory to cr3
 	asm("mov %0, %%cr3" :: "r"(kpage_dir));
 
+    // map physical page of VGA framebuffer
+    vmm_map_page(0xb8000, 0xb8000, PT_PRESENT | PT_WRITABLE);
+
 	nullproc.pdir = kpage_dir;
 	kmalloc_init(heap, 1024 * 1024);
 }
