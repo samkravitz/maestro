@@ -27,8 +27,8 @@ void kmain()
 	init();
 	curr = &nullproc;
 
-    struct proc *ls = create_usermode("ls");
-    ready(ls);
+    struct proc *msh = create_usermode("msh");
+    ready(msh);
 
 	// enable interrupts
 	asm("sti");

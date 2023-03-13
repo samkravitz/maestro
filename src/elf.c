@@ -27,10 +27,11 @@ extern struct proc *curr;
  */
 void run_elf()
 {
-    size_t s = ext2_filesize(14);
+    int fd = vfs_open(curr->name);
+    int inode = curr->ofile[fd]->n->inode;
+    size_t s = ext2_filesize(inode);
 	u8 *buff = kmalloc(s);
-	ext2_read_data(buff, 14, 0, s);
-    kprintf("curr %s\n", curr->name);
+	ext2_read_data(buff, inode, 0, s);
 
 	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
 	print_elf(ehdr);
@@ -57,7 +58,7 @@ void run_elf()
     uintptr_t ustack_phys = pmm_alloc();
     vmm_map_page(ustack_phys, 0xc0000000 - PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
 
-    enter_usermode();
+    enter_usermode(ehdr->e_entry);
 }
 
 void print_elf(struct elf_ehdr *ehdr)
