@@ -21,17 +21,6 @@
 
 extern struct proc nullproc;
 
-// kernel page directory
-extern struct pde kpage_dir[NUM_TABLE_ENTRIES];
-
-// kernel page table
-extern struct pte kpage_table[NUM_TABLE_ENTRIES];
-
-// identity page table
-extern struct pde ident_page_table[NUM_TABLE_ENTRIES];
-
-extern struct pte fb_page_table[NUM_TABLE_ENTRIES];
-
 extern u32 start_phys, start;
 
 // pointer to heap, defined in kmalloc.c
@@ -56,11 +45,11 @@ void vmm_init()
 {
 	set_vect(14, page_fault);
 
-    u32 *kpage_table = pmm_alloc();
-    u32 *kpage_dir = pmm_alloc();
-    u32 *ident_page_table = pmm_alloc();
+    u32 *kpage_table = (u32 *) pmm_alloc();
+    u32 *kpage_dir = (u32 *) pmm_alloc();
+    u32 *ident_page_table = (u32 *) pmm_alloc();
 
-    for (int i = 0, phys = &start_phys; i < 1024; i++, phys += PAGE_SIZE)
+    for (int i = 0, phys = (int) &start_phys; i < 1024; i++, phys += PAGE_SIZE)
     {
         kpage_dir[i] = 0;
         kpage_table[i] = phys | PT_PRESENT | PT_WRITABLE;
@@ -76,9 +65,9 @@ void vmm_init()
     kpage_dir[1023] = (uintptr_t) kpage_dir | PT_PRESENT | PT_WRITABLE;
 
 	// move physical address of kernel page directory to cr3
-	asm("mov %0, %%cr3" :: "r"((uintptr_t) kpage_dir));
+	asm("mov %0, %%cr3" :: "r"(kpage_dir));
 
-	nullproc.pdir = (uintptr_t) kpage_dir;
+	nullproc.pdir = kpage_dir;
 	kmalloc_init(heap, 1024 * 1024);
 }
 
@@ -101,10 +90,10 @@ void *vmm_alloc(uintptr_t virt, size_t count)
 		// figure out which index in the kernel page table the page corresponds to
 		int idx = (v - (u32) &start) / PAGE_SIZE;
 
-		struct pte *page = &kpage_table[idx];
+		//struct pte *page = &kpage_table[idx];
 
-		page->present = 1;
-		page->addr = phys >> 12;
+		//page->present = 1;
+		//page->addr = phys >> 12;
 		v += PAGE_SIZE;
 	}
 
@@ -118,20 +107,20 @@ uintptr_t vmm_create_address_space()
 
 	for (int i = 0; i < NUM_TABLE_ENTRIES; i++)
 	{
-		if (kpage_table[i].present == 0)
-		{
-			kprintf("%d %x\n",i, kpage_dir[i].addr);
-			kpage_table[i].present = 1;
-			kpage_table[i].addr = phys >> 12;
-			dir = (struct pde *) &kpage_table[i];
-			break;
-		}
+		//if (kpage_table[i].present == 0)
+		//{
+		//	kprintf("%d %x\n",i, kpage_dir[i].addr);
+		//	kpage_table[i].present = 1;
+		//	kpage_table[i].addr = phys >> 12;
+		//	dir = (struct pde *) &kpage_table[i];
+		//	break;
+		//}
 	}
 
 	if (dir == NULL)
 		kprintf("Error creating address space!\n");
 	
-	memcpy(dir, kpage_dir, PAGE_DIR_SIZE);
+	//memcpy(dir, kpage_dir, PAGE_DIR_SIZE);
 	return phys;
 }
 
