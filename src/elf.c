@@ -47,6 +47,11 @@ void start_proc()
         memcpy(phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
 	}
 
+    // create user stack and map it
+    uintptr_t ustack_phys = pmm_alloc();
+    vmm_map_page(ustack_phys, 0xc0000000 - PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+
+    enter_usermode();
 }
 
 int execv(const char *pathname, char *const argv[])

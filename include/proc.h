@@ -37,7 +37,7 @@ struct proc
 	uintptr_t pdir;                // physical address of page directory
 	enum prstate state;
 	u8 kstack[PR_STACKSIZE];       // per process kernel stack
-	u8 ustack[PR_STACKSIZE];       // user stack
+	void *ustack;                  // user stack
 	int pid;                       // process id
 	int mask;                      // interrupt state mask
 	struct file *ofile[NOFILE];    // open file table

@@ -78,10 +78,8 @@ struct proc *create(void (*f)(void), const char *name)
 	pptr->state = PR_SUSPENDED;
 	
 	u32 *kstack = (u32 *) (pptr->kstack + PR_STACKSIZE);
-	u32 *ustack = (u32 *) (pptr->ustack + PR_STACKSIZE);
 	pptr->stkbtm = (uintptr_t) kstack;
 
-	--ustack; *ustack = (u32) pterm;
 
 	/**
 	 * create a dummy kernel stack frame that ctxsw can return from
@@ -117,7 +115,7 @@ struct proc *create(void (*f)(void), const char *name)
 	 * [1] - eip for interrupt to return to (that is, the process's main())
 	 */
 	kstack--; *kstack = 0x23;            // ss
-	kstack--; *kstack = (u32) ustack;    // esp
+	kstack--; *kstack = 0;               // esp
 	kstack--; *kstack = 0x202;           // eflags
 	kstack--; *kstack = 0x1b;            // cs
 	kstack--; *kstack = (u32) f;         // eip

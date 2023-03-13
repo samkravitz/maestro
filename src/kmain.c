@@ -40,6 +40,7 @@ void kmain()
 
 	// enable interrupts
 	asm("sti");
+    sched();
 
 	// become the null process
 	while (1)
