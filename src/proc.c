@@ -139,7 +139,7 @@ struct proc *create(void (*f)(void), const char *name)
 	kstack--; *kstack = 0;
 
 	kstack--;                            // struct registers *
-	kstack--; *kstack = (u32) &isr_end;  // ctxsw return address
+	kstack--; *kstack = (u32) f;         // ctxsw return address
 
 	kstack--; *kstack = 0;               // ebp
 	kstack--; *kstack = 0;               // ebx

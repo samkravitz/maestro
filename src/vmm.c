@@ -29,6 +29,9 @@ extern void *heap;
 // converts virtual address addr to a physical address
 #define VIRT_TO_PHYS(addr) ((u32) &start_phys + (u32) addr - (u32) &start)
 
+u32 *PAGE_DIR = (u32 *) 0xfffff000;
+void *PAGE_TABLES = (void *) 0xffc00000;
+
 static void page_fault();
 
 /**
@@ -122,6 +125,21 @@ uintptr_t vmm_create_address_space()
 	
 	//memcpy(dir, kpage_dir, PAGE_DIR_SIZE);
 	return phys;
+}
+
+void vmm_map_page(uintptr_t phys, uintptr_t virt, unsigned flags)
+{
+    unsigned long pdindex = virt >> 22;
+    unsigned long ptindex = virt >> 12 & 0x3ff;
+    if (!(PAGE_DIR[pdindex] & PT_PRESENT))
+    {
+        kprintf("%d not present\n", pdindex);
+        uintptr_t new_page = pmm_alloc();
+        PAGE_DIR[pdindex] = new_page | flags;
+    }
+
+    u32 *page_table = PAGE_TABLES + pdindex * PAGE_SIZE;
+    page_table[ptindex] = phys | flags;
 }
 
 /**

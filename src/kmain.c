@@ -20,6 +20,7 @@
 
 extern struct proc *curr;
 extern struct proc nullproc;
+extern void start_proc();
 
 void kmain()
 {
@@ -33,6 +34,9 @@ void kmain()
 	//};
 
 	//execv("/ls", argv);
+
+    struct proc *ls = create(start_proc, "ls");
+    ready(ls);
 
 	// enable interrupts
 	asm("sti");

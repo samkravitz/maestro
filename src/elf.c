@@ -20,16 +20,50 @@
 
 extern struct proc *curr;
 
+void start_proc()
+{
+    kprintf("new proc\n");
+    size_t s = ext2_filesize(14);
+	u8 *buff = kmalloc(s);
+	ext2_read_data(buff, 14, 0, s);
+    kprintf("curr %s\n", curr->name);
+
+	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
+	print_elf(ehdr);
+
+    struct elf_phdr *phdr_table = buff + ehdr->e_phoff;
+	struct elf_phdr *phdr;
+
+    phdr = &phdr_table[0];
+	for (uint i = 0; i < ehdr->e_phnum; i++)
+	{
+		phdr = &phdr_table[i];
+        for (int j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
+        {
+            uintptr_t phys = pmm_alloc();
+            vmm_map_page(phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+        }
+
+        memcpy(phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
+	}
+
+}
+
 int execv(const char *pathname, char *const argv[])
 {
 	size_t s = ext2_filesize(14);
 	u8 *buff = kmalloc(s);
 	ext2_read_data(buff, 14, 0, s);
+    kprintf("curr %s\n", curr->name);
 
 	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
 	print_elf(ehdr);
-	//struct elf_phdr *phdr_table = buff + ehdr->e_phoff;
-	//struct elf_phdr *phdr;
+	struct elf_phdr *phdr_table = buff + ehdr->e_phoff;
+	struct elf_phdr *phdr;
+    phdr = &phdr_table[0];
+    kprintf("hi\n");
+    void *p = vmm_alloc(phdr->p_vaddr, 2);
+    kprintf("allocated at %x\n", p);
 
 	//for (uint i = 0; i < ehdr->e_phnum; i++)
 	//{
