@@ -61,20 +61,3 @@ char *itoa(uint32_t n, char *buff, int base)
 
 	return strrev(buff);
 }
-
-// pads str with c to be a minimum of width bytes
-void pad(char *str, int width, char c)
-{
-	size_t len = strlen(str);
-
-	// get number of zeros we need to pad
-	int pad    = width - len;
-	if (pad <= 0)
-		return;
-
-	// move what we have to the far right of the buffer
-	memmove(str + pad, str, len);
-
-	// pad beginning with 0
-	memset(str, c, pad);
-}

@@ -9,7 +9,6 @@
 #define to_upper(c)   ('A' + c - 'a')
 
 int atoi(const char *);
-void pad(char *, int, char);
 char *itoa(uint32_t, char *, int);
 
 void abort(void);
