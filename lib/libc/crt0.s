@@ -15,10 +15,7 @@
 	section .text
 
 _start:
-	xor ebx, ebx
-	push ebx
-	mov ebp, esp
-
+	xor ebp, ebp
 	call main
     push eax
     call exit

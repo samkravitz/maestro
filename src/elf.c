@@ -54,11 +54,44 @@ void run_elf()
 
     kfree(buff);
 
+    const char *argv[] = {
+        "ls",
+        "-lia",
+        "arg3",
+        NULL,
+    };
+
+    void *env = (void *) (0xc0000000 - PR_STACKSIZE);
+    uintptr_t env_phys = pmm_alloc();
+    vmm_map_page(env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
+
+    char **arg = argv;
+    int argc = 0;
+    while (*arg++)
+        argc++;
+
+
+    char **envp = (char **) env;
+    unsigned base = (argc + 1) * sizeof(char*);
+    for (int i = 0; i < argc; i++)
+    {
+        memcpy(env + base, argv[i], strlen(argv[i]) + 1);
+        envp[i] = env + base;
+        base += strlen(argv[i]) + 1;
+    }
+
+    envp[argc] = NULL;
+
     // create user stack and map it
     uintptr_t ustack_phys = pmm_alloc();
-    vmm_map_page(ustack_phys, 0xc0000000 - PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+    vmm_map_page(ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+    u32 *ustack = (u32*) (0xc0000000 - PR_STACKSIZE);
+    
+    // place argc and argv on the stack
+    --ustack; *ustack = env;
+    --ustack; *ustack = argc;
 
-    enter_usermode(ehdr->e_entry);
+    enter_usermode(ustack, ehdr->e_entry);
 }
 
 void print_elf(struct elf_ehdr *ehdr)
