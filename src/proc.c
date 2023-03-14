@@ -45,13 +45,6 @@ int nproc = 0;
 
 int next_pid = 0;
 
-// where processes return when they terminate
-static void pterm()
-{
-	kprintf("%s returned!\n", curr->name);
-	nproc--;
-}
-
 void proc_init()
 {
 	readyq = newq();
@@ -164,6 +157,7 @@ void proc_exit(int status)
     kprintf("%s (pid = %d) exited with code %d\n", curr->name, curr->pid, status);
     // TODO - unmap and free all memory used by the process
     curr->state = PR_TERMINATED;
+    nproc--;
 
     sched();
 }

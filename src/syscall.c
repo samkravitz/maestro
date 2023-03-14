@@ -20,6 +20,7 @@
 #include <syscall.h>
 
 #include <intr.h>
+#include <proc.h>
 #include <vfs.h>
 
 /**

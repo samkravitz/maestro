@@ -71,9 +71,7 @@ struct pte
 
 void vmm_init();
 
-void *vmm_alloc(uintptr_t, size_t);
 uintptr_t vmm_create_address_space();
-void *vmm_alloc_pages(uintptr_t, size_t, unsigned);
 void vmm_map_page(uintptr_t, uintptr_t, unsigned);
 
 

@@ -20,6 +20,8 @@
 
 extern struct proc *curr;
 
+extern void enter_usermode(void *, void *);
+
 /**
  * @brief reads, loads, and runs an elf file
  * this function is not called directly, but the starting point
@@ -36,20 +38,20 @@ void run_elf()
 	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
 	print_elf(ehdr);
 
-    struct elf_phdr *phdr_table = buff + ehdr->e_phoff;
+    struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
 	struct elf_phdr *phdr;
 
     phdr = &phdr_table[0];
 	for (uint i = 0; i < ehdr->e_phnum; i++)
 	{
 		phdr = &phdr_table[i];
-        for (int j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
+        for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
         {
             uintptr_t phys = pmm_alloc();
             vmm_map_page(phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
         }
 
-        memcpy(phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
+        memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
 	}
 
     kfree(buff);
@@ -65,7 +67,7 @@ void run_elf()
     uintptr_t env_phys = pmm_alloc();
     vmm_map_page(env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
 
-    char **arg = argv;
+    const char **arg = argv;
     int argc = 0;
     while (*arg++)
         argc++;
@@ -88,10 +90,10 @@ void run_elf()
     u32 *ustack = (u32*) (0xc0000000 - PR_STACKSIZE);
     
     // place argc and argv on the stack
-    --ustack; *ustack = env;
+    --ustack; *ustack = (uintptr_t) env;
     --ustack; *ustack = argc;
 
-    enter_usermode(ustack, ehdr->e_entry);
+    enter_usermode(ustack, (void *) ehdr->e_entry);
 }
 
 void print_elf(struct elf_ehdr *ehdr)

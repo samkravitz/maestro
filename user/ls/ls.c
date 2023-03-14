@@ -14,8 +14,12 @@
 
 int main(int argc, char **argv)
 {
-	(void) argc;
-	(void) argv;
+    printf("argc = %d\n", argc);
+    printf("%x\n", *argv);
+    for (int i = 0; i < argc; i++) {
+        printf("argv = %s %x\n", argv[i], &argv[i]);
+    }
+        
 
 	printf("Hello world!\n");
 	return 0;
