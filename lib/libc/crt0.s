@@ -10,6 +10,7 @@
 
 	global _start
 	extern main
+	extern exit
 
 	section .text
 
@@ -19,3 +20,5 @@ _start:
 	mov ebp, esp
 
 	call main
+    push eax
+    call exit

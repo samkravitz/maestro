@@ -28,6 +28,7 @@ enum prstate
 	PR_WAITING,
 	PR_SLEEPING,
 	PR_SUSPENDED,
+    PR_TERMINATED,
 };
 
 struct proc
@@ -55,5 +56,6 @@ void proc_init();
 struct proc *create(void (*func)(void), const char *);
 struct proc *create_usermode(const char *);
 void ready(struct proc *);
+void proc_exit(int);
 
 #endif    // PROC_H

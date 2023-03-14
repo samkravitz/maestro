@@ -54,9 +54,21 @@ void sys_write(struct registers *regs)
 	regs->eax = vfs_write(fd, buff, count);
 }
 
+/**
+ * @brief syscall 2 - exit
+ * @param status ebx
+ * @return none
+ */
+void sys_exit(struct registers *regs)
+{
+	int status = regs->ebx;
+	proc_exit(status);
+}
+
 void (*syscall_handlers[])(struct registers *) = {
 	sys_read,
 	sys_write,
+    sys_exit,
 };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);

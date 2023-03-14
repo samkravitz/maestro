@@ -158,3 +158,12 @@ struct proc *create(void (*f)(void), const char *name)
 	nproc++;
 	return pptr;
 }
+
+void proc_exit(int status)
+{
+    kprintf("%s (pid = %d) exited with code %d\n", curr->name, curr->pid, status);
+    // TODO - unmap and free all memory used by the process
+    curr->state = PR_TERMINATED;
+
+    sched();
+}

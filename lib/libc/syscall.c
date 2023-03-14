@@ -32,6 +32,12 @@ int syscall(int sysno, ...)
 
 	switch (sysno)
 	{
+        // syscalls with 1 argument
+        case SYS_EXIT:
+            arg1 = va_arg(args, uint32_t);
+            ret = syscall1(sysno, arg1);
+			break;
+
 		// syscalls with 3 arguments
 		case SYS_READ:
 		case SYS_WRITE:
