@@ -12,7 +12,7 @@
 #include <bitmap.h>
 #include <kprintf.h>
 
-#include "string.h"
+#include <string.h>
 
 // symbols placed at kernel image start and end, respectively
 extern u32 start, end;

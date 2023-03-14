@@ -13,7 +13,7 @@
 #include <maestro.h>
 #include <stdarg.h>
 
-#include "string.h"
+#include <string.h>
 
 void kputc(char c);
 void kputs(const char *);

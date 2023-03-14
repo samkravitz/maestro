@@ -13,8 +13,7 @@
 #include <pq.h>
 #include <queue.h>
 
-// #include "malloc.h"
-#include "string.h"
+#include <string.h>
 
 // defined in intr.s
 extern u32 isr_end;

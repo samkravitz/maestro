@@ -13,7 +13,7 @@
  * to actually call int 48
  */
 
-#include "syscall.h"
+#include <syscall.h>
 
 #include <stdarg.h>
 

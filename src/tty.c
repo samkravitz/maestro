@@ -9,7 +9,7 @@
  */
 #include <tty.h>
 
-#include "string.h"
+#include <string.h>
 #include <intr.h>
 #include <io.h>
 #include <sem.h>

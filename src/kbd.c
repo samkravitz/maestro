@@ -12,8 +12,8 @@
 #include <io.h>
 #include <tty.h>
 
-#include "stdio.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // state of special characters
 static u32 state = 0;

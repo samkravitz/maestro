@@ -9,10 +9,10 @@
  * 	http://gee.cs.oswego.edu/dl/html/malloc.html
  */
 
-#include "malloc.h"
+#include <malloc.h>
 
 #include <stddef.h>
-#include "string.h"
+#include <string.h>
 
 // rounds an number x up to the nearest multiple of 8
 #define round8(x) ((x + 7) & ~0x7);

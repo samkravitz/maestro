@@ -11,7 +11,7 @@
 
 #include <io.h>
 
-#include "stdio.h"
+#include <stdio.h>
 
 // COM1 serial port
 #define COM1 0x3f8

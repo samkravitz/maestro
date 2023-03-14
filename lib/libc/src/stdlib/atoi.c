@@ -1,5 +1,5 @@
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 
 // converts a string into a number
 int atoi(const char *str)

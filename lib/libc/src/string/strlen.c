@@ -1,4 +1,4 @@
-#include "string.h"
+#include <string.h>
 
 // compute the length of a null-terminated string
 size_t strlen(const char *str)

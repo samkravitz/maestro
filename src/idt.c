@@ -12,7 +12,7 @@
 #include <intr.h>
 #include <io.h>
 
-#include "string.h"
+#include <string.h>
 
 struct idt_entry idt[256];
 

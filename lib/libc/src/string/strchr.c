@@ -1,4 +1,4 @@
-#include "string.h"
+#include <string.h>
 
 // returns a pointer to the first occurrence of c in str,
 // or NULL if it is not found.

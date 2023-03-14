@@ -1,5 +1,5 @@
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef LIBK
 #include <kmalloc.h>

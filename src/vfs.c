@@ -15,8 +15,8 @@
 #include <proc.h>
 #include <tty.h>
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 static struct vnode *root = NULL;
 

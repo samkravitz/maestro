@@ -1,5 +1,5 @@
-#include "unistd.h"
-#include "syscall.h"
+#include <unistd.h>
+#include <syscall.h>
 
 void exit(int status)
 {
