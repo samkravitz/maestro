@@ -1,5 +1,6 @@
+AccessModifierOffset: -4
 AlignArrayOfStructures: Left
-AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
+AlignConsecutiveAssignments: None
 AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
 AlignConsecutiveDeclarations: None
 AlignConsecutiveMacros: AcrossEmptyLinesAndComments
@@ -7,6 +8,7 @@ AlignEscapedNewlines: DontAlign
 AlignOperands: true
 AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
@@ -19,7 +21,7 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: true
   AfterClass: true
-  AfterControlStatement: MultiLine
+  AfterControlStatement: Always
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
@@ -35,7 +37,6 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
@@ -43,14 +44,14 @@ BreakStringLiterals: true
 ColumnLimit: 120
 CompactNamespaces: false
 Cpp11BracedListStyle: false
-EmptyLineAfterAccessModifier: Always
-EmptyLineBeforeAccessModifier: Never
-FixNamespaceComments: true
+EmptyLineAfterAccessModifier: Leave
+EmptyLineBeforeAccessModifier: Leave
+FixNamespaceComments: false
 IncludeCategories:
   - Regex: '<.*>'
-  - Priority: 1
-  - Regex: '".*"'
   - Priority: 2
+  - Regex: '".*"'
+  - Priority: 1
 IndentAccessModifiers: false
 IndentCaseLabels: true
 IndentExternBlock: Indent
@@ -64,12 +65,12 @@ KeepEmptyLinesAtTheStartOfBlocks: false
 Language: Cpp
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
-# PackConstructorInitializers: Never clang-format 14
+PackConstructorInitializers: Never
 PointerAlignment: Right
-# QualifierOrder: ['inline', 'static' , 'constexpr', 'type', 'const'] clang-format 14
+# QualifierOrder: ['inline', 'static' , 'constexpr', 'type', 'const']
 ReferenceAlignment: Right
 ReflowComments: false
-# RemoveBracesLLVM: true clang-format 14
+RemoveBracesLLVM: false
 SortIncludes: true
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: true
@@ -81,18 +82,16 @@ SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
-SpaceBeforeParens: ControlStatements
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: false
+  AfterFunctionDeclarationName: false
+  AfterFunctionDefinitionName: false
+  AfterIfMacros: true
+  AfterOverloadedOperator: false
+  BeforeNonEmptyParentheses: false
 
-# clang-format 14
-#SpaceBeforeParens: Custom
-#SpaceBeforeParensOpions:
-  #AfterControlStatement: true
-  #AfterForeachMacros: false
-  #AfterFunctionDeclarationName: false
-  #AfterFunctionDefinitionName: false
-  #AfterIfMacros: true
-  #AfterOverloadedOperator: false
-  #BeforeNonEmptyParentheses: false
 SpaceBeforeRangeBasedForLoopColon: true
 SpaceBeforeSquareBrackets: false
 SpaceInEmptyBlock: true
