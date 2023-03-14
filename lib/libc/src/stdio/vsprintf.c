@@ -1,69 +1,6 @@
-/* maestro
- * License: GPLv2
- * See LICENSE.txt for full license text
- * Author: Sam Kravitz
- *
- * FILE: libc/stdio.c
- * DATE: March 22nd, 2022
- * DESCRIPTION: standard input/output utilities 
- */
 #include "stdio.h"
-
 #include "stdlib.h"
 #include "string.h"
-#include "unistd.h"
-
-#define PRINTF_BUFF_SIZE 1024
-
-#ifndef LIBK
-int printf(const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	int ret = vprintf(fmt, args);
-	va_end(args);
-	return ret;
-}
-#endif
-
-int fprintf(FILE *stream, const char *fmt, ...)
-{
-	// TODO - implement me
-	(void) stream;
-	(void) fmt;
-
-	return -1;
-}
-
-int sprintf(char *str, const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	int ret = vsprintf(str, fmt, args);
-	va_end(args);
-	return ret;
-}
-
-#ifndef LIBK
-int vprintf(const char *fmt, va_list args)
-{
-	char buff[PRINTF_BUFF_SIZE];
-	memset(buff, 0, PRINTF_BUFF_SIZE);
-	int ret = vsprintf(buff, fmt, args);
-	write(STDOUT_FILENO, buff, ret);
-	return ret;
-}
-#endif
-
-int vfprintf(FILE *stream, const char *fmt, va_list args)
-{
-	// TODO - implement me
-	(void) stream;
-	(void) fmt;
-	(void) args;
-
-	return -1;
-}
 
 int vsprintf(char *str, const char *fmt, va_list args)
 {
@@ -155,12 +92,3 @@ int vsprintf(char *str, const char *fmt, va_list args)
 
 	return i;
 }
-
-#ifndef LIBK
-int getc()
-{
-	char c;
-	read(STDIN_FILENO, &c, 1);
-	return c;
-}
-#endif

@@ -12,6 +12,7 @@
 #define UNISTD_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include "sys/types.h"
 
 size_t read(int, void *, size_t);

@@ -4,7 +4,7 @@ CFLAGS = \
 	-nostdlib \
 	-Wall \
 	-Wextra \
-	-I ../../lib/libc
+	-I ../../lib/libc/include
 
 LDFLAGS = \
 	-L ../../lib/libc \

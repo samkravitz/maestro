@@ -25,4 +25,4 @@ export LDFLAGS = \
 
 export INCLUDE = \
 	-I include \
-	-I lib/libc
+	-I lib/libc/include

@@ -1,23 +1,21 @@
 LIB = libc.a libk.a
 
+CFLAGS += -I include
+
 KFLAGS = $(CFLAGS) -I ../../include -D LIBK
 
 # libc sources
 C_SRC = \
-	crt0.s \
-	malloc.c \
-	stdio.c \
-	stdlib.c \
-	string.c \
-	syscall.c \
-	syscall.s \
-	unistd.c
+	$(wildcard src/*.c) \
+	$(wildcard src/*.s) \
+	$(wildcard src/**/*.c) \
+	$(wildcard src/**/*.s)
 
 #libk sources
 K_SRC = \
-	stdio.c \
-	stdlib.c \
-	string.c
+	$(wildcard src/stdio/*.c) \
+	$(wildcard src/stdlib/*.c) \
+	$(wildcard src/string/*.c)
 
 C_OBJ = $(C_SRC:.c=.c.o) $(C_SRC:.s=.s.o)
 K_OBJ = $(K_SRC:.c=.k.o)
@@ -41,4 +39,4 @@ libk.a: $(K_OBJ)
 
 .PHONY: clean
 clean:
-	rm -f *.o $(LIB)
+	rm -f src/**/*.o src/*.o $(LIB)
