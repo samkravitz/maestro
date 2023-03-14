@@ -37,6 +37,8 @@ int main(int argc, char **argv)
 
         if (!strcmp("exit", line))
             break;
+        
+        printf("\n");
 	}
 
 	return 0;
