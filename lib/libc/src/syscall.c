@@ -41,6 +41,7 @@ int syscall(int sysno, ...)
 		// syscalls with 3 arguments
 		case SYS_READ:
 		case SYS_WRITE:
+        case SYS_OPEN:
 			arg1 = va_arg(args, uint32_t);
 			arg2 = va_arg(args, uint32_t);
 			arg3 = va_arg(args, uint32_t);

@@ -66,10 +66,24 @@ void sys_exit(struct registers *regs)
 	proc_exit(status);
 }
 
+/**
+ * @brief syscall 3 - open
+ * @param filename ebx
+ * @param flags ecx
+ * @param mode edx
+ * @return none
+ */
+void sys_open(struct registers *regs)
+{
+	char *filename = (char *) regs->ebx;
+	regs->eax = vfs_open(filename);
+}
+
 void (*syscall_handlers[])(struct registers *) = {
 	sys_read,
 	sys_write,
     sys_exit,
+    sys_open,
 };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);
