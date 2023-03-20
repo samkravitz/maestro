@@ -35,7 +35,7 @@ extern struct proc *curr;
  * @param count edx
  * @return count of bytes actually read
  */
-void sys_read(struct registers *regs)
+static void sys_read(struct registers *regs)
 {
 	int fd = regs->ebx;
 	void *buff = (void *) regs->ecx;
@@ -51,7 +51,7 @@ void sys_read(struct registers *regs)
  * @param count edx
  * @return count of bytes actually written
  */
-void sys_write(struct registers *regs)
+static void sys_write(struct registers *regs)
 {
 	int fd = regs->ebx;
 	void *buff = (void *) regs->ecx;
@@ -65,7 +65,7 @@ void sys_write(struct registers *regs)
  * @param status ebx
  * @return none
  */
-void sys_exit(struct registers *regs)
+static void sys_exit(struct registers *regs)
 {
 	int status = regs->ebx;
 	proc_exit(status);
@@ -78,7 +78,7 @@ void sys_exit(struct registers *regs)
  * @param mode edx
  * @return none
  */
-void sys_open(struct registers *regs)
+static void sys_open(struct registers *regs)
 {
 	char *filename = (char *) regs->ebx;
 	regs->eax = vfs_open(filename);
@@ -89,7 +89,7 @@ void sys_open(struct registers *regs)
  * @param increment ebx
  * @return pointer to new sbrk
  */
-void sys_sbrk(struct registers *regs)
+static void sys_sbrk(struct registers *regs)
 {
 	intptr_t increment = (intptr_t) regs->ebx;
 	if (increment == 0)
@@ -119,7 +119,7 @@ void sys_sbrk(struct registers *regs)
  * @param count edx
  * @return pointer to new sbrk
  */
-void sys_getdents(struct registers *regs)
+static void sys_getdents(struct registers *regs)
 {
 	int fd = (int) regs->ebx;
 	void *buf = (void *) regs->ecx;
@@ -132,7 +132,7 @@ void sys_getdents(struct registers *regs)
  * @brief syscall 6 - fork
  * @return pid
  */
-void sys_fork(struct registers *regs)
+static void sys_fork(struct registers *regs)
 {
 	regs->eax = 0;
 }
