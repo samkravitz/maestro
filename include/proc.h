@@ -43,6 +43,7 @@ struct proc
 	int mask;                      // interrupt state mask
 	struct file *ofile[NOFILE];    // open file table
 	u32 wakeup;                    // timestamp to wake up process when sleeping
+    void *sbrk;                    // address of system break
 	char name[32];
 };
 

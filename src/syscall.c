@@ -20,8 +20,13 @@
 #include <syscall.h>
 
 #include <intr.h>
+#include <kprintf.h>
+#include <pmm.h>
 #include <proc.h>
 #include <vfs.h>
+#include <vmm.h>
+
+extern struct proc *curr;
 
 /**
  * @brief syscall 0 - read
@@ -79,11 +84,36 @@ void sys_open(struct registers *regs)
 	regs->eax = vfs_open(filename);
 }
 
+/**
+ * @brief syscall 4 - sbrk
+ * @param increment ebx
+ * @return pointer to new sbrk
+ */
+void sys_sbrk(struct registers *regs)
+{
+	intptr_t increment = (intptr_t) regs->ebx;
+	if (increment == 0)
+	{
+		regs->eax = (u32) curr->sbrk;
+		return;
+	}
+
+	void *sbrk = curr->sbrk;
+
+	kassert((increment % PAGE_SIZE) == 0, "sbrk: increment is not a multiple of PAGE_SIZE");
+	unsigned num_pages = increment / PAGE_SIZE;
+	for (unsigned i = 0; i < num_pages; i++)
+	{
+		uintptr_t phys = pmm_alloc();
+		vmm_map_page(phys, (uintptr_t) curr->sbrk, PT_PRESENT | PT_WRITABLE | PT_USER);
+		curr->sbrk += PAGE_SIZE;
+	}
+
+	regs->eax = (u32) sbrk;
+}
+
 void (*syscall_handlers[])(struct registers *) = {
-	sys_read,
-	sys_write,
-    sys_exit,
-    sys_open,
+	sys_read, sys_write, sys_exit, sys_open, sys_sbrk,
 };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);
