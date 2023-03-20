@@ -14,14 +14,19 @@
 typedef struct
 {
 	int fd;
+	int buf_pos;
+	int buf_end;
+	char buf[1024];
 } DIR;
 
 struct dirent
 {
 	int d_ino;
-	char d_name[256];
+	int d_reclen;
+	char d_name[];
 };
 
 DIR *opendir(const char *name);
+struct dirent *readdir(DIR *);
 
 #endif    // DIRENT_H

@@ -112,8 +112,24 @@ void sys_sbrk(struct registers *regs)
 	regs->eax = (u32) sbrk;
 }
 
+/**
+ * @brief syscall 5 - getdents
+ * @param fd ebx
+ * @param buf ecx
+ * @param count edx
+ * @return pointer to new sbrk
+ */
+void sys_getdents(struct registers *regs)
+{
+	int fd = (int) regs->ebx;
+	void *buf = (void *) regs->ecx;
+	size_t count = (size_t) regs->edx;
+
+	regs->eax = vfs_readdir(fd, buf, count);
+}
+
 void (*syscall_handlers[])(struct registers *) = {
-	sys_read, sys_write, sys_exit, sys_open, sys_sbrk,
+	sys_read, sys_write, sys_exit, sys_open, sys_sbrk, sys_getdents,
 };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);
