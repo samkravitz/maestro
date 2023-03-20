@@ -128,8 +128,17 @@ void sys_getdents(struct registers *regs)
 	regs->eax = vfs_readdir(fd, buf, count);
 }
 
+/**
+ * @brief syscall 6 - fork
+ * @return pid
+ */
+void sys_fork(struct registers *regs)
+{
+	regs->eax = 0;
+}
+
 void (*syscall_handlers[])(struct registers *) = {
-	sys_read, sys_write, sys_exit, sys_open, sys_sbrk, sys_getdents,
+	sys_read, sys_write, sys_exit, sys_open, sys_sbrk, sys_getdents, sys_fork,
 };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);

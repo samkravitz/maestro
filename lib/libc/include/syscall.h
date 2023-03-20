@@ -19,6 +19,7 @@
 #define SYS_OPEN     3
 #define SYS_SBRK     4
 #define SYS_GETDENTS 5
+#define SYS_FORK     6
 
 int syscall(int, ...);
 
