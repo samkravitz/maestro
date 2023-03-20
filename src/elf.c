@@ -55,6 +55,14 @@ void run_elf()
 		}
 
 		memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
+
+		// last header, so we'll start this process's heap immediately after
+		if (i == (unsigned) ehdr->e_phnum - 1)
+		{
+			uintptr_t sbrk = BLOCK_ALIGN(phdr->p_vaddr + phdr->p_memsz);
+			kassert((sbrk % PAGE_SIZE) == 0, "sbrk not page aligned");
+			curr->sbrk = (void *) sbrk;
+		}
 	}
 
 	kfree(buff);

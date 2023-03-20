@@ -17,6 +17,7 @@
 #define SYS_WRITE 1
 #define SYS_EXIT  2
 #define SYS_OPEN  3
+#define SYS_SBRK  4
 
 int syscall(int, ...);
 
