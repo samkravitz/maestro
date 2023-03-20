@@ -55,13 +55,13 @@ static inline void insert_child(struct vnode *parent, struct vnode *child)
 void vfs_init()
 {
 	// allocate root node
-	root                 = (struct vnode *) kmalloc(sizeof(struct vnode));
-	root->inode          = ROOT_INODE;
-	root->type           = DIR_TYPE_DIR;
-	root->num_children   = 0;
-	root->name           = strdup("/");
+	root = (struct vnode *) kmalloc(sizeof(struct vnode));
+	root->inode = ROOT_INODE;
+	root->type = DIR_TYPE_DIR;
+	root->num_children = 0;
+	root->name = strdup("/");
 	root->leftmost_child = NULL;
-	root->right_sibling  = NULL;
+	root->right_sibling = NULL;
 
 	build_tree(root);
 
@@ -98,12 +98,12 @@ struct vnode *vfs_mkdir(char *path)
 
 	// allocate memory for the new directory in the tree
 	struct vnode *node = (struct vnode *) kmalloc(sizeof(struct vnode));
-	node->inode           = inode;
-	node->type            = DIR_TYPE_DIR;
-	node->num_children    = 0;
-	node->name            = strdup(name);
-	node->leftmost_child  = NULL;
-	node->right_sibling   = NULL;
+	node->inode = inode;
+	node->type = DIR_TYPE_DIR;
+	node->num_children = 0;
+	node->name = strdup(name);
+	node->leftmost_child = NULL;
+	node->right_sibling = NULL;
 
 	insert_child(parent, node);
 
@@ -142,12 +142,12 @@ struct vnode *vfs_touch(char *path)
 
 	// allocate memory for the new file in the tree
 	struct vnode *node = (struct vnode *) kmalloc(sizeof(struct vnode));
-	node->inode           = inode;
-	node->type            = DIR_TYPE_REG;
-	node->num_children    = 0;
-	node->name            = strdup(name);
-	node->leftmost_child  = NULL;
-	node->right_sibling   = NULL;
+	node->inode = inode;
+	node->type = DIR_TYPE_REG;
+	node->num_children = 0;
+	node->name = strdup(name);
+	node->leftmost_child = NULL;
+	node->right_sibling = NULL;
 
 	insert_child(parent, node);
 	return node;
@@ -189,7 +189,7 @@ int vfs_open(char *path)
 	}
 
 	struct file *f = kmalloc(sizeof(struct file));
-	
+
 	f->size = ext2_filesize(node->inode);
 	f->pos = 0;
 	f->n = node;
@@ -286,6 +286,46 @@ int vfs_write(int fd, void *buff, size_t count)
 	return 0;
 }
 
+/**
+ * @brief reads directory entries into a buffer
+ * @param fd file descriptor of directory
+ * @param buf buffer that will hold struct dirent * entries
+ * @param count size of buf
+ * @return length of entries read or -1 on error
+ */
+int vfs_readdir(int fd, void *buf, size_t count)
+{
+	if (!is_open(fd))
+	{
+		kprintf("vfs_readdir: fd %d is not open!\n", fd);
+		return -1;
+	}
+
+	struct file *f = curr->ofile[fd];
+
+	u8 ext2_buf[EXT2_BLOCK_SIZE];
+	ext2_readdir(ext2_buf, f->n->inode);
+	struct ext2_dir_entry *entry = (struct ext2_dir_entry *) ext2_buf;
+	size_t bytes_read = 0;
+	int buf_pos = 0;
+	while (bytes_read < count)
+	{
+		int rec_len = round(sizeof(int) + sizeof(int) + entry->name_len + 1, 4);
+		int inode = entry->inode;
+		memcpy(buf + buf_pos, &inode, sizeof(inode));
+		memcpy(buf + buf_pos + sizeof(int), &rec_len, sizeof(rec_len));
+		memcpy(buf + buf_pos + sizeof(int) + sizeof(int), DIRENT_NAME(entry), entry->name_len);
+		char c = '\0';
+		memcpy(buf + buf_pos + sizeof(int) + sizeof(int) + entry->name_len + 1, &c, 1);
+
+		bytes_read += entry->rec_len;
+		entry = (struct ext2_dir_entry *) (ext2_buf + bytes_read);
+
+		buf_pos += rec_len;
+	}
+
+	return buf_pos;
+}
 
 /**
  * @brief finds the vfs_node associated with a given path
@@ -294,6 +334,9 @@ int vfs_write(int fd, void *buff, size_t count)
  */
 static struct vnode *find(char *path)
 {
+	if (strcmp(path, "/") == 0)
+		return root;
+
 	// tokenize path into its segments
 	// e.x. given the path "/home/user/bin/a.out"
 	// segment will eventually be "home", "user", "bin", "a.out"
@@ -335,9 +378,9 @@ static struct vnode *find_parent(char *path)
 	}
 
 	// temporarily null terminate path after the parent we are looking for
-	*last_slash          = '\0';
+	*last_slash = '\0';
 	struct vnode *ret = find(path);
-	*last_slash          = '/';
+	*last_slash = '/';
 
 	return ret;
 }
@@ -380,12 +423,12 @@ static void build_tree(struct vnode *node)
 	{
 		// allocate memory for this node
 		struct vnode *child = (struct vnode *) kmalloc(sizeof(struct vnode));
-		child->inode           = entry->inode;
-		child->type            = entry->type;
-		child->num_children    = 0;
-		child->name            = strndup(DIRENT_NAME(entry), entry->name_len);
-		child->leftmost_child  = NULL;
-		child->right_sibling   = NULL;
+		child->inode = entry->inode;
+		child->type = entry->type;
+		child->num_children = 0;
+		child->name = strndup(DIRENT_NAME(entry), entry->name_len);
+		child->leftmost_child = NULL;
+		child->right_sibling = NULL;
 
 		node->num_children++;
 
