@@ -33,4 +33,12 @@ int vkprintf(const char *, ...);
 	vkprintf(fmt, ##__VA_ARGS__);                   \
 }
 
+#define kassert(cond, msg)    \
+{                             \
+    if (!cond)                \
+    {                         \
+        kprintf("%s\n", msg); \
+    }                         \
+}                             \
+
 #endif    // KPRINTF_H
