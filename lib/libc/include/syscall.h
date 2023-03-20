@@ -13,11 +13,12 @@
 
 #include <stdint.h>
 
-#define SYS_READ  0
-#define SYS_WRITE 1
-#define SYS_EXIT  2
-#define SYS_OPEN  3
-#define SYS_SBRK  4
+#define SYS_READ     0
+#define SYS_WRITE    1
+#define SYS_EXIT     2
+#define SYS_OPEN     3
+#define SYS_SBRK     4
+#define SYS_GETDENTS 5
 
 int syscall(int, ...);
 

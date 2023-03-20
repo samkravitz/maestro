@@ -16,6 +16,7 @@
 #include <syscall.h>
 
 #include <stdarg.h>
+#include <stdio.h>
 
 /**
  * @brief generic syscall dispatcher
@@ -32,17 +33,18 @@ int syscall(int sysno, ...)
 
 	switch (sysno)
 	{
-        // syscalls with 1 argument
-        case SYS_EXIT:
-        case SYS_SBRK:
-            arg1 = va_arg(args, uint32_t);
-            ret = syscall1(sysno, arg1);
+		// syscalls with 1 argument
+		case SYS_EXIT:
+		case SYS_SBRK:
+			arg1 = va_arg(args, uint32_t);
+			ret = syscall1(sysno, arg1);
 			break;
 
 		// syscalls with 3 arguments
 		case SYS_READ:
 		case SYS_WRITE:
-        case SYS_OPEN:
+		case SYS_OPEN:
+		case SYS_GETDENTS:
 			arg1 = va_arg(args, uint32_t);
 			arg2 = va_arg(args, uint32_t);
 			arg3 = va_arg(args, uint32_t);
@@ -51,7 +53,7 @@ int syscall(int sysno, ...)
 			break;
 
 		default:
-			;
+			printf("Unknown syscall %d\n", sysno);
 	}
 
 	va_end(args);
