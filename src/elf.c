@@ -29,9 +29,9 @@ extern void enter_usermode(void *, void *);
  */
 void run_elf()
 {
-    int fd = vfs_open(curr->name);
-    int inode = curr->ofile[fd]->n->inode;
-    size_t s = ext2_filesize(inode);
+	int fd = vfs_open(curr->name);
+	int inode = curr->ofile[fd]->n->inode;
+	size_t s = ext2_filesize(inode);
 	u8 *buff = kmalloc(s);
 	ext2_read_data(buff, inode, 0, s);
 
@@ -49,10 +49,10 @@ void run_elf()
 	// Store the page directory physical address in the process structure
 	curr->pdir = user_pdir;
 
-    struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
+    struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);zz
 	struct elf_phdr *phdr;
 
-    phdr = &phdr_table[0];
+	phdr = &phdr_table[0];
 	for (uint i = 0; i < ehdr->e_phnum; i++)
 	{
 		phdr = &phdr_table[i];
@@ -127,20 +127,11 @@ void print_elf(struct elf_ehdr *ehdr)
 	kprintf("e_type: ");
 	switch (ehdr->e_type)
 	{
-		case ET_NONE:
-			kprintf("ET_NONE");
-			break;
-		case ET_REL:
-			kprintf("ET_REL");
-			break;
-		case ET_EXEC:
-			kprintf("ET_EXEC");
-			break;
-		case ET_CORE:
-			kprintf("ET_CORE");
-			break;
-		default:
-			kprintf("UNKNOWN");
+		case ET_NONE: kprintf("ET_NONE"); break;
+		case ET_REL: kprintf("ET_REL"); break;
+		case ET_EXEC: kprintf("ET_EXEC"); break;
+		case ET_CORE: kprintf("ET_CORE"); break;
+		default: kprintf("UNKNOWN");
 	}
 
 	kprintf("(%d)\n", ehdr->e_type);
@@ -155,4 +146,31 @@ void print_elf(struct elf_ehdr *ehdr)
 	kprintf("e_shnum: %x\n", ehdr->e_shnum);
 	kprintf("e_shstrndx: %x\n", ehdr->e_shstrndx);
 	kprintf("\n");
+}
+
+void print_elf_phdr(struct elf_phdr *phdr)
+{
+	kprintf("p_type: ");
+	switch (phdr->p_type)
+	{
+		case PT_NULL: kprintf("PT_NULL"); break;
+		case PT_LOAD: kprintf("PT_LOAD"); break;
+		case PT_DYNAMIC: kprintf("PT_DYNAMIC"); break;
+		case PT_INTERP: kprintf("PT_INTERP"); break;
+		case PT_NOTE: kprintf("PT_NOTE"); break;
+		case PT_SHLIB: kprintf("PT_SHLIB"); break;
+		case PT_PHDR: kprintf("PT_PHDR"); break;
+		case PT_LOPROC: kprintf("PT_LOPROC"); break;
+		case PT_HIPROC: kprintf("PT_HIPROC"); break;
+		default: kprintf("UNKNOWN");
+	}
+	kprintf("(%d)\n", phdr->p_type);
+
+	kprintf("p_offset: %x\n", phdr->p_offset);
+	kprintf("p_vaddr: %x\n", phdr->p_vaddr);
+	kprintf("p_paddr: %x\n", phdr->p_paddr);
+	kprintf("p_filesz: %x\n", phdr->p_filesz);
+	kprintf("p_memsz: %x\n", phdr->p_memsz);
+	kprintf("p_flags: %x\n", phdr->p_flags);
+	kprintf("p_align: %x\n\n", phdr->p_align);
 }
