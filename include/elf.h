@@ -13,7 +13,7 @@
 #include <maestro.h>
 
 #define ET_NONE 0
-#define ET_REL 1
+#define ET_REL  1
 #define ET_EXEC 2
 #define ET_CORE 3
 
@@ -35,6 +35,17 @@ struct elf_ehdr
 	u16 e_shstrndx;     // index into section header table of the entry associated with the section name string table
 };
 
+#define PT_NULL    0
+#define PT_LOAD    1
+#define PT_DYNAMIC 2
+#define PT_INTERP  3
+#define PT_NOTE    4
+#define PT_SHLIB   5
+#define PT_PHDR    6
+#define PT_LOPROC  0x70000000
+#define PT_HIPROC  0x7fffffff
+
+// ELF program header
 struct elf_phdr
 {
 	u32 p_type;
@@ -49,5 +60,6 @@ struct elf_phdr
 
 void run_elf();
 void print_elf(struct elf_ehdr *);
+void print_elf_phdr(struct elf_phdr *);
 
 #endif    // ELF_H

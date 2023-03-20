@@ -29,71 +29,75 @@ extern void enter_usermode(void *, void *);
  */
 void run_elf()
 {
-    int fd = vfs_open(curr->name);
-    int inode = curr->ofile[fd]->n->inode;
-    size_t s = ext2_filesize(inode);
+	int fd = vfs_open(curr->name);
+	int inode = curr->ofile[fd]->n->inode;
+	size_t s = ext2_filesize(inode);
 	u8 *buff = kmalloc(s);
 	ext2_read_data(buff, inode, 0, s);
 
 	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
 	print_elf(ehdr);
 
-    struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
+	struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
 	struct elf_phdr *phdr;
 
-    phdr = &phdr_table[0];
+	phdr = &phdr_table[0];
 	for (uint i = 0; i < ehdr->e_phnum; i++)
 	{
 		phdr = &phdr_table[i];
-        for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
-        {
-            uintptr_t phys = pmm_alloc();
-            vmm_map_page(phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
-        }
+		kprintf("ELF phdr %d\n", i);
+		print_elf_phdr(phdr);
 
-        memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
+		for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
+		{
+			uintptr_t phys = pmm_alloc();
+			vmm_map_page(phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+		}
+
+		memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
 	}
 
-    kfree(buff);
+	kfree(buff);
 
-    const char *argv[] = {
-        "ls",
-        "-lia",
-        "arg3",
-        NULL,
-    };
+	const char *argv[] = {
+		"ls",
+		"-lia",
+		"arg3",
+		NULL,
+	};
 
-    void *env = (void *) (0xc0000000 - PR_STACKSIZE);
-    uintptr_t env_phys = pmm_alloc();
-    vmm_map_page(env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
+	void *env = (void *) (0xc0000000 - PR_STACKSIZE);
+	uintptr_t env_phys = pmm_alloc();
+	vmm_map_page(env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
 
-    const char **arg = argv;
-    int argc = 0;
-    while (*arg++)
-        argc++;
+	const char **arg = argv;
+	int argc = 0;
+	while (*arg++)
+		argc++;
 
+	char **envp = (char **) env;
+	unsigned base = (argc + 1) * sizeof(char *);
+	for (int i = 0; i < argc; i++)
+	{
+		memcpy(env + base, argv[i], strlen(argv[i]) + 1);
+		envp[i] = env + base;
+		base += strlen(argv[i]) + 1;
+	}
 
-    char **envp = (char **) env;
-    unsigned base = (argc + 1) * sizeof(char*);
-    for (int i = 0; i < argc; i++)
-    {
-        memcpy(env + base, argv[i], strlen(argv[i]) + 1);
-        envp[i] = env + base;
-        base += strlen(argv[i]) + 1;
-    }
+	envp[argc] = NULL;
 
-    envp[argc] = NULL;
+	// create user stack and map it
+	uintptr_t ustack_phys = pmm_alloc();
+	vmm_map_page(ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+	u32 *ustack = (u32 *) (0xc0000000 - PR_STACKSIZE);
 
-    // create user stack and map it
-    uintptr_t ustack_phys = pmm_alloc();
-    vmm_map_page(ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
-    u32 *ustack = (u32*) (0xc0000000 - PR_STACKSIZE);
-    
-    // place argc and argv on the stack
-    --ustack; *ustack = (uintptr_t) env;
-    --ustack; *ustack = argc;
+	// place argc and argv on the stack
+	--ustack;
+	*ustack = (uintptr_t) env;
+	--ustack;
+	*ustack = argc;
 
-    enter_usermode(ustack, (void *) ehdr->e_entry);
+	enter_usermode(ustack, (void *) ehdr->e_entry);
 }
 
 void print_elf(struct elf_ehdr *ehdr)
@@ -108,20 +112,11 @@ void print_elf(struct elf_ehdr *ehdr)
 	kprintf("e_type: ");
 	switch (ehdr->e_type)
 	{
-		case ET_NONE:
-			kprintf("ET_NONE");
-			break;
-		case ET_REL:
-			kprintf("ET_REL");
-			break;
-		case ET_EXEC:
-			kprintf("ET_EXEC");
-			break;
-		case ET_CORE:
-			kprintf("ET_CORE");
-			break;
-		default:
-			kprintf("UNKNOWN");
+		case ET_NONE: kprintf("ET_NONE"); break;
+		case ET_REL: kprintf("ET_REL"); break;
+		case ET_EXEC: kprintf("ET_EXEC"); break;
+		case ET_CORE: kprintf("ET_CORE"); break;
+		default: kprintf("UNKNOWN");
 	}
 
 	kprintf("(%d)\n", ehdr->e_type);
@@ -136,4 +131,31 @@ void print_elf(struct elf_ehdr *ehdr)
 	kprintf("e_shnum: %x\n", ehdr->e_shnum);
 	kprintf("e_shstrndx: %x\n", ehdr->e_shstrndx);
 	kprintf("\n");
+}
+
+void print_elf_phdr(struct elf_phdr *phdr)
+{
+	kprintf("p_type: ");
+	switch (phdr->p_type)
+	{
+		case PT_NULL: kprintf("PT_NULL"); break;
+		case PT_LOAD: kprintf("PT_LOAD"); break;
+		case PT_DYNAMIC: kprintf("PT_DYNAMIC"); break;
+		case PT_INTERP: kprintf("PT_INTERP"); break;
+		case PT_NOTE: kprintf("PT_NOTE"); break;
+		case PT_SHLIB: kprintf("PT_SHLIB"); break;
+		case PT_PHDR: kprintf("PT_PHDR"); break;
+		case PT_LOPROC: kprintf("PT_LOPROC"); break;
+		case PT_HIPROC: kprintf("PT_HIPROC"); break;
+		default: kprintf("UNKNOWN");
+	}
+	kprintf("(%d)\n", phdr->p_type);
+
+	kprintf("p_offset: %x\n", phdr->p_offset);
+	kprintf("p_vaddr: %x\n", phdr->p_vaddr);
+	kprintf("p_paddr: %x\n", phdr->p_paddr);
+	kprintf("p_filesz: %x\n", phdr->p_filesz);
+	kprintf("p_memsz: %x\n", phdr->p_memsz);
+	kprintf("p_flags: %x\n", phdr->p_flags);
+	kprintf("p_align: %x\n\n", phdr->p_align);
 }
