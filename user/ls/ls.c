@@ -11,16 +11,15 @@
 #include "ls.h"
 
 #include <stdio.h>
+#include <dirent.h>
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    printf("argc = %d\n", argc);
-    printf("%x\n", *argv);
-    for (int i = 0; i < argc; i++) {
-        printf("argv = %s %x\n", argv[i], &argv[i]);
-    }
-        
+    DIR *dir = opendir("/");
+	struct dirent *de;
 
-	printf("Hello world!\n");
+	while ((de = readdir(dir)) != NULL)
+		printf("%s\n", de->d_name);
+
 	return 0;
 }
