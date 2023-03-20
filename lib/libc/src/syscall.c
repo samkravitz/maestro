@@ -33,6 +33,11 @@ int syscall(int sysno, ...)
 
 	switch (sysno)
 	{
+		// syscalls with no arguments
+		case SYS_FORK:
+			ret = syscall0(sysno);
+			break;
+
 		// syscalls with 1 argument
 		case SYS_EXIT:
 		case SYS_SBRK:
