@@ -78,8 +78,8 @@ void isr(struct registers *regs)
 	// exception
 	if (intr < IRQ0)
 	{
-		u32 cr2;
-		asm("mov %%cr2, %0" : "=r"(cr2));
+		long long cr2;
+		asm("movq %%cr2, %0" : "=r"(cr2));
 
 		kprintf("cr2=0x%x\n", cr2);
 		kprintf("\n");

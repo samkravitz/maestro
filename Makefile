@@ -55,7 +55,7 @@ bin/%.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 bin/%.s.o: %.s
-	$(AS) -f elf32 $< -o $@
+	$(AS) -f elf64 $< -o $@
 
 libs:
 	$(MAKE) -C lib
@@ -77,7 +77,7 @@ user:
 
 .PHONY: start
 start:
-	qemu-system-i386 \
+	qemu-system-x86_64 \
 	-m 16M \
 	-serial stdio \
 	-drive file=disk.img,format=raw,index=0,media=disk

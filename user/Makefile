@@ -4,6 +4,11 @@ CFLAGS = \
 	-nostdlib \
 	-Wall \
 	-Wextra \
+	-mcmodel=large \
+	-mno-red-zone \
+	-mno-mmx \
+	-mno-sse \
+	-mno-sse2 \
 	-I ../../lib/libc/include
 
 LDFLAGS = \

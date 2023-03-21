@@ -32,7 +32,7 @@ libk.a: $(K_OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.s.o: %.s
-	$(AS) -f elf32 $< -o $@
+	$(AS) -f elf64 $< -o $@
 
 %.k.o: %.c
 	$(CC) $(KFLAGS) -c $< -o $@

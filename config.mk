@@ -1,4 +1,4 @@
-TARGET = i686-elf
+TARGET = x86_64-elf
 TOOLCHAIN_PREFIX = $(abspath toolchain)/$(TARGET)/bin/$(TARGET)
 GCC_VERSION = 11.2.0
 
@@ -13,6 +13,11 @@ export CFLAGS = \
 	-nostdlib \
 	-Wall \
 	-Wextra \
+	-mcmodel=large \
+	-mno-red-zone \
+	-mno-mmx \
+	-mno-sse \
+	-mno-sse2 \
 	$(INCLUDE)
 
 export LDFLAGS = \

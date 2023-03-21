@@ -10,8 +10,8 @@ wget https://ftp.gnu.org/gnu/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.xz
 tar xvf binutils-$BINUTILS_VERSION.tar.xz
 tar xvf gcc-$GCC_VERSION.tar.xz
 
-export PREFIX="$HOME/projects/maestro/toolchain/i686-elf"
-export TARGET=i686-elf
+export PREFIX="$HOME/projects/maestro/toolchain/x86_64-elf"
+export TARGET=x86_64-elf
 export PATH="$PREFIX/bin:$PATH"
 
 mkdir binutils-build
