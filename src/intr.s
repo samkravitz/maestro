@@ -39,10 +39,12 @@
 	global disable
 	global restore
 	global isr_end
+	global new_label
 
 
 	extern io_wait
 	extern isr
+	extern kputs
 
 	section .text
 
@@ -361,6 +363,7 @@ isr_bootstrap:
 isr_end:
 	add esp, 4                         ; restore stack state
 
+new_label:
 	pop gs                             ; restore segment registers
 	pop fs
 	pop es

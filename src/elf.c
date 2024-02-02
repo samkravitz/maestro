@@ -96,10 +96,16 @@ void run_elf()
 
 	// create user stack and map it
 	uintptr_t ustack_phys = pmm_alloc();
-	vmm_map_page(ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
-	u32 *ustack = (u32 *) (0xc0000000 - PR_STACKSIZE);
+	
+	// bottom of ustack
+	void *ustack_bottom = (void *) (0xc0000000 - 2 * PR_STACKSIZE);
+	vmm_map_page(ustack_phys, (uintptr_t) ustack_bottom, PT_PRESENT | PT_WRITABLE | PT_USER);
+	memset(ustack_bottom, 0, PR_STACKSIZE);
+	curr->ustack = ustack_bottom;
+
 
 	// place argc and argv on the stack
+	u32 *ustack = (u32 *) (ustack_bottom + PR_STACKSIZE);
 	--ustack;
 	*ustack = (uintptr_t) env;
 	--ustack;

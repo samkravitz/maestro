@@ -42,7 +42,7 @@ struct registers
 	u32 edi;
 	u32 esi;
 	u32 ebp;
-	u32 esp;    // esp at time of interrupt
+	u32 oesp;    // esp at time of interrupt
 	u32 ebx;
 	u32 edx;
 	u32 ecx;
@@ -50,6 +50,10 @@ struct registers
 	u32 intr_num;
 	u32 error_code;
 	u32 eip;
+	u32 cs;
+	u32 eflags;
+	u32 esp;
+	u32 ss;
 };
 
 // defined in intr.s
@@ -60,5 +64,7 @@ extern void restore(int);
 
 // defined in isr.c
 void isr(struct registers *);
+
+
 
 #endif    // INTR_H

@@ -73,6 +73,7 @@ struct proc *create_usermode(const char *path)
 struct proc *create(void (*f)(void), const char *name)
 {
 	struct proc *pptr = (struct proc *) kmalloc(sizeof(struct proc));
+	memset(pptr->kstack, 0, sizeof(pptr->kstack));
 	strncpy(pptr->name, name, 32);
 	pptr->mask = 0;
 	pptr->state = PR_SUSPENDED;
@@ -159,4 +160,77 @@ void proc_exit(int status)
     nproc--;
 
     sched();
+}
+
+static void print() {
+	while (1)
+		kprintf("hi\n");
+}
+
+int proc_fork(struct registers *regs)
+{
+	struct proc *child = (struct proc *) kmalloc(sizeof(struct proc));
+	child->ustack = kmalloc(PR_STACKSIZE);
+	memcpy(child->ustack, curr->ustack, PR_STACKSIZE);
+	memcpy(child->kstack, curr->kstack, PR_STACKSIZE);
+	child->pdir = vmm_clone_directory();
+	child->sbrk = curr->sbrk;
+	strcpy(child->name, "dup");
+	child->pid = next_pid++;
+
+	u32 *kstack = (u32 *) (child->kstack + PR_STACKSIZE);
+	child->stkbtm = (uintptr_t) kstack;
+
+	kprintf("%x %x %x %x\n", regs->eip, regs->esp, &isr_end, isr_end);
+
+	kstack--; *kstack = regs->ss;            // ss
+	kstack--; *kstack = regs->esp;               // esp
+	kstack--; *kstack = regs->eflags;           // eflags
+	kstack--; *kstack = regs->cs;            // cs
+	kstack--; *kstack = (u32) regs->eip;         // eip
+	kstack--; *kstack = 0;               // errcode
+	kstack--; *kstack = 0;               // intrnum
+	
+
+	// pushed by push instruction
+	kstack--; *kstack = regs->edi;
+	kstack--; *kstack = regs->esi;
+	kstack--; *kstack = regs->ebp;
+	kstack--; *kstack = regs->oesp;
+	kstack--; *kstack = regs->ebx;
+	kstack--; *kstack = regs->edx;
+	kstack--; *kstack = regs->ecx;
+	kstack--; *kstack = regs->eax;
+
+	kstack--; *kstack = regs->ds;            // ds
+	kstack--; *kstack = regs->es;            // es
+	kstack--; *kstack = regs->fs;            // fs
+	kstack--; *kstack = regs->gs;            // gs
+
+	kstack--;                            // struct registers *
+	kstack--; *kstack = (u32) &isr_end;         // ctxsw return address
+
+	kstack--; *kstack = regs->ebp;               // ebp
+	kstack--; *kstack = regs->ebx;               // ebx
+	kstack--; *kstack = regs->esi;               // esi
+	kstack--; *kstack = regs->edi;               // edi
+
+	child->stkptr = (uintptr_t) kstack;
+
+	ready(child);
+
+	//u32 *kstack = (u32 *) curr->ustack;
+
+	//for (int i = 1023; i >= 0; i--)
+	//{
+	//	kprintf("[%d]: 0x%x\n", i, kstack[i]);
+	//}
+
+	//while (1)
+	//	;
+
+	//struct proc *child = create(print, curr->name);
+	//ready(child);
+
+	return child->pid;
 }

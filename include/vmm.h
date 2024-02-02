@@ -73,6 +73,7 @@ void vmm_init();
 
 uintptr_t vmm_create_address_space();
 void vmm_map_page(uintptr_t, uintptr_t, unsigned);
+uintptr_t vmm_clone_directory();
 
 
 #endif // VMM_H

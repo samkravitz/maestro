@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 char line[1024];
 
@@ -17,6 +18,28 @@ int main(int argc, char **argv)
 {
 	(void) argc;
 	(void) argv;
+
+	int y = 0x70;
+	int x = y - 1;
+	int *px = &x;
+	*px = 0x420;
+
+	int pid = fork();
+
+	if (pid == 0)
+	{
+		//while (1)
+		//	;
+		printf("child\n");
+	}
+
+	else if (pid > 0) {
+		printf("adult %d\n", pid);
+	}
+
+	else {
+		printf("err %d\n", pid);
+	}
 
 
 	while (1)

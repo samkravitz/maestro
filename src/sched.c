@@ -52,6 +52,7 @@ void sched()
 
 	curr = pnew;
 	curr->state = PR_RUNNING;
+	kprintf("scheduling %s\n", pnew->name);
 	ctxsw(pold, pnew);
 	restore(pold->mask);
 }

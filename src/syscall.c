@@ -134,7 +134,8 @@ static void sys_getdents(struct registers *regs)
  */
 static void sys_fork(struct registers *regs)
 {
-	regs->eax = 0;
+	u32 x = 0x69;
+	regs->eax = proc_fork(regs);
 }
 
 void (*syscall_handlers[])(struct registers *) = {

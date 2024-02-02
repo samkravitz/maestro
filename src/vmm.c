@@ -11,8 +11,8 @@
 #include <vmm.h>
 
 #include <intr.h>
-#include <kprintf.h>
 #include <kmalloc.h>
+#include <kprintf.h>
 #include <pmm.h>
 #include <proc.h>
 
@@ -48,30 +48,30 @@ void vmm_init()
 {
 	set_vect(14, page_fault);
 
-    u32 *kpage_table = (u32 *) pmm_alloc();
-    u32 *kpage_dir = (u32 *) pmm_alloc();
-    u32 *ident_page_table = (u32 *) pmm_alloc();
+	u32 *kpage_table = (u32 *) pmm_alloc();
+	u32 *kpage_dir = (u32 *) pmm_alloc();
+	u32 *ident_page_table = (u32 *) pmm_alloc();
 
-    for (int i = 0, phys = (int) &start_phys; i < 1024; i++, phys += PAGE_SIZE)
-    {
-        kpage_dir[i] = 0;
-        kpage_table[i] = phys | PT_PRESENT | PT_WRITABLE;
-        ident_page_table[i] = PT_PRESENT | PT_WRITABLE;
-    }
+	for (int i = 0, phys = (int) &start_phys; i < 1024; i++, phys += PAGE_SIZE)
+	{
+		kpage_dir[i] = 0;
+		kpage_table[i] = phys | PT_PRESENT | PT_WRITABLE;
+		ident_page_table[i] = PT_PRESENT | PT_WRITABLE;
+	}
 
-    // set kernel pde for identity page table and kernel page table to new addr
+	// set kernel pde for identity page table and kernel page table to new addr
 	kpage_dir[0] = (uintptr_t) ident_page_table | PT_PRESENT | PT_WRITABLE;
-	int i = (u32) &start / 0x400000; // index into kernel page directory that maps the kernel page table
-    kpage_dir[i] = (uintptr_t) kpage_table | PT_PRESENT | PT_WRITABLE;
+	int i = (u32) &start / 0x400000;    // index into kernel page directory that maps the kernel page table
+	kpage_dir[i] = (uintptr_t) kpage_table | PT_PRESENT | PT_WRITABLE;
 
-    // identity map final entry of kernel page directory
-    kpage_dir[1023] = (uintptr_t) kpage_dir | PT_PRESENT | PT_WRITABLE;
+	// identity map final entry of kernel page directory
+	kpage_dir[1023] = (uintptr_t) kpage_dir | PT_PRESENT | PT_WRITABLE;
 
 	// move physical address of kernel page directory to cr3
-	asm("mov %0, %%cr3" :: "r"(kpage_dir));
+	asm("mov %0, %%cr3" ::"r"(kpage_dir));
 
-    // map physical page of VGA framebuffer
-    vmm_map_page(0xb8000, 0xb8000, PT_PRESENT | PT_WRITABLE);
+	// map physical page of VGA framebuffer
+	vmm_map_page(0xb8000, 0xb8000, PT_PRESENT | PT_WRITABLE);
 
 	nullproc.pdir = (uintptr_t) kpage_dir;
 	kmalloc_init(heap, 1024 * 1024);
@@ -96,24 +96,51 @@ uintptr_t vmm_create_address_space()
 
 	if (dir == NULL)
 		kprintf("Error creating address space!\n");
-	
+
 	//memcpy(dir, kpage_dir, PAGE_DIR_SIZE);
 	return phys;
 }
 
 void vmm_map_page(uintptr_t phys, uintptr_t virt, unsigned flags)
 {
-    unsigned long pdindex = virt >> 22;
-    unsigned long ptindex = virt >> 12 & 0x3ff;
-    if (!(PAGE_DIR[pdindex] & PT_PRESENT))
-    {
-        kprintf("%d not present\n", pdindex);
-        uintptr_t new_page = pmm_alloc();
-        PAGE_DIR[pdindex] = new_page | flags;
-    }
+	unsigned long pdindex = virt >> 22;
+	unsigned long ptindex = virt >> 12 & 0x3ff;
+	if (!(PAGE_DIR[pdindex] & PT_PRESENT))
+	{
+		kprintf("%d not present\n", pdindex);
+		uintptr_t new_page = pmm_alloc();
+		PAGE_DIR[pdindex] = new_page | flags;
+	}
 
-    u32 *page_table = PAGE_TABLES + pdindex * PAGE_SIZE;
-    page_table[ptindex] = phys | flags;
+	u32 *page_table = PAGE_TABLES + pdindex * PAGE_SIZE;
+	page_table[ptindex] = phys | flags;
+}
+
+uintptr_t vmm_clone_directory()
+{
+	uintptr_t phys = pmm_alloc();
+	void *virt = (void *) 0x40000;
+	vmm_map_page(phys, (uintptr_t) virt, PT_WRITABLE | PT_PRESENT);
+
+	memcpy(virt, PAGE_DIR, PAGE_DIR_SIZE);
+
+	uintptr_t vp = 0;
+	for (; vp <= 0xfff00000; vp += PAGE_SIZE)
+	{
+		unsigned long pdindex = vp >> 22;
+		unsigned long ptindex = vp >> 12 & 0x3ff;
+
+		if (PAGE_DIR[pdindex] & PT_PRESENT)
+		{
+			u32 *page_table = PAGE_TABLES + pdindex * PAGE_SIZE;
+			if (page_table[ptindex] & PT_USER)
+			{
+				kprintf("%x is user\n", vp);
+			}
+		}
+	}
+
+	return phys;
 }
 
 /**
@@ -122,5 +149,6 @@ void vmm_map_page(uintptr_t phys, uintptr_t virt, unsigned flags)
 static void page_fault()
 {
 	kprintf("Page fault detected!\n");
-	while (1) ;
+	while (1)
+		;
 }
