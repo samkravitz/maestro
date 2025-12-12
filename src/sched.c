@@ -52,6 +52,12 @@ void sched()
 
 	curr = pnew;
 	curr->state = PR_RUNNING;
+
+	// Switch page directory if new process has one
+	// (null process has pdir set to kernel page directory)
+	if (pnew->pdir != 0)
+		asm("mov %0, %%cr3" :: "r"(pnew->pdir) : "memory");
+
 	ctxsw(pold, pnew);
 	restore(pold->mask);
 }

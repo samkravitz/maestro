@@ -75,6 +75,7 @@ struct proc *create(void (*f)(void), const char *name)
 	struct proc *pptr = (struct proc *) kmalloc(sizeof(struct proc));
 	strncpy(pptr->name, name, 32);
 	pptr->mask = 0;
+	pptr->pdir = 0;  // 0 means use current page directory (kernel pdir)
 	pptr->state = PR_SUSPENDED;
 	
 	u32 *kstack = (u32 *) (pptr->kstack + PR_STACKSIZE);

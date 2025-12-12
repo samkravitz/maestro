@@ -28,7 +28,7 @@ static u8 x = 0;
 static u8 y = 0;
 
 // vga base address
-u16 *VGA_BASE = (u16 *) 0xb8000;
+u16 *VGA_BASE = (u16 *) 0xc00b8000;
 
 static void scroll();
 static void setcur();
