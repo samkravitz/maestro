@@ -70,35 +70,60 @@ void vmm_init()
 	// move physical address of kernel page directory to cr3
 	asm("mov %0, %%cr3" :: "r"(kpage_dir));
 
-    // map physical page of VGA framebuffer
-    vmm_map_page(0xb8000, 0xb8000, PT_PRESENT | PT_WRITABLE);
+    // map physical page of VGA framebuffer to kernel-space address
+    // so it's accessible even when in user address spaces
+    vmm_map_page(0xb8000, 0xc00b8000, PT_PRESENT | PT_WRITABLE);
 
 	nullproc.pdir = (uintptr_t) kpage_dir;
+	nullproc.stkbtm = (uintptr_t) &kstack_top;
 	kmalloc_init(heap, 1024 * 1024);
 }
 
 uintptr_t vmm_create_address_space()
 {
-	uintptr_t phys = pmm_alloc();
-	struct pde *dir = NULL;
-
-	for (int i = 0; i < NUM_TABLE_ENTRIES; i++)
+	// Allocate new physical page for page directory
+	uintptr_t pdir_phys = pmm_alloc();
+	if (!pdir_phys)
 	{
-		//if (kpage_table[i].present == 0)
-		//{
-		//	kprintf("%d %x\n",i, kpage_dir[i].addr);
-		//	kpage_table[i].present = 1;
-		//	kpage_table[i].addr = phys >> 12;
-		//	dir = (struct pde *) &kpage_table[i];
-		//	break;
-		//}
+		kprintf("Error creating address space: failed to allocate page directory\n");
+		return 0;
 	}
 
-	if (dir == NULL)
-		kprintf("Error creating address space!\n");
-	
-	//memcpy(dir, kpage_dir, PAGE_DIR_SIZE);
-	return phys;
+	// Temporarily map new page directory using PDE 511 (unused high memory slot)
+	// We need to access the new PD from kernel space to initialize it
+	int mask = disable();
+	u32 saved_cr3;
+	asm("mov %%cr3, %0" : "=r"(saved_cr3));
+
+	// Map the new page directory at a temporary location using PDE 511
+	PAGE_DIR[511] = pdir_phys | PT_PRESENT | PT_WRITABLE;
+
+	// Flush TLB for this entry
+	asm("mov %0, %%cr3" :: "r"(saved_cr3) : "memory");
+
+	// Access the new page directory through the temporary mapping
+	u32 *new_pdir = (u32 *) (PAGE_TABLES + 511 * PAGE_SIZE);
+
+	// Zero out user space entries (PDEs 0-767)
+	for (int i = 0; i < 768; i++)
+		new_pdir[i] = 0;
+
+	// Copy kernel PDEs (entries 768-1022) from current page directory
+	for (int i = 768; i < 1023; i++)
+		new_pdir[i] = PAGE_DIR[i];
+
+	// Set up recursive mapping at entry 1023
+	new_pdir[1023] = pdir_phys | PT_PRESENT | PT_WRITABLE;
+
+	// Clean up temporary mapping
+	PAGE_DIR[511] = 0;
+
+	// Flush TLB again
+	asm("mov %0, %%cr3" :: "r"(saved_cr3) : "memory");
+
+	restore(mask);
+
+	return pdir_phys;
 }
 
 void vmm_map_page(uintptr_t phys, uintptr_t virt, unsigned flags)
