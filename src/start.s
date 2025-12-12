@@ -62,14 +62,21 @@ call kmain
 
 jmp $                      ; kernel should never return
 
+; void stack_trace(u32 start_ebp)
+; if start_ebp is 0, traces from caller's frame
+; if start_ebp is non-zero, traces from that ebp
 stack_trace:
 	push ebp
 	mov ebp, esp
 	pusha
 
-	mov ebx, ebp           ; ebx = current ebp
+	mov ebx, [ebp + 8]     ; ebx = first parameter (start_ebp)
+	cmp ebx, 0
+	jne .start             ; if start_ebp != 0, use it
+	mov ebx, [ebp]         ; else use caller's ebp (saved ebp points to caller's frame)
 
-	xor eax, eax           ; eax = 0
+	.start:
+	xor eax, eax           ; eax = 0 (frame counter)
 
 	.trace:
 	cmp ebx, 0             ; (if ebx == NULL) return;

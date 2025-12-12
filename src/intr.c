@@ -15,6 +15,8 @@
 #include <maestro.h>
 #include <syscall.h>
 
+extern void stack_trace(u32 start_ebp);
+
 #define PIC1 0x20    // pic1 command port
 #define PIC2 0xa0    // pic2 command port
 #define EOI  0x20    // end of interrupt value
@@ -96,6 +98,9 @@ void isr(struct registers *regs)
 		kprintf("ebp: 0x%x\n", regs->ebp);
 		kprintf("esp: 0x%x\n", regs->esp);
 		kprintf("eip: 0x%x\n", regs->eip);
+
+		kprintf("\nStack trace:\n");
+		stack_trace(regs->ebp);
 
 		while (1)
 			;
