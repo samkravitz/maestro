@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <unistd.h>
 
 // size in bytes of chunks requested from OS
 #define ARENA_SIZE 4096

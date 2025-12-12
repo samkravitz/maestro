@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <fcntl.h>
+#include <malloc.h>
 #include <stdio.h>
 #include <syscall.h>
 

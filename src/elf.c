@@ -49,7 +49,7 @@ void run_elf()
 	// Store the page directory physical address in the process structure
 	curr->pdir = user_pdir;
 
-    struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);zz
+    struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
 	struct elf_phdr *phdr;
 
 	phdr = &phdr_table[0];

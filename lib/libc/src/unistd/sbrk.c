@@ -3,5 +3,5 @@
 
 void *sbrk(intptr_t increment)
 {
-    return syscall(SYS_SBRK, increment);
+    return (void*) syscall(SYS_SBRK, increment);
 }
