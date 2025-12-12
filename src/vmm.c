@@ -23,7 +23,10 @@ extern struct proc nullproc;
 
 extern u32 start_phys, start;
 
-// pointer to heap, defined in kmalloc.c
+// defined in start.s - initial kernel stack
+extern u32 kstack_top;
+
+// pointer to heap, set by pmm_init after the PMM bitmap
 extern void *heap;
 
 // converts virtual address addr to a physical address
@@ -139,6 +142,62 @@ void vmm_map_page(uintptr_t phys, uintptr_t virt, unsigned flags)
 
     u32 *page_table = PAGE_TABLES + pdindex * PAGE_SIZE;
     page_table[ptindex] = phys | flags;
+}
+
+void vmm_map_page_in_pdir(uintptr_t pdir_phys, uintptr_t phys, uintptr_t virt, unsigned flags)
+{
+	// Calculate page directory and page table indices
+	unsigned long pdindex = virt >> 22;
+	unsigned long ptindex = (virt >> 12) & 0x3ff;
+
+	// Save current CR3 and disable interrupts
+	u32 saved_cr3;
+	asm("mov %%cr3, %0" : "=r"(saved_cr3));
+	int mask = disable();
+
+	// Switch to target page directory
+	asm("mov %0, %%cr3" :: "r"(pdir_phys) : "memory");
+
+	// Now we can use the recursive mapping to access this page directory
+	u32 *page_dir = (u32 *) 0xfffff000;
+	void *page_tables = (void *) 0xffc00000;
+
+	// Check if page table exists
+	if (!(page_dir[pdindex] & PT_PRESENT))
+	{
+		// Allocate new page table
+		uintptr_t new_pt_phys = pmm_alloc();
+		if (!new_pt_phys)
+		{
+			// Restore original CR3 and interrupts before returning
+			asm("mov %0, %%cr3" :: "r"(saved_cr3) : "memory");
+			restore(mask);
+			return;
+		}
+
+		// Add PDE pointing to new page table FIRST
+		// PDE must be writable so we can modify the page table entries
+		unsigned pde_flags = PT_PRESENT | PT_WRITABLE;
+		if (flags & PT_USER)
+			pde_flags |= PT_USER;
+		page_dir[pdindex] = new_pt_phys | pde_flags;
+
+		// Flush TLB by reloading CR3 so the new mapping takes effect
+		asm("mov %0, %%cr3" :: "r"(pdir_phys) : "memory");
+
+		// Now we can safely zero out the new page table
+		u32 *new_pt_virt = page_tables + pdindex * PAGE_SIZE;
+		for (int i = 0; i < 1024; i++)
+			new_pt_virt[i] = 0;
+	}
+
+	// Map the physical page in the page table
+	u32 *page_table = page_tables + pdindex * PAGE_SIZE;
+	page_table[ptindex] = phys | flags;
+
+	// Restore original CR3 and interrupts
+	asm("mov %0, %%cr3" :: "r"(saved_cr3) : "memory");
+	restore(mask);
 }
 
 /**

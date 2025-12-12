@@ -73,6 +73,7 @@ void vmm_init();
 
 uintptr_t vmm_create_address_space();
 void vmm_map_page(uintptr_t, uintptr_t, unsigned);
+void vmm_map_page_in_pdir(uintptr_t, uintptr_t, uintptr_t, unsigned);
 
 
 #endif // VMM_H

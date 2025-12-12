@@ -17,6 +17,7 @@ global ident_page_table
 global set_task
 global fb_page_table
 global stack_trace
+global kstack_top
 
 extern clear
 extern kmain
