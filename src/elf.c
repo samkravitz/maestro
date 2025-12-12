@@ -38,6 +38,17 @@ void run_elf()
 	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
 	print_elf(ehdr);
 
+	// Create a new address space for this process
+	uintptr_t user_pdir = vmm_create_address_space();
+	if (!user_pdir)
+	{
+		kprintf("Failed to create address space for %s\n", curr->name);
+		proc_exit(1);
+	}
+
+	// Store the page directory physical address in the process structure
+	curr->pdir = user_pdir;
+
     struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
 	struct elf_phdr *phdr;
 
@@ -48,11 +59,19 @@ void run_elf()
         for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
         {
             uintptr_t phys = pmm_alloc();
-            vmm_map_page(phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+            vmm_map_page_in_pdir(curr->pdir, phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
         }
-
-        memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
 	}
+
+    // Switch to the process's page directory to copy data into user space
+    asm("mov %0, %%cr3" :: "r"(curr->pdir) : "memory");
+
+    // Now copy ELF segments into user space
+    for (uint i = 0; i < ehdr->e_phnum; i++)
+    {
+        phdr = &phdr_table[i];
+        memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
+    }
 
     kfree(buff);
 
@@ -65,7 +84,7 @@ void run_elf()
 
     void *env = (void *) (0xc0000000 - PR_STACKSIZE);
     uintptr_t env_phys = pmm_alloc();
-    vmm_map_page(env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
+    vmm_map_page_in_pdir(curr->pdir, env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
 
     const char **arg = argv;
     int argc = 0;
@@ -86,9 +105,9 @@ void run_elf()
 
     // create user stack and map it
     uintptr_t ustack_phys = pmm_alloc();
-    vmm_map_page(ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+    vmm_map_page_in_pdir(curr->pdir, ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
     u32 *ustack = (u32*) (0xc0000000 - PR_STACKSIZE);
-    
+
     // place argc and argv on the stack
     --ustack; *ustack = (uintptr_t) env;
     --ustack; *ustack = argc;
