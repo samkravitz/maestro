@@ -18,27 +18,26 @@ int main(int argc, char **argv)
 	(void) argc;
 	(void) argv;
 
-
 	while (1)
 	{
 		memset(line, 0, 1024);
-        printf("> ");
-        int pos = 0;
+		printf("> ");
+		int pos = 0;
 
-        while (1)
-        {
-            int c = getc();
-            if (c == '\n')
-                break;
-            
-            line[pos++] = c;
-            printf("%c", c);
-        }
+		while (1)
+		{
+			int c = getc();
+			if (c == '\n')
+				break;
 
-        if (!strcmp("exit", line))
-            break;
-        
-        printf("\n");
+			line[pos++] = c;
+			printf("%c", c);
+		}
+
+		if (!strcmp("exit", line))
+			break;
+
+		printf("\n");
 	}
 
 	return 0;
