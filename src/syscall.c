@@ -130,11 +130,11 @@ static void sys_getdents(struct registers *regs)
 
 /**
  * @brief syscall 6 - fork
- * @return pid
+ * @return child pid to parent, 0 to child
  */
 static void sys_fork(struct registers *regs)
 {
-	regs->eax = 0;
+	regs->eax = proc_fork(regs);
 }
 
 void (*syscall_handlers[])(struct registers *) = {

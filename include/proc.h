@@ -13,6 +13,8 @@
 #include <maestro.h>
 #include <vfs.h>
 
+struct registers;
+
 // max number of processes (for now),
 #define NPROC  100
 
@@ -58,5 +60,6 @@ struct proc *create(void (*func)(void), const char *);
 struct proc *create_usermode(const char *);
 void ready(struct proc *);
 void proc_exit(int);
+int proc_fork(struct registers *);
 
 #endif    // PROC_H

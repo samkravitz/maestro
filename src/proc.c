@@ -8,10 +8,13 @@
  * DESCRIPTION: process management
  */
 #include <proc.h>
+#include <intr.h>
 #include <kmalloc.h>
 #include <kprintf.h>
+#include <pmm.h>
 #include <pq.h>
 #include <queue.h>
+#include <vmm.h>
 
 #include <string.h>
 
@@ -160,4 +163,151 @@ void proc_exit(int status)
     nproc--;
 
     sched();
+}
+
+/**
+ * @brief fork the current process
+ * @param regs saved registers from syscall
+ * @return child pid to parent, 0 to child, -1 on error
+ */
+int proc_fork(struct registers *regs)
+{
+	// Access iret frame fields beyond struct registers
+	u32 *stack = (u32 *) regs;
+	u32 user_cs = stack[15];
+	u32 user_eflags = stack[16];
+	u32 user_esp = stack[17];
+	u32 user_ss = stack[18];
+
+	// Allocate new process struct
+	struct proc *child = (struct proc *) kmalloc(sizeof(struct proc));
+	if (!child)
+		return -1;
+
+	// Copy process metadata
+	strncpy(child->name, curr->name, 32);
+	child->mask = curr->mask;
+	child->state = PR_READY;
+	child->pid = next_pid++;
+	child->sbrk = curr->sbrk;
+	child->wakeup = 0;
+
+	// Copy open files
+	for (int i = 0; i < NOFILE; i++)
+		child->ofile[i] = curr->ofile[i];
+
+	// Create new address space
+	uintptr_t child_pdir = vmm_create_address_space();
+	if (!child_pdir)
+	{
+		kfree(child);
+		return -1;
+	}
+	child->pdir = child_pdir;
+
+	// Copy user space pages from parent to child
+	// Use PDE 769 for temporary mapping (outside user space 0-767, avoids conflict)
+	u32 *parent_pdir = (u32 *) 0xfffff000;
+	void *page_tables = (void *) 0xffc00000;
+	void *temp_map = (void *)(page_tables + 769 * PAGE_SIZE);
+
+	// Save PDE 769 which we'll use for temporary mapping
+	u32 saved_pde = parent_pdir[769];
+
+	for (int pdi = 0; pdi < 768; pdi++)  // User space PDEs (0-767)
+	{
+		if (!(parent_pdir[pdi] & PT_PRESENT))
+			continue;
+
+		u32 *parent_pt = (u32 *)(page_tables + pdi * PAGE_SIZE);
+
+		for (int pti = 0; pti < 1024; pti++)
+		{
+			if (!(parent_pt[pti] & PT_PRESENT))
+				continue;
+
+			uintptr_t virt = ((u32)pdi << 22) | ((u32)pti << 12);
+			unsigned flags = parent_pt[pti] & 0xfff;
+
+			// Allocate new physical page for child
+			uintptr_t child_phys = pmm_alloc();
+			if (!child_phys)
+			{
+				// TODO: cleanup on failure
+				return -1;
+			}
+
+			// Temporarily map child's physical page using PDE 769
+			parent_pdir[769] = child_phys | PT_PRESENT | PT_WRITABLE;
+			asm volatile("invlpg (%0)" :: "r"(temp_map) : "memory");
+
+			// Copy page contents from parent's virtual address to child's page
+			memcpy(temp_map, (void *) virt, PAGE_SIZE);
+
+			// Map the new physical page in child's address space
+			vmm_map_page_in_pdir(child_pdir, child_phys, virt, flags);
+		}
+	}
+
+	// Restore PDE 769
+	parent_pdir[769] = saved_pde;
+	asm volatile("invlpg (%0)" :: "r"(temp_map) : "memory");
+
+	// Set up child's kernel stack
+	u32 *kstack = (u32 *) (child->kstack + PR_STACKSIZE);
+	child->stkbtm = (uintptr_t) kstack;
+
+	// Build stack frame for child to return from syscall with eax=0
+	// Stack is built top-down (high to low address)
+	// isr_end expects: segments at lower addr, then general regs, then iret frame
+
+	// iret frame (at highest addresses, popped last by iret)
+	kstack--; *kstack = user_ss;
+	kstack--; *kstack = user_esp;
+	kstack--; *kstack = user_eflags;
+	kstack--; *kstack = user_cs;
+	kstack--; *kstack = regs->eip;
+
+	// Interrupt frame (skipped by add esp, 8)
+	kstack--; *kstack = 0;          // error_code
+	kstack--; *kstack = SYSCALL;    // intr_num
+
+	// General purpose registers (popped by popa: edi, esi, ebp, skip, ebx, edx, ecx, eax)
+	// Must be at higher addresses than segment registers
+	kstack--; *kstack = 0;          // eax = 0 for child!
+	kstack--; *kstack = regs->ecx;
+	kstack--; *kstack = regs->edx;
+	kstack--; *kstack = regs->ebx;
+	kstack--; *kstack = regs->esp;  // ignored by popa
+	kstack--; *kstack = regs->ebp;
+	kstack--; *kstack = regs->esi;
+	kstack--; *kstack = regs->edi;
+
+	// Segment registers (popped first by pop gs, fs, es, ds)
+	// Must be at lower addresses (closer to where ESP will be)
+	kstack--; *kstack = regs->ds;
+	kstack--; *kstack = regs->es;
+	kstack--; *kstack = regs->fs;
+	kstack--; *kstack = regs->gs;
+
+	// struct registers pointer (skipped by add esp, 4)
+	kstack--;
+
+	// ctxsw return address - return to isr_end to complete interrupt return
+	kstack--; *kstack = (u32) &isr_end;
+
+	// ctxsw callee-saved registers
+	kstack--; *kstack = 0;  // ebp
+	kstack--; *kstack = 0;  // ebx
+	kstack--; *kstack = 0;  // esi
+	kstack--; *kstack = 0;  // edi
+
+	child->stkptr = (uintptr_t) kstack;
+
+	// Add child to ready queue
+	nproc++;
+	ready(child);
+
+	// Return child's PID to parent
+	return child->pid;
 }
