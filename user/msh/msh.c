@@ -8,8 +8,11 @@
  * DESCRIPTION: maestro shell
  */
 
+#include <dirent.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 char line[1024];
 
@@ -34,8 +37,36 @@ int main(int argc, char **argv)
 			printf("%c", c);
 		}
 
+		printf("\n");
+
 		if (!strcmp("exit", line))
 			break;
+
+		if (!strcmp("ls", line))
+		{
+			DIR *dir = opendir("/");
+			struct dirent *de;
+
+			while ((de = readdir(dir)) != NULL)
+				printf("%s\n", de->d_name);
+		}
+
+		if (strncmp(line, "cat ", 4) == 0)
+		{
+			char *filename = line + 4;
+			int fd = open(filename, O_RDONLY);
+			if (fd < 0)
+			{
+				printf("cat: %s: No such file\n", filename);
+			}
+
+			else
+			{
+				char buf[512];
+				int n = read(fd, buf, sizeof(buf) - 1);
+				printf("%s", buf);
+			}
+		}
 
 		printf("\n");
 	}
