@@ -20,6 +20,7 @@
 #define SYS_SBRK     4
 #define SYS_GETDENTS 5
 #define SYS_FORK     6
+#define SYS_EXECV    7
 
 int syscall(int, ...);
 

@@ -19,7 +19,10 @@
 
 #include <syscall.h>
 
+#include <elf.h>
+#include <ext2.h>
 #include <intr.h>
+#include <kmalloc.h>
 #include <kprintf.h>
 #include <pmm.h>
 #include <proc.h>
@@ -27,6 +30,7 @@
 #include <vmm.h>
 
 extern struct proc *curr;
+extern void enter_usermode(void *, void *);
 
 /**
  * @brief syscall 0 - read
@@ -137,8 +141,152 @@ static void sys_fork(struct registers *regs)
 	regs->eax = proc_fork(regs);
 }
 
-void (*syscall_handlers[])(struct registers *) = {
-	sys_read, sys_write, sys_exit, sys_open, sys_sbrk, sys_getdents, sys_fork,
-};
+/**
+ * @brief syscall 7 - execv
+ * @param path ebx
+ * @param argv ecx
+ * @return does not return on success, -1 on error
+ */
+static void sys_execv(struct registers *regs)
+{
+	const char *path = (const char *) regs->ebx;
+	char **argv = (char **) regs->ecx;
+
+	// Copy path to kernel memory before we destroy address space
+	char kpath[32];
+	unsigned i;
+	for (i = 0; i < sizeof(kpath) - 1 && path[i] != '\0'; i++)
+		kpath[i] = path[i];
+	kpath[i] = '\0';
+
+	// Count argc and copy argv strings to kernel memory
+	int argc = 0;
+	char *kargv[16];    // max 16 arguments
+	while (argv && argv[argc] != NULL && argc < 16)
+	{
+		// Get length of argument string
+		const char *arg = argv[argc];
+		size_t len = 0;
+		while (arg[len] != '\0')
+			len++;
+
+		// Allocate and copy string
+		kargv[argc] = kmalloc(len + 1);
+		for (size_t j = 0; j <= len; j++)
+			kargv[argc][j] = arg[j];
+
+		argc++;
+	}
+
+	// Open and read ELF file
+	int fd = vfs_open(kpath);
+	if (fd < 0)
+	{
+		// Cleanup and return error
+		for (int i = 0; i < argc; i++)
+			kfree(kargv[i]);
+		regs->eax = -1;
+		return;
+	}
+
+	int inode = curr->ofile[fd]->n->inode;
+	size_t s = ext2_filesize(inode);
+	u8 *buff = kmalloc(s);
+	ext2_read_data(buff, inode, 0, s);
+
+	struct elf_ehdr *ehdr = (struct elf_ehdr *) buff;
+
+	// Create new address space
+	uintptr_t user_pdir = vmm_create_address_space();
+	if (!user_pdir)
+	{
+		kfree(buff);
+		for (int i = 0; i < argc; i++)
+			kfree(kargv[i]);
+		regs->eax = -1;
+		return;
+	}
+
+	// Update process state
+	curr->pdir = user_pdir;
+	for (i = 0; i < sizeof(curr->name) - 1 && kpath[i] != '\0'; i++)
+		curr->name[i] = kpath[i];
+	curr->name[i] = '\0';
+	curr->sbrk = NULL;    // Reset heap
+
+	// Map ELF program segments
+	struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
+	for (uint i = 0; i < ehdr->e_phnum; i++)
+	{
+		struct elf_phdr *phdr = &phdr_table[i];
+		for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
+		{
+			uintptr_t phys = pmm_alloc();
+			vmm_map_page_in_pdir(curr->pdir, phys, phdr->p_vaddr + j * PAGE_SIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+		}
+	}
+
+	// Switch to the new address space
+	asm("mov %0, %%cr3" ::"r"(curr->pdir) : "memory");
+
+	// Copy ELF segments into user space
+	for (uint i = 0; i < ehdr->e_phnum; i++)
+	{
+		struct elf_phdr *phdr = &phdr_table[i];
+		char *dst = (char *) phdr->p_vaddr;
+		char *src = (char *) &buff[phdr->p_offset];
+		for (size_t j = 0; j < phdr->p_memsz; j++)
+			dst[j] = src[j];
+	}
+
+	kfree(buff);
+
+	// Set up environment page for argv
+	void *env = (void *) (0xc0000000 - PR_STACKSIZE);
+	uintptr_t env_phys = pmm_alloc();
+	vmm_map_page_in_pdir(curr->pdir, env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
+
+	// Copy argv strings to environment page
+	char **envp = (char **) env;
+	unsigned base = (argc + 1) * sizeof(char *);
+	for (int i = 0; i < argc; i++)
+	{
+		// Copy string to environment page
+		char *dst = (char *) env + base;
+		char *src = kargv[i];
+		size_t len = 0;
+		while (src[len] != '\0')
+		{
+			dst[len] = src[len];
+			len++;
+		}
+		dst[len] = '\0';
+
+		// Set pointer in envp array
+		envp[i] = dst;
+		base += len + 1;
+
+		// Free kernel copy
+		kfree(kargv[i]);
+	}
+	envp[argc] = NULL;
+
+	// Create user stack
+	uintptr_t ustack_phys = pmm_alloc();
+	vmm_map_page_in_pdir(curr->pdir, ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
+	u32 *ustack = (u32 *) (0xc0000000 - PR_STACKSIZE);
+
+	// Push argc and argv onto stack
+	--ustack;
+	*ustack = (uintptr_t) env;
+	--ustack;
+	*ustack = argc;
+
+	// Jump to new program entry point (does not return)
+	enter_usermode(ustack, (void *) ehdr->e_entry);
+}
+
+void (*syscall_handlers[])(struct registers *) = { sys_read, sys_write,    sys_exit, sys_open,
+	                                               sys_sbrk, sys_getdents, sys_fork, sys_execv };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);

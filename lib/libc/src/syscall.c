@@ -45,6 +45,13 @@ int syscall(int sysno, ...)
 			ret = syscall1(sysno, arg1);
 			break;
 
+		// syscalls with 2 arguments
+		case SYS_EXECV:
+			arg1 = va_arg(args, uint32_t);
+			arg2 = va_arg(args, uint32_t);
+			ret = syscall2(sysno, arg1, arg2);
+			break;
+
 		// syscalls with 3 arguments
 		case SYS_READ:
 		case SYS_WRITE:
