@@ -20,11 +20,13 @@
 
 extern struct proc *curr;
 extern struct proc nullproc;
+extern void clear();
 
 void kmain()
 {
-	kprintf("Welcome to maestro!\n");
 	init();
+	clear();
+	kprintf("Welcome to maestro!\n");
 	curr = &nullproc;
 
     struct proc *msh = create_usermode("msh");

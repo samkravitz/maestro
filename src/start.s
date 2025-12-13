@@ -19,7 +19,6 @@ global fb_page_table
 global stack_trace
 global kstack_top
 
-extern clear
 extern kmain
 extern vkprintf
 
@@ -58,7 +57,6 @@ ltr ax                     ; load task segment to task register
 mov esp, kstack_top        ; load esp with kernel stack
 xor ebp, ebp               ; ebp = 0 (to calculate final stack frame)
 
-call clear                 ; clear screen
 call kmain
 
 jmp $                      ; kernel should never return
