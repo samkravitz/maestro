@@ -30,7 +30,7 @@ struct queue *readyq;
 // process sleep queue
 struct pq *sleepq;
 
-const struct proc nullproc = {
+struct proc nullproc = {
 	.state = PR_RUNNING,
 	.stkptr = 0,
 	.pid = -1,
