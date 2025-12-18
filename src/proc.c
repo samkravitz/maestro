@@ -199,11 +199,13 @@ int proc_fork(struct registers *regs)
 		return -1;
 
 	// Copy process metadata
+
 	strncpy(child->name, curr->name, 32);
 	child->mask = curr->mask;
 	child->state = PR_READY;
 	child->pid = next_pid++;
 	child->sbrk = curr->sbrk;
+	child->ustack = curr->ustack;
 	child->wakeup = 0;
 	child->parent = curr->pid;
 	child->waiting_for = -1;
@@ -225,10 +227,30 @@ int proc_fork(struct registers *regs)
 	// Use PDE 769 for temporary mapping (outside user space 0-767, avoids conflict)
 	u32 *parent_pdir = (u32 *) 0xfffff000;
 	void *page_tables = (void *) 0xffc00000;
-	void *temp_map = (void *)(page_tables + 769 * PAGE_SIZE);
+	void *temp_map = (void *)(769 << 22);  // Virtual address for PDE 769, PTE 0
 
-	// Save PDE 769 which we'll use for temporary mapping
+	// Create a page table for PDE 769 if it doesn't exist
 	u32 saved_pde = parent_pdir[769];
+	uintptr_t temp_pt_phys = 0;
+
+	if (!(saved_pde & PT_PRESENT))
+	{
+		temp_pt_phys = pmm_alloc();
+		if (!temp_pt_phys)
+		{
+			kfree(child);
+			return -1;
+		}
+		parent_pdir[769] = temp_pt_phys | PT_PRESENT | PT_WRITABLE;
+		asm volatile("mov %%cr3, %%eax; mov %%eax, %%cr3" ::: "eax", "memory");
+
+		// Zero out the page table
+		u32 *temp_pt = (u32 *)(page_tables + 769 * PAGE_SIZE);
+		for (int i = 0; i < 1024; i++)
+			temp_pt[i] = 0;
+	}
+
+	u32 *temp_pt = (u32 *)(page_tables + 769 * PAGE_SIZE);
 
 	for (int pdi = 0; pdi < 768; pdi++)  // User space PDEs (0-767)
 	{
@@ -253,8 +275,8 @@ int proc_fork(struct registers *regs)
 				return -1;
 			}
 
-			// Temporarily map child's physical page using PDE 769
-			parent_pdir[769] = child_phys | PT_PRESENT | PT_WRITABLE;
+			// Temporarily map child's physical page at PTE 0 in our temp page table
+			temp_pt[0] = child_phys | PT_PRESENT | PT_WRITABLE;
 			asm volatile("invlpg (%0)" :: "r"(temp_map) : "memory");
 
 			// Copy page contents from parent's virtual address to child's page
