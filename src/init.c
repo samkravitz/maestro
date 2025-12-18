@@ -18,6 +18,7 @@
 #include <pmm.h>
 #include <proc.h>
 #include <sem.h>
+#include <tty.h>
 #include <vfs.h>
 #include <vmm.h>
 #include <w.h>
@@ -31,10 +32,11 @@ void init()
 	pmm_init();
 	vmm_init();
 	sem_init();
+	tty_init();
 	//w_init();
 
 	ext2_init();
-    vfs_init();
+	vfs_init();
 
 	proc_init();
 	//mouse_init();

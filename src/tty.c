@@ -9,10 +9,11 @@
  */
 #include <tty.h>
 
-#include <string.h>
 #include <intr.h>
 #include <io.h>
 #include <sem.h>
+#include <string.h>
+#include <termios.h>
 
 #define TTY_WIDTH  80
 #define TTY_HEIGHT 25
@@ -37,6 +38,25 @@ static u32 read_ptr = 0;
 static u32 write_ptr = 0;
 static u8 buff[1024];
 
+static struct
+{
+	struct termios termios;
+	char line_buffer[256];
+	int line_pos;
+	bool eof_pending;
+} tty;
+
+void tty_init(void)
+{
+	// default to cooked mode with echo and signals
+	tty.termios.c_lflag = ICANON | ECHO | ISIG;
+	tty.termios.c_cc[VINTR] = CTRL('C');
+	tty.termios.c_cc[VEOF] = CTRL('D');
+	tty.termios.c_cc[VERASE] = '\b';
+	tty.line_pos = 0;
+	tty.eof_pending = false;
+}
+
 int tty_read(void *buff, size_t count)
 {
 	size_t c = count;
@@ -44,7 +64,7 @@ int tty_read(void *buff, size_t count)
 
 	while (c--)
 		*s++ = tty_getc();
-	
+
 	return count;
 }
 
@@ -55,7 +75,7 @@ int tty_write(void *buff, size_t count)
 
 	while (c--)
 		tty_putc(*s++);
-	
+
 	return count;
 }
 
@@ -120,10 +140,10 @@ void clear()
 {
 	for (int i = 0; i < TTY_WIDTH * TTY_HEIGHT; ++i)
 		tty_putc(' ');
-    
-    x = 0;
-    y = 0;
-    setcur();
+
+	x = 0;
+	y = 0;
+	setcur();
 }
 
 // scroll screen, if necessary

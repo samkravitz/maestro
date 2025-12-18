@@ -12,8 +12,11 @@
 
 #include <maestro.h>
 
+#include <termios.h>
+
 void clear();
 
+void tty_init();
 int tty_read(void *, size_t);
 int tty_write(void *, size_t);
 int tty_getc();
