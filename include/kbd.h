@@ -17,7 +17,7 @@
 
 // indices of special keys in LUT
 #define ESC_IDX      1
-#define LCTRL_IDX    28
+#define LCTRL_IDX    29
 #define LSHIFT_IDX   42
 #define RSHIFT_IDX   54
 #define LALT_IDX     56
