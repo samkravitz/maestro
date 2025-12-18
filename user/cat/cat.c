@@ -24,4 +24,6 @@ int main(int argc, char *argv[])
 	char buffer[1024];
 	read(fd, buffer, 1024);
 	printf("%s\n", buffer);
+	close(fd);
+	return 0;
 }
