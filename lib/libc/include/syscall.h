@@ -22,6 +22,7 @@
 #define SYS_FORK     6
 #define SYS_EXECV    7
 #define SYS_CLOSE    8
+#define SYS_GETENV   9
 
 int syscall(int, ...);
 

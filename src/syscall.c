@@ -297,7 +297,51 @@ static void sys_close(struct registers *regs)
 	regs->eax = vfs_close(fd);
 }
 
-void (*syscall_handlers[])(struct registers *) = { sys_read,     sys_write, sys_exit,  sys_open, sys_sbrk,
-	                                               sys_getdents, sys_fork,  sys_execv, sys_close };
+/**
+ * @brief syscall 9 - getenv
+ * @param name ebx
+ * @return pointer to environment variable value, or NULL if not found
+ */
+static void sys_getenv(struct registers *regs)
+{
+	const char *name = (const char *) regs->ebx;
+	const size_t len = strlen(name);
+
+	char **argv = (char **) curr->ustack;
+	char **envp = &argv[0];
+
+	// skip past all argv entries
+	while (*envp)
+		envp++;
+
+	// skip the NULL itself to get to the start of envp
+	envp++;
+
+	while (*envp)
+	{
+		char *entry = *envp;
+
+		// find '=' in entry
+		char *eq = entry;
+		while (*eq != '=' && *eq != '\0')
+			eq++;
+
+		// compare name with env variable name
+		size_t name_len = eq - entry;
+		if (strncmp(name, entry, len) == 0 && name[name_len] == '\0')
+		{
+			// Found matching variable, return pointer to value
+			regs->eax = (u32) (eq + 1);
+			return;
+		}
+
+		envp++;
+	}
+
+	regs->eax = 0;
+}
+
+void (*syscall_handlers[])(struct registers *) = { sys_read,     sys_write, sys_exit,  sys_open,  sys_sbrk,
+	                                               sys_getdents, sys_fork,  sys_execv, sys_close, sys_getenv };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);

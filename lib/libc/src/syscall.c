@@ -42,6 +42,7 @@ int syscall(int sysno, ...)
 		case SYS_EXIT:
 		case SYS_SBRK:
 		case SYS_CLOSE:
+		case SYS_GETENV:
 			arg1 = va_arg(args, uint32_t);
 			ret = syscall1(sysno, arg1);
 			break;
