@@ -10,10 +10,10 @@
 #include <kbd.h>
 
 #include <io.h>
-#include <tty.h>
-
+#include <kprintf.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tty.h>
 
 // Keyboard state
 static u32 modifiers = 0;
@@ -54,7 +54,6 @@ static bool update_modifiers(u8 key, bool is_break)
 
 	return true;
 }
-
 
 // translate a key scancode to a character based on current modifier state
 static char translate(u8 key)
@@ -125,7 +124,7 @@ void kbdhandler()
 	// Handle extended keys
 	if (extended)
 	{
-		handle_extended_key(key, is_break);
+		handle_extended(key, is_break);
 		extended = false;
 		return;
 	}
