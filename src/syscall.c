@@ -154,6 +154,7 @@ static void sys_execv(struct registers *regs)
 {
 	const char *path = (const char *) regs->ebx;
 	char **argv = (char **) regs->ecx;
+	strcpy(curr->name, argv[0]);
 
 	// Copy path to kernel memory before we destroy address space
 	char kpath[32];
