@@ -82,35 +82,69 @@ void run_elf()
         NULL,
     };
 
-    void *env = (void *) (0xc0000000 - PR_STACKSIZE);
-    uintptr_t env_phys = pmm_alloc();
-    vmm_map_page_in_pdir(curr->pdir, env_phys, (uintptr_t) env, PT_PRESENT | PT_WRITABLE | PT_USER);
+    const char *envp_init[] = {
+        "PATH=/bin",
+        NULL,
+    };
 
-    const char **arg = argv;
+    // allocate a page for argv/envp data
+    void *data_page = (void *) (0xc0000000 - PR_STACKSIZE);
+    uintptr_t data_phys = pmm_alloc();
+    vmm_map_page_in_pdir(curr->pdir, data_phys, (uintptr_t) data_page, PT_PRESENT | PT_WRITABLE | PT_USER);
+
+    // Store pointer to user stack data for syscalls like getenv
+    curr->ustack = data_page;
+
+	// add env to stack
+	int envc = 0;
+    const char **env = envp_init;
+    while (*env++)
+        envc++;
+
+    // Count argc and envc
     int argc = 0;
+    const char **arg = argv;
     while (*arg++)
         argc++;
 
+    // Calculate layout in data page:
+    // [argv pointers][NULL][envp pointers][NULL][argv strings][envp strings]
+    char **argv_ptrs = (char **) data_page;
+    char **envp_ptrs = (char **) (data_page + (argc + 1) * sizeof(char *));
+    char *str_data = (char *) (data_page + (argc + 1 + envc + 1) * sizeof(char *));
 
-    char **envp = (char **) env;
-    unsigned base = (argc + 1) * sizeof(char*);
-    for (int i = 0; i < argc; i++)
+	// Copy envp strings and set up pointers
+    for (int i = 0; i < envc; i++)
     {
-        memcpy(env + base, argv[i], strlen(argv[i]) + 1);
-        envp[i] = env + base;
-        base += strlen(argv[i]) + 1;
+        size_t len = strlen(envp_init[i]) + 1;
+        memcpy(str_data, envp_init[i], len);
+        envp_ptrs[i] = str_data;
+        str_data += len;
     }
 
-    envp[argc] = NULL;
+    envp_ptrs[envc] = NULL;
 
-    // create user stack and map it
+    // Copy argv strings and set up pointers
+    for (int i = 0; i < argc; i++)
+    {
+        size_t len = strlen(argv[i]) + 1;
+        memcpy(str_data, argv[i], len);
+        argv_ptrs[i] = str_data;
+        str_data += len;
+    }
+    argv_ptrs[argc] = NULL;
+
+
+    // Create user stack and map it
     uintptr_t ustack_phys = pmm_alloc();
     vmm_map_page_in_pdir(curr->pdir, ustack_phys, 0xc0000000 - 2 * PR_STACKSIZE, PT_PRESENT | PT_WRITABLE | PT_USER);
     u32 *ustack = (u32*) (0xc0000000 - PR_STACKSIZE);
 
-    // place argc and argv on the stack
-    --ustack; *ustack = (uintptr_t) env;
-    --ustack; *ustack = argc;
+    // Place envp, argv, and argc on the stack
+    // Stack layout (low to high): [argc] [argv] [envp] <- highest address
+    --ustack; *ustack = (uintptr_t) envp_ptrs;  // Push first (highest address)
+    --ustack; *ustack = (uintptr_t) argv_ptrs;  // Push second
+    --ustack; *ustack = argc;                    // Push last (ESP points here)
 
     enter_usermode(ustack, (void *) ehdr->e_entry);
 }
