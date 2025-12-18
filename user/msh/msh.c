@@ -13,6 +13,7 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 char line[1024];
@@ -123,6 +124,6 @@ static void run_command(char **args)
 	{
 		// parent
 		int status;
-		//waitpid(pid, &status, 0);
+		waitpid(pid, &status, 0);
 	}
 }
