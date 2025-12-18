@@ -21,6 +21,7 @@
 #define SYS_GETDENTS 5
 #define SYS_FORK     6
 #define SYS_EXECV    7
+#define SYS_CLOSE    8
 
 int syscall(int, ...);
 

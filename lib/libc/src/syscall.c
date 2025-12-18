@@ -41,6 +41,7 @@ int syscall(int sysno, ...)
 		// syscalls with 1 argument
 		case SYS_EXIT:
 		case SYS_SBRK:
+		case SYS_CLOSE:
 			arg1 = va_arg(args, uint32_t);
 			ret = syscall1(sysno, arg1);
 			break;

@@ -286,7 +286,18 @@ static void sys_execv(struct registers *regs)
 	enter_usermode(ustack, (void *) ehdr->e_entry);
 }
 
-void (*syscall_handlers[])(struct registers *) = { sys_read, sys_write,    sys_exit, sys_open,
-	                                               sys_sbrk, sys_getdents, sys_fork, sys_execv };
+/**
+ * @brief syscall 8 - close
+ * @param fd ebx
+ * @return 0 on success, -1 on error
+ */
+static void sys_close(struct registers *regs)
+{
+	int fd = (int) regs->ebx;
+	regs->eax = vfs_close(fd);
+}
+
+void (*syscall_handlers[])(struct registers *) = { sys_read,     sys_write, sys_exit,  sys_open, sys_sbrk,
+	                                               sys_getdents, sys_fork,  sys_execv, sys_close };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);

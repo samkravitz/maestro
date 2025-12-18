@@ -18,6 +18,7 @@
 size_t read(int, void *, size_t);
 size_t write(int, void *, size_t);
 void exit(int);
+int close(int);
 
 int execv(const char*, char* const[]);
 int execve(const char*, char* const[], char* const[]);
