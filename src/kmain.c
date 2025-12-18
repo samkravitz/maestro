@@ -29,7 +29,7 @@ void kmain()
 	kprintf("Welcome to maestro!\n");
 	curr = &nullproc;
 
-    struct proc *msh = create_usermode("msh");
+    struct proc *msh = create_usermode("/bin/msh");
     ready(msh);
 
 	// enable interrupts

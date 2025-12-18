@@ -7,7 +7,7 @@ all: cat
 
 cat: $(OBJ)
 	$(LD) -o $@ $^ $(LDFLAGS)
-	e2cp cat ../../disk.img:/
+	e2cp cat ../../disk.img:/bin
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

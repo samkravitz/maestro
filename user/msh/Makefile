@@ -7,7 +7,7 @@ all: msh
 
 msh: $(OBJ)
 	$(LD) -o $@ $^ $(LDFLAGS)
-	e2cp msh ../../disk.img:/
+	e2cp msh ../../disk.img:/bin
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
