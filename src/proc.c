@@ -80,6 +80,8 @@ struct proc *create(void (*f)(void), const char *name)
 	pptr->mask = 0;
 	pptr->pdir = 0;  // 0 means use current page directory (kernel pdir)
 	pptr->state = PR_SUSPENDED;
+	pptr->parent = 0;
+	pptr->waiting_for = -1;
 	
 	u32 *kstack = (u32 *) (pptr->kstack + PR_STACKSIZE);
 	pptr->stkbtm = (uintptr_t) kstack;
@@ -150,6 +152,7 @@ struct proc *create(void (*f)(void), const char *name)
 
 	pptr->stkptr = (uintptr_t) kstack;
 	pptr->pid = next_pid++;
+	proctab[pptr->pid] = pptr;
 
 	nproc++;
 	return pptr;
@@ -161,6 +164,17 @@ void proc_exit(int status)
     // TODO - unmap and free all memory used by the process
     curr->state = PR_TERMINATED;
     nproc--;
+
+	// check if parent process is waiting for this one
+	if (curr->parent != -1)
+	{
+		struct proc *parent = proctab[curr->parent];
+		if (parent->state == PR_WAITING && parent->waiting_for == curr->pid)
+		{
+			parent->waiting_for = -1;
+			ready(parent);
+		}
+	}
 
     sched();
 }
@@ -191,6 +205,8 @@ int proc_fork(struct registers *regs)
 	child->pid = next_pid++;
 	child->sbrk = curr->sbrk;
 	child->wakeup = 0;
+	child->parent = curr->pid;
+	child->waiting_for = -1;
 
 	// Copy open files
 	for (int i = 0; i < NOFILE; i++)
@@ -309,5 +325,6 @@ int proc_fork(struct registers *regs)
 	ready(child);
 
 	// Return child's PID to parent
+	proctab[child->pid] = child;
 	return child->pid;
 }
