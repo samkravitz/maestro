@@ -29,6 +29,7 @@ extern void enter_usermode(void *, void *);
  */
 void run_elf()
 {
+	kprintf("run_elf: loading ELF for process %s\n", curr->name);
 	int fd = vfs_open(curr->name);
 	int inode = curr->ofile[fd]->n->inode;
 	size_t s = ext2_filesize(inode);
@@ -52,10 +53,13 @@ void run_elf()
     struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
 	struct elf_phdr *phdr;
 
-	phdr = &phdr_table[0];
+	// First pass: allocate pages for PT_LOAD segments only
 	for (uint i = 0; i < ehdr->e_phnum; i++)
 	{
 		phdr = &phdr_table[i];
+		if (phdr->p_type != PT_LOAD)
+			continue;
+
         for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
         {
             uintptr_t phys = pmm_alloc();
@@ -66,10 +70,13 @@ void run_elf()
     // Switch to the process's page directory to copy data into user space
     asm("mov %0, %%cr3" :: "r"(curr->pdir) : "memory");
 
-    // Now copy ELF segments into user space
+    // Second pass: copy PT_LOAD segments into user space
     for (uint i = 0; i < ehdr->e_phnum; i++)
     {
         phdr = &phdr_table[i];
+		if (phdr->p_type != PT_LOAD)
+			continue;
+
         memcpy((void *) phdr->p_vaddr, &buff[phdr->p_offset], phdr->p_memsz);
     }
 

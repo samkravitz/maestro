@@ -16,9 +16,11 @@ user_progs:
 	$(MAKE) -C ls
 	$(MAKE) -C msh
 	$(MAKE) -C cat
+	$(MAKE) -C ls_rust
 
 PHONY: clean
 clean:
 	$(MAKE) -C ls clean
 	$(MAKE) -C msh clean
 	$(MAKE) -C cat clean
+	$(MAKE) -C ls_rust clean

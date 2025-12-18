@@ -217,11 +217,13 @@ static void sys_execv(struct registers *regs)
 	curr->name[i] = '\0';
 	curr->sbrk = NULL;    // Reset heap
 
-	// Map ELF program segments
+	// Map ELF program segments (only PT_LOAD segments)
 	struct elf_phdr *phdr_table = (struct elf_phdr *) (buff + ehdr->e_phoff);
 	for (uint i = 0; i < ehdr->e_phnum; i++)
 	{
 		struct elf_phdr *phdr = &phdr_table[i];
+		if (phdr->p_type != PT_LOAD)
+			continue;
 		for (unsigned j = 0; j <= phdr->p_memsz / PAGE_SIZE; j++)
 		{
 			uintptr_t phys = pmm_alloc();
@@ -232,10 +234,12 @@ static void sys_execv(struct registers *regs)
 	// Switch to the new address space
 	asm("mov %0, %%cr3" ::"r"(curr->pdir) : "memory");
 
-	// Copy ELF segments into user space
+	// Copy ELF segments into user space (only PT_LOAD segments)
 	for (uint i = 0; i < ehdr->e_phnum; i++)
 	{
 		struct elf_phdr *phdr = &phdr_table[i];
+		if (phdr->p_type != PT_LOAD)
+			continue;
 		char *dst = (char *) phdr->p_vaddr;
 		char *src = (char *) &buff[phdr->p_offset];
 		for (size_t j = 0; j < phdr->p_memsz; j++)
