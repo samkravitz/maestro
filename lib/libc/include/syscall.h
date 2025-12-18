@@ -23,6 +23,7 @@
 #define SYS_EXECV    7
 #define SYS_CLOSE    8
 #define SYS_GETENV   9
+#define SYS_WAITPID  10
 
 int syscall(int, ...);
 

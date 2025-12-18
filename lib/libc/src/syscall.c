@@ -59,6 +59,7 @@ int syscall(int sysno, ...)
 		case SYS_WRITE:
 		case SYS_OPEN:
 		case SYS_GETDENTS:
+		case SYS_WAITPID:
 			arg1 = va_arg(args, uint32_t);
 			arg2 = va_arg(args, uint32_t);
 			arg3 = va_arg(args, uint32_t);

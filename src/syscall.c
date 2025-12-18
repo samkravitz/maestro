@@ -29,7 +29,10 @@
 #include <vfs.h>
 #include <vmm.h>
 
+// defined in proc.c
 extern struct proc *curr;
+extern struct proc *proctab[];
+
 extern void enter_usermode(void *, void *);
 
 /**
@@ -341,7 +344,43 @@ static void sys_getenv(struct registers *regs)
 	regs->eax = 0;
 }
 
-void (*syscall_handlers[])(struct registers *) = { sys_read,     sys_write, sys_exit,  sys_open,  sys_sbrk,
-	                                               sys_getdents, sys_fork,  sys_execv, sys_close, sys_getenv };
+/**
+ * @brief syscall 10 - waitpid
+ * @param pid ebx
+ * @param status ecx
+ * @param options edx
+ * @return pid of terminated child, -1 on error
+ */
+static void sys_waitpid(struct registers *regs)
+{
+	int pid = (int) regs->ebx;
+	int *status = (int *) regs->ecx;
+	int options = (int) regs->edx;
+
+	struct proc *child = proctab[pid];
+	if (child == NULL || child->parent != curr->pid)
+	{
+		kprintf("waitpid: no such child process %d\n", pid);
+		regs->eax = -1;
+		return;
+	}
+
+	// If child is already terminated, return immediately
+	if (child->state == PR_TERMINATED)
+	{
+		if (status)
+			*status = 0;    // TODO - set actual exit status
+		regs->eax = pid;
+		return;
+	}
+
+	// Otherwise, put current process to sleep until child terminates
+	curr->state = PR_WAITING;
+	curr->waiting_for = pid;
+	sched();
+}
+
+void (*syscall_handlers[])(struct registers *) = { sys_read, sys_write, sys_exit,  sys_open,   sys_sbrk,   sys_getdents,
+	                                               sys_fork, sys_execv, sys_close, sys_getenv, sys_waitpid };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);
