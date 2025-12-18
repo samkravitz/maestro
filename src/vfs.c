@@ -14,6 +14,7 @@
 #include <kprintf.h>
 #include <proc.h>
 #include <tty.h>
+#include <kmalloc.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -340,20 +341,29 @@ static struct vnode *find(char *path)
 	// tokenize path into its segments
 	// e.x. given the path "/home/user/bin/a.out"
 	// segment will eventually be "home", "user", "bin", "a.out"
-	char *segment = strtok(path, "/");
+	char *p = strdup(path);
+	char *segment = strtok(p, "/");
 
 	if (!segment)
+	{
+		kfree(p);
 		return NULL;
+	}
 
 	struct vnode *node = root;
 
 	do
 	{
 		node = find_helper(node, segment);
+
 		if (!node)
+		{
+			kfree(p);
 			return NULL;
+		}
 	} while ((segment = strtok(NULL, "/")) != NULL);
 
+	kfree(p);
 	return node;
 }
 
