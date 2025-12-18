@@ -31,6 +31,21 @@
 #define LALT         0x10
 #define CAPSLOCK     0x20
 
+// extended key codes (scancodes after 0xE0 prefix)
+#define EXT_UP       0x48
+#define EXT_DOWN     0x50
+#define EXT_LEFT     0x4B
+#define EXT_RIGHT    0x4D
+#define EXT_HOME     0x47
+#define EXT_END      0x4F
+#define EXT_PGUP     0x49
+#define EXT_PGDN     0x51
+#define EXT_INSERT   0x52
+#define EXT_DELETE   0x53
+
+// Control character helper
+#define CTRL(c)      ((c) & 0x1F)
+
 /*
  * scancode -> key look up table
  * scancode set 1 - US QWERTY
@@ -47,6 +62,29 @@ static const char kbdus[NUM_KEYS] = {
 	'b',  'n',  'm',  ',',  '.',  '/',  '\0', '*',    // RSHIFT
 	'\0', ' ',  '\0', '1',  '2',  '3',  '4',  '5',    // LALT, CAPSLOCK, F1, F2, F3, F4, F5
 	'6',  '7',  '8',  '9',  '0',  '\0', '\0', '7',    // F6, F7, F8, F9, F10, NUMLOCK, SCROLLOCK
+	'8',  '9',  '-',  '4',  '5',  '6',  '+',  '1',    // KEYPAD NUMS
+	'2',  '3',  '0',  '.',  '\0', '\0', '\0', '\0',   // NONE, NONE, NONE, F11
+	'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',   // F12, THEN ALL NONE
+	'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+	'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+	'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+	'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+};
+
+/*
+ * shifted scancode -> key look up table
+ * scancode set 1 - US QWERTY with shift modifier
+ */
+static const char kbdus_shifted[NUM_KEYS] = {
+	'\0', '\0', '!',  '@',  '#',  '$',  '%',  '^',    // NONE, ESC
+	'&',  '*',  '(',  ')',  '_',  '+',  '\b', '\t',
+	'Q',  'W',  'E',  'R',  'T',  'Y',  'U',  'I',
+	'O',  'P',  '{',  '}',  '\n', '\0', 'A',  'S',    // LCTRL
+	'D',  'F',  'G',  'H',  'J',  'K',  'L',  ':',
+	'"',  '~',  '\0', '|',  'Z',  'X',  'C',  'V',    // LSHIFT
+	'B',  'N',  'M',  '<',  '>',  '?',  '\0', '*',    // RSHIFT
+	'\0', ' ',  '\0', '!',  '@',  '#',  '$',  '%',    // LALT, CAPSLOCK, F1, F2, F3, F4, F5
+	'^',  '&',  '*',  '(',  ')',  '\0', '\0', '7',    // F6, F7, F8, F9, F10, NUMLOCK, SCROLLOCK
 	'8',  '9',  '-',  '4',  '5',  '6',  '+',  '1',    // KEYPAD NUMS
 	'2',  '3',  '0',  '.',  '\0', '\0', '\0', '\0',   // NONE, NONE, NONE, F11
 	'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',   // F12, THEN ALL NONE
