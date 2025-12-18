@@ -17,6 +17,7 @@ user_progs:
 	$(MAKE) -C msh
 	$(MAKE) -C cat
 	$(MAKE) -C init
+	$(MAKE) -C kilo
 
 PHONY: clean
 clean:
@@ -24,3 +25,4 @@ clean:
 	$(MAKE) -C msh clean
 	$(MAKE) -C cat clean
 	$(MAKE) -C init clean
+	$(MAKE) -C kilo clean
