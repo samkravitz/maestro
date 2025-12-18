@@ -10,14 +10,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
-	printf("init: starting\n");
-
+	(void) argc;
+	(void) argv;
+	
 	while (1)
 	{
 		int pid = fork();
@@ -25,9 +26,7 @@ int main(int argc, char *argv[], char *envp[])
 		// child - exec the shell
 		if (pid == 0)
 		{
-			char *sh_argv[] = { "/bin/msh", NULL };
-			execv("/bin/msh", sh_argv);
-
+			execv("/bin/msh", (char *[]) { "/bin/msh", NULL });
 			printf("init: failed to exec /bin/msh\n");
 			exit(1);
 		}
@@ -40,6 +39,7 @@ int main(int argc, char *argv[], char *envp[])
 
 			printf("init: shell exited with status %d, respawning...\n", status);
 		}
+
 		else
 		{
 			printf("init: fork failed\n");
