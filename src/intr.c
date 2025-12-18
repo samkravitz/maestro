@@ -14,7 +14,9 @@
 #include <kprintf.h>
 #include <maestro.h>
 #include <syscall.h>
+#include <proc.h>
 
+extern struct proc *curr;
 extern void stack_trace(u32 start_ebp);
 
 #define PIC1 0x20    // pic1 command port
@@ -98,6 +100,7 @@ void isr(struct registers *regs)
 		kprintf("ebp: 0x%x\n", regs->ebp);
 		kprintf("esp: 0x%x\n", regs->esp);
 		kprintf("eip: 0x%x\n", regs->eip);
+		kprintf("curr: %s (pid=%d)\n", curr->name, curr->pid);
 
 		kprintf("\nStack trace:\n");
 		stack_trace(regs->ebp);
