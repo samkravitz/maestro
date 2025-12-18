@@ -30,7 +30,7 @@ enum prstate
 	PR_WAITING,
 	PR_SLEEPING,
 	PR_SUSPENDED,
-    PR_TERMINATED,
+	PR_TERMINATED,
 };
 
 struct proc
@@ -42,10 +42,12 @@ struct proc
 	u8 kstack[PR_STACKSIZE];       // per process kernel stack
 	void *ustack;                  // user stack
 	int pid;                       // process id
+	int parent;                    // parent process id
+	int waiting_for;               // pid this process is waiting for
 	int mask;                      // interrupt state mask
 	struct file *ofile[NOFILE];    // open file table
 	u32 wakeup;                    // timestamp to wake up process when sleeping
-    void *sbrk;                    // address of system break
+	void *sbrk;                    // address of system break
 	char name[32];
 };
 
