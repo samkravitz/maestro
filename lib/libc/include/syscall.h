@@ -24,6 +24,7 @@
 #define SYS_CLOSE    8
 #define SYS_GETENV   9
 #define SYS_WAITPID  10
+#define SYS_IOCTL    11
 
 int syscall(int, ...);
 

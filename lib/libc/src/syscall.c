@@ -49,6 +49,7 @@ int syscall(int sysno, ...)
 
 		// syscalls with 2 arguments
 		case SYS_EXECV:
+		case SYS_IOCTL:
 			arg1 = va_arg(args, uint32_t);
 			arg2 = va_arg(args, uint32_t);
 			ret = syscall2(sysno, arg1, arg2);

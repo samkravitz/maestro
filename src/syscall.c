@@ -381,7 +381,38 @@ static void sys_waitpid(struct registers *regs)
 	sched();
 }
 
-void (*syscall_handlers[])(struct registers *) = { sys_read, sys_write, sys_exit,  sys_open,   sys_sbrk,   sys_getdents,
-	                                               sys_fork, sys_execv, sys_close, sys_getenv, sys_waitpid };
+static void sys_ioctl(struct registers *regs)
+{
+	int fd = (int) regs->ebx;
+	int op = (int) regs->ecx;
+
+	// For now, only support tty ioctl
+	if (fd == 0 || fd == 1)
+	{
+		switch (op)
+		{
+			case 0:    // get terminal size
+			{
+				regs->eax = 0;
+				return;
+			}
+			default:
+				kprintf("ioctl: unknown tty operation %d\n", op);
+				regs->eax = -1;
+				return;
+		}
+	}
+
+	else
+	{
+		kprintf("ioctl: unsupported fd %d\n", fd);
+		regs->eax = -1;
+		return;
+	}
+}
+
+void (*syscall_handlers[])(struct registers *) = { sys_read,  sys_write,    sys_exit,    sys_open,
+	                                               sys_sbrk,  sys_getdents, sys_fork,    sys_execv,
+	                                               sys_close, sys_getenv,   sys_waitpid, sys_ioctl };
 
 const int NUM_SYSCALLS = sizeof(syscall_handlers) / sizeof(syscall_handlers[0]);
