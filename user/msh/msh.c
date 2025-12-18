@@ -38,6 +38,16 @@ int main(int argc, char **argv)
 			if (c == '\n')
 				break;
 
+			if (c == '\b')
+			{
+				if (pos > 0)
+				{
+					pos--;
+					printf("\b");
+				}
+				continue;
+			}
+
 			line[pos++] = c;
 			printf("%c", c);
 		}
@@ -45,13 +55,12 @@ int main(int argc, char **argv)
 		printf("\n");
 
 		line[pos] = '\0';
-		char **args = split_line(line);
-		if (args[0] == NULL)
-		{
-			printf("Error parsing command: %s\n", line);
-			free(args);
+
+		// Edge case: empty command
+		if (pos == 0)
 			continue;
-		}
+
+		char **args = split_line(line);
 
 		// Edge case: command is "exit"
 		if (strcmp(args[0], "exit") == 0)
